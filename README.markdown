@@ -4,11 +4,11 @@ Assuming a fresh install of ubuntu, these are the steps required to get chits up
 
 #A. Setting up necessary softwares (Apache, MySQL ,PHP)
 
-  1. Install web server, programming language, secure shell server and a code management tool. You will be prompted for your root password. Later you will be asked to create a root password for mysql in a blue screen - remember what you choose you will need it below (it can be empty if you are not going to put real data into your database))
+Install web server, programming language, secure shell server and a code management tool. You will be prompted for your root password. Later you will be asked to create a root password for mysql in a blue screen - remember what you choose you will need it below (it can be empty if you are not going to put real data into your database))
 
     sudo apt-get install apache2 mysql-server php5 php5-mysql openssh-server git-core
 
-  2. Download the latest and greatest and most stable chits
+Download the latest and greatest and most stable chits
 
     cd /var/www
     chmod 777 .
@@ -16,11 +16,11 @@ Assuming a fresh install of ubuntu, these are the steps required to get chits up
 
 #B. Configuring php.ini, httpd.conf, mysql
 
-  1. Download and overwrite your existing php.ini
+Download and overwrite your existing php.ini
 
     sudo wget -O /etc/php5/apache2/php.ini http://github.com/mikeymckay/chits/raw/master/install/php.ini.sample
 
-  3. Setup the database - you will need the mysql password you setup earlier. Create, populate and setup the users:
+Setup the database - you will need the mysql password you setup earlier. Create, populate and setup the users:
 
     echo "CREATE DATABASE example_database;" | mysql -u root -p
     mysql -u root -p example_database < /var/www/chits/db/core_data.sql
@@ -31,8 +31,8 @@ Assuming a fresh install of ubuntu, these are the steps required to get chits up
     cp chits/modules/_dbselect.php.sample chits/modules/_dbselect.php
 
 #D. Test it
-  (restart apache2 maybe - hopefully not)
+(restart apache2 maybe - hopefully not)
 
-  1. Access chits in the browser thru the URL: http://localhost/chits/
+Access chits in the browser thru the URL: http://localhost/chits/
 
-  2. Login using 'admin' and password 'admin'
+Login using 'admin' and password 'admin'
