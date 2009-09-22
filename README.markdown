@@ -1,96 +1,42 @@
+Assuming a fresh install of ubuntu:
+
 #A. Setting up necessary softwares (Apache, MySQL , PHP)
 
-1. sudo gedit /etc/apt/sources.list (check if repositories are active
-(commented out))
-2. sudo apt-get update (this will take some time to update)
-3. sudo apt-get install apache2 --> may need to "apt-get build-dep apache2"
-4. sudo apt-get install mysql-server  --> may need to "apt-get build-dep mysql-server"
-	you will be prompted for root password in a blue screen
-5. sudo apt-get install php5
-6. sudo apt-get install php5-mysql
-7. sudo apt-get install dhcp3-server
+3. sudo apt-get install apache2 mysql-server php5 php5-mysql openssh-server git-core
+	you will be prompted for root password in a blue screen - remember what you choose you will need it below (it can be empty if you are not going to put real data into your database)
 
-#B. Activating Apache and Mysql:
-Both Apache and Mysql are automatically activated during startup
-(runlevel 2)
-1. To activate/start Apache: sudo /etc/init.d/apache2 restart
-   To check if Apache is up and running: ps aux|grep apache
-
-2. To activate/start MySQL: sudo /etc/init.d/mysql restart
-   To check if mysql is up and running: ps aux|grep mysql
-
+cd /var/www
+chmod 777 .
+git clone git://github.com/alisonperez/chits.git 
 
 #C. Configuring php.ini, httpd.conf, mysql
 
 1. sudo gedit /etc/php5/apache2/php.ini
    Locate the following parameters and assign the following values:
 
-- short_open_tags -> On
 - register_globals -> On
 - memory_limit -> 128MB (for linux just use M not MB ie. 128M instead of 128MB)
 - session.auto_start -> 1
 - session.save_path -> /var/tmp
-- max_upload_size -> 20MB (for linux this is "upload_max_filesize")
-- post_max_size -> 128 MB
+- upload_max_filesize -> 20M (for linux this is "upload_max_filesize")
+- post_max_size -> 128 M
 
-2. sudo gedit /etc/apache2/apache2.conf
+3. Setup the database - you will need the mysql password you setup earlier
 
-    a. line where there is index.htmls. append index.php at the end of
-the line (for linux this is not a necessary step)
+    a. create a database called 'example_database':
+        echo "CREATE DATABASE example_database;" | mysql -u root -p
 
-3. Default Mysql root password after installation is "".
-    a. login to Mysql using root account:
-
-               $ mysql -u root -p
-
-    b. create a database called 'chits':
-
-        mysql> create database chits;
-
-    c. exit to the Mysql terminal
-
-        mysql> quit
-
-    d. Populate chits database:
-
-        $ mysql -u root -p chits < <location of chitszero.sql>
+    b. Populate chits_example_database
+        mysql -u root -p example_database < /var/www/chits/db/core_data.sql
 	
-	can also use source command inside mysql> source <location of chitszero.sql>
-
-    e. login to Mysql again using root account
-
-        $ mysql -u root -p
-
-    f. choose chits as your database
-
-        mysql> use mysql;
-
-    g. create an ordinary user for chits
-
-        mysql> insert into user set user='chits',password=password('whateverpassword'),host='localhost';
-
-    h. flush privileges
-
-        mysql> flush privileges; # don't forget the semicolon
-
-    i. grant privileges to user chits
-
-        mysql> grant all privileges on chits.* to chits@localhost
-identified by 'whateverpassword';
-
-    j. flush privileges (see step h)
-
-    k. log off then login using the newly create account
-(chits,whateverpassword) to check if it works
-
-        mysql> quit
-
-        $ mysql -u chits -p
+    e. login to Mysql again using root account 
+        echo "INSERT INTO user SET user='example_user',password=password('example_password'),host='localhost';FLUSH PRIVILEGES;GRANT ALL PRIVILEGES ON example_database.* to example_user@localhost IDENTIFIED BY 'example_password';" | mysql -u root mysql -p
 
 #D. Configuring CHITS config file
-    a. Go to /var/www and locate chits folder.
-    b. Go to 'modules' folder and open '_dbselect.php' using text editor. Under the 'chits_query' directory, set the $dbname to the database containing CHITS tables and $dbname for the database of the chits query tool. The sql file of chits query tool can be found inside the 'sql' folder on main chits directory.
-    c. replace $dbname, $dbpwd, $dbname with 'chits','whateverpassword','chits'
+
+cp chits/modules/_dbselect.php.sample chits/modules/_dbselect.php
+
+#E. Test it
+
     d. Access CHITS in the browser thru the URL: http://localhost/chits/
     e. Login using 'admin' and password 'admin'
-
