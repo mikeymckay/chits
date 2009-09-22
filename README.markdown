@@ -1,42 +1,38 @@
-Assuming a fresh install of ubuntu:
+# How to install chits
 
-#A. Setting up necessary softwares (Apache, MySQL , PHP)
+Assuming a fresh install of ubuntu, these are the steps required to get chits up and running. Extra steps should be taken to make this stuff secure. A script to automate this will be coming soon. All of the lines that look like code are meant to be executed as is on the command line. Just copy and paste the entire line to your terminal window.
 
-3. sudo apt-get install apache2 mysql-server php5 php5-mysql openssh-server git-core
-	you will be prompted for root password in a blue screen - remember what you choose you will need it below (it can be empty if you are not going to put real data into your database)
+#A. Setting up necessary softwares (Apache, MySQL ,PHP)
 
-cd /var/www
-chmod 777 .
-git clone git://github.com/alisonperez/chits.git 
+  1. Install web server, programming language, secure shell server and a code management tool. You will be prompted for your root password. Later you will be asked to create a root password for mysql in a blue screen - remember what you choose you will need it below (it can be empty if you are not going to put real data into your database))
 
-#C. Configuring php.ini, httpd.conf, mysql
+    sudo apt-get install apache2 mysql-server php5 php5-mysql openssh-server git-core
 
-1. sudo gedit /etc/php5/apache2/php.ini
-   Locate the following parameters and assign the following values:
+  2. Download the latest and greatest and most stable chits
 
-- register_globals -> On
-- memory_limit -> 128MB (for linux just use M not MB ie. 128M instead of 128MB)
-- session.auto_start -> 1
-- session.save_path -> /var/tmp
-- upload_max_filesize -> 20M (for linux this is "upload_max_filesize")
-- post_max_size -> 128 M
+    cd /var/www
+    chmod 777 .
+    git clone git://github.com/alisonperez/chits.git 
 
-3. Setup the database - you will need the mysql password you setup earlier
+#B. Configuring php.ini, httpd.conf, mysql
 
-    a. create a database called 'example_database':
-        echo "CREATE DATABASE example_database;" | mysql -u root -p
+  1. Download and overwrite your existing php.ini
 
-    b. Populate chits_example_database
-        mysql -u root -p example_database < /var/www/chits/db/core_data.sql
-	
-    e. login to Mysql again using root account 
-        echo "INSERT INTO user SET user='example_user',password=password('example_password'),host='localhost';FLUSH PRIVILEGES;GRANT ALL PRIVILEGES ON example_database.* to example_user@localhost IDENTIFIED BY 'example_password';" | mysql -u root mysql -p
+    sudo wget -O /etc/php5/apache2/php.ini http://github.com/mikeymckay/chits/raw/master/install/php.ini.sample
 
-#D. Configuring CHITS config file
+  3. Setup the database - you will need the mysql password you setup earlier. Create, populate and setup the users:
 
-cp chits/modules/_dbselect.php.sample chits/modules/_dbselect.php
+    echo "CREATE DATABASE example_database;" | mysql -u root -p
+    mysql -u root -p example_database < /var/www/chits/db/core_data.sql
+    echo "INSERT INTO user SET user='example_user',password=password('example_password'),host='localhost';FLUSH PRIVILEGES;GRANT ALL PRIVILEGES ON example_database.* to example_user@localhost IDENTIFIED BY 'example_password';" | mysql -u root mysql -p
 
-#E. Test it
+#C. Configuring chits config file
 
-    d. Access CHITS in the browser thru the URL: http://localhost/chits/
-    e. Login using 'admin' and password 'admin'
+    cp chits/modules/_dbselect.php.sample chits/modules/_dbselect.php
+
+#D. Test it
+  (restart apache2 maybe - hopefully not)
+
+  1. Access chits in the browser thru the URL: http://localhost/chits/
+
+  2. Login using 'admin' and password 'admin'
