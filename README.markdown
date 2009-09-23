@@ -11,14 +11,15 @@ Install web server, programming language, secure shell server and a code managem
 Download the latest and greatest and most stable chits
 
     cd /var/www
-    chmod 777 .
-    git clone git://github.com/alisonperez/chits.git 
+    sudo chmod 777 .
+    git clone git://github.com/mikeymckay/chits.git 
 
 #B. Configuring php.ini, httpd.conf, mysql
 
-Download and overwrite your existing php.ini
+Download and overwrite your existing php.ini then restart the web server
 
     sudo wget -O /etc/php5/apache2/php.ini http://github.com/mikeymckay/chits/raw/master/install/php.ini.sample
+    sudo /etc/init.d/apache2 restart
 
 Setup the database - you will need the mysql password you setup earlier. Create, populate and setup the users:
 
@@ -33,6 +34,7 @@ Setup the database - you will need the mysql password you setup earlier. Create,
 #D. Test it
 (restart apache2 maybe - hopefully not)
 
-Access chits in the browser thru the URL: http://localhost/chits/
+Access chits in your browser (Login using 'admin' and password 'admin'):
 
-Login using 'admin' and password 'admin'
+    firefox http://localhost/chits/
+
