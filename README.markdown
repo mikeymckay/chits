@@ -6,13 +6,12 @@ Assuming a fresh install of ubuntu, these are the steps required to get chits up
 
 Install web server, programming language, secure shell server and a code management tool. You will be prompted for your root password. Later you will be asked to create a root password for mysql in a blue screen - remember what you choose you will need it below (it can be empty if you are not going to put real data into your database))
 
-    sudo apt-get install apache2 mysql-server php5 php5-mysql openssh-server git-core
+    sudo apt-get install apache2 mysql-server php5 php5-mysql openssh-server git-core wget
 
 Download the latest and greatest and most stable chits
 
-    cd /var/www
-    sudo chmod 777 .
-    git clone git://github.com/mikeymckay/chits.git 
+    sudo chmod 777 /var/www
+    git clone git://github.com/mikeymckay/chits.git /var/www/chits
 
 #B. Configuring php.ini, httpd.conf, mysql
 
@@ -29,10 +28,9 @@ Setup the database - you will need the mysql password you setup earlier. Create,
 
 #C. Configuring chits config file
 
-    cp chits/modules/_dbselect.php.sample chits/modules/_dbselect.php
+    cp /var/www/chits/modules/_dbselect.php.sample /var/www/chits/modules/_dbselect.php
 
 #D. Test it
-(restart apache2 maybe - hopefully not)
 
 Access chits in your browser (Login using 'admin' and password 'admin'):
 
