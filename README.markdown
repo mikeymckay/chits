@@ -36,3 +36,14 @@ Access chits in your browser (Login using 'admin' and password 'admin'):
 
     firefox http://localhost/chits/
 
+#Option 2
+
+Run chits inside VirtualBox (runs on Windows/Linux/Mac). This image also has cucumber installed and setup.
+
+Download a 145MB compressed Ubuntu image with chits preinstalled:
+  http://www.vdomck.org/chits_appliance.7z
+
+(You will need 7zip to uncompress it)
+
+You will also need the virtualbox configuration file:
+  http://www.vdomck.org/chits_appliance.xml
