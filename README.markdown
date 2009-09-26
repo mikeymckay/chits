@@ -1,3 +1,14 @@
+# Install Method 1
+
+This is the preferred method. It sets up a web server, the database and other required software. It uses git to download the latest version of chits and it also includes a full testing suite which is executed at the end of the installation to ensure that everything worked as expected.
+
+Download and run the chits_install.sh script as sudo:
+
+    wget http://github.com/mikeymckay/chits/raw/master/install/chits_install.sh
+    sudo ./chits_install.sh
+
+# Install Method 2
+
 # How to install chits
 
 Assuming a fresh install of ubuntu, these are the steps required to get chits up and running. Extra steps should be taken to make this stuff secure. A script to automate this will be coming soon. All of the lines that look like code are meant to be executed as is on the command line. Just copy and paste the entire line to your terminal window.
@@ -36,7 +47,14 @@ Access chits in your browser (Login using 'admin' and password 'admin'):
 
     firefox http://localhost/chits/
 
-#Option 2
+#E. Testing
+
+Install cucumber according to the instructions found here:
+http://github.com/mikeymckay/chits/blob/master/features/README.markdown
+
+# Install Method 3
+
+(this method is untested, please send feedback)
 
 Run chits inside VirtualBox (runs on Windows/Linux/Mac). This image also has cucumber installed and setup.
 
