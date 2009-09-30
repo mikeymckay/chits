@@ -4,13 +4,11 @@ Feature: Manage Patients
 	I want to be able to manage paients by searching,creating,updating and deleting patient information
 
 	Scenario: Search the patient
-    Given I am logged in as "admin" with password "admin"
-    And I click "PATIENTS"
-		When I fill in "first" with "Jose"
-		And I fill in "last" with "Rizal"
+		Given I am on the old patient form
+		When I fill in the "first" with "Jose"
+		And I fill in the "last" with "Rizal"
 		And I press "submitsearch"
 		Then I should see "No Records Found"
-
 	Scenario: Add a new patient
 		Given I am on the patient management form
 		When I fill in the "patient_firstname" with "Andres"
@@ -25,7 +23,7 @@ Feature: Manage Patients
 		And I am on the old patient form
 		And I fill "first" with "Andres"
 		And I fill in "last" with "Bonifacio"
-		Then I should see "Found 1 Record: Andres Bonifacio"
+		The I should see "Found 1 Record: Andres Bonifacio"
 	Scenario: Update patient information
 		Given I am on the old patient form
 		When I fill in "first" with "Andres"
