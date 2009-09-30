@@ -27,6 +27,12 @@ Everything that we do must be easy to replicate. Instead of writing out complica
 * [mysql replication master script](http://github.com/mikeymckay/chits/blob/master/install/TODO)
 * [mysql replication slave script](http://github.com/mikeymckay/chits/blob/master/install/TODO)
 
+##access point
+
+* install & configure for use as access point
+* [setup as access point script](http://github.com/mikeymckay/chits/blob/master/install/TODO)
+
+
 ## TODO
 Create checklist for each device
 
