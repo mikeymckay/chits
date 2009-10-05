@@ -12,6 +12,8 @@ Everything that we do must be easy to replicate. Instead of writing out complica
 * Set firefox homepage to CHITS
 * [client install script](http://github.com/mikeymckay/chits/blob/master/install/TODO)
 
+* Set optimum power settings when running on battery - lowest brightness, CPU scaling, etc.
+
 ##server
 
 * install using github script
@@ -26,6 +28,25 @@ Everything that we do must be easy to replicate. Instead of writing out complica
 * setup master mode replication on master
 * [mysql replication master script](http://github.com/mikeymckay/chits/blob/master/install/TODO)
 * [mysql replication slave script](http://github.com/mikeymckay/chits/blob/master/install/TODO)
+
+##Ubuntu installation
+
+Language: English
+Timezone: Manila
+Keyboard layout: USA
+Partitions: Use the entire disk
+Who are you: chits, chits, password, name 'pc1', 'Log in automatically'
+
+Restart
+Eject CD/USB Disk
+Applications :: Accessories :: Terminal
+
+    sudo apt-get install wget
+    wget TODO
+
+Install Updates when prompted
+
+
 
 ## TODO
 Create checklist for each device
