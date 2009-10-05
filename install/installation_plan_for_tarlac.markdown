@@ -43,6 +43,8 @@ Applications :: Accessories :: Terminal
 
     sudo apt-get install wget
     wget http://ow.ly/sPAq
+    chmod +x tarlac_install.sh
+    sudo ./tarlac_install.sh
 
 Install Updates when prompted
 

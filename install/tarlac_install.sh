@@ -16,8 +16,8 @@ remove() {
 client () {
   echo "Client"
   install "tuxtype"
-  sudo apt-get install $PROGRAMS_TO_INSTALL
-  sudo apt-get remove $PROGRAMS_TO_REMOVE
+  apt-get --assume-yes install $PROGRAMS_TO_INSTALL
+  apt-get --assume-yes remove $PROGRAMS_TO_REMOVE
 
 # Make firefox launch automatically and point it at http://chits_server
   AUTOSTART_DIR=$HOME/.config/autostart
@@ -36,9 +36,10 @@ X-GNOME-Autostart-enabled=true" > $AUTOSTART_DIR/firefox.desktop
 
 server () {
   echo "Server"
-  apt-get install $PROGRAMS_TO_INSTALL
-  sudo apt-get remove $PROGRAMS_TO_REMOVE
+  apt-get --assume-yes install $PROGRAMS_TO_INSTALL
+  apt-get --assume-yes remove $PROGRAMS_TO_REMOVE
   wget http://github.com/mikeymckay/chits/raw/master/install/chits_install.sh
+  chmod +x chits_install.sh
   ./chits_install.sh
 }
 
