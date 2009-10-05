@@ -42,7 +42,7 @@ Eject CD/USB Disk
 Applications :: Accessories :: Terminal
 
     sudo apt-get install wget
-    wget TODO
+    wget http://ow.ly/sPAq
 
 Install Updates when prompted
 

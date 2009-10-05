@@ -48,24 +48,25 @@ client_and_server () {
   client
 }
 
+access_point () {
+  echo "Access point"
 #TODO!!
-access_point (){
 
 }
 
-server_and_access_point (){
+server_and_access_point () {
   server
   access_point
 }
 
-client_and_server_and_access_point (){
+client_and_server_and_access_point () {
   server
   client
   access_point
 }
 
 #TODO!!
-client_with_mysql_replication (){
+client_with_mysql_replication () {
   install "mysql-server"
   client
 }
@@ -95,9 +96,9 @@ case $choice in
 1) client; exit ;;
 2) server; exit ;;
 3) client_and_server; exit ;;
-4) server_and_access_point
-5) client_and_server_and_access_point
-6) client_with_mysql_replication
+4) server_and_access_point; exit ;;
+5) client_and_server_and_access_point ; exit ;;
+6) client_with_mysql_replication; exit ;;
 7) exit ;;
 *) echo "\"$choice\" is not valid "; sleep 2 ;;
 esac
