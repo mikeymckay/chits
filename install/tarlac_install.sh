@@ -2,7 +2,7 @@
 
 # These are for all configurations
 PROGRAMS_TO_INSTALL='openssh-server wget'
-PROGRAMS_TO_REMOVE="gnome-games gnome-games-data openoffice* f-spot ekiga evolution pidgin totem brasero rythmbox gnome-sound-recorder synaptic"
+PROGRAMS_TO_REMOVE="gnome-games gnome-games-data openoffice* f-spot ekiga evolution pidgin totem brasero rhythmbox gnome-sound-recorder synaptic"
 
 # Call "install wget" to add wget to the list of programs to install
 install() {
