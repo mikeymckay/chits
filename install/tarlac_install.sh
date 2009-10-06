@@ -1,4 +1,8 @@
 #!/bin/sh
+if [ -z "$SUDO_USER" ]; then
+    echo "$0 must be called from sudo"
+    exit 1
+fi
 
 # These are for all configurations
 PROGRAMS_TO_INSTALL='openssh-server wget'
@@ -86,7 +90,11 @@ dhcp-range=192.168.0.10,192.168.0.50,12h
 "|cat - /etc/dnsmasq.conf > /tmp/out && mv /tmp/out /etc/dnsmasq.conf
 
 # Handle external DNS resolution - do we want clients to be able to resolve external domains?
-#
+
+  /etc/init.d/mysql restart
+  /etc/init.d/networking restart
+  /etc/init.d/dnsmasq restart
+
 }
 
 client_and_server () {
@@ -132,7 +140,8 @@ ${PROGRAMS_TO_INSTALL}
 4. Server & Access Point
 5. Client & Server & Access Point
 6. Client with mysql replication
-7. Exit
+7. Server with mysql replication
+8. Exit
 
 !
 
@@ -146,7 +155,8 @@ case $choice in
 4) server_and_access_point; exit ;;
 5) client_and_server_and_access_point ; exit ;;
 6) client_with_mysql_replication; exit ;;
-7) exit ;;
+7) server_with_mysql_replication; exit ;;
+8) exit ;;
 *) echo "\"$choice\" is not valid "; sleep 2 ;;
 esac
 done
