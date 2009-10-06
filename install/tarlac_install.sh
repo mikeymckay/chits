@@ -18,6 +18,7 @@ client () {
   install "tuxtype"
   apt-get --assume-yes install $PROGRAMS_TO_INSTALL
   apt-get --assume-yes remove $PROGRAMS_TO_REMOVE
+  apt-get --assume-yes upgrade
 
 # Make firefox launch automatically and point it at http://chits_server
   AUTOSTART_DIR=$HOME/.config/autostart
@@ -35,7 +36,6 @@ X-GNOME-Autostart-enabled=true" > $AUTOSTART_DIR/firefox.desktop
   echo "
 # chits server should be found at 192.168.0.1  
 192.168.0.1 chits_server" >> /etc/hosts
-  wget 
   wget http://github.com/mikeymckay/chits/raw/master/install/tarlac_firefox_profile.zip
   unzip tarlac_firefox_profile.zip
 }
@@ -44,9 +44,16 @@ server () {
   echo "Server"
   apt-get --assume-yes install $PROGRAMS_TO_INSTALL
   apt-get --assume-yes remove $PROGRAMS_TO_REMOVE
+  apt-get --assume-yes upgrade
   wget http://github.com/mikeymckay/chits/raw/master/install/chits_install.sh
   chmod +x chits_install.sh
   ./chits_install.sh
+  echo "
+# chits server should be found here
+127.0.0.1 chits_server" >> /etc/hosts
+# TODO set ip
+# setup dhcp
+# setup dns
 }
 
 client_and_server () {
