@@ -46,6 +46,8 @@ Applications :: Accessories :: Terminal
     chmod +x tarlac_install.sh
     sudo ./tarlac_install.sh
 
+
+When mysql prompts for password use an empty password - just press enter
 Install Updates when prompted
 
 

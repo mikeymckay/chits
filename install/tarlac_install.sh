@@ -2,7 +2,7 @@
 
 # These are for all configurations
 PROGRAMS_TO_INSTALL='openssh-server wget'
-PROGRAMS_TO_REMOVE="gnome-games gnome-games-data openoffice* f-spot ekiga evolution pidgin totem brasero rhythmbox synaptic"
+PROGRAMS_TO_REMOVE="gnome-games gnome-games-data openoffice.org-common f-spot ekiga evolution pidgin totem totem-common brasero rhythmbox synaptic gimp"
 
 # Call "install wget" to add wget to the list of programs to install
 install() {
@@ -32,6 +32,12 @@ Comment[en_US]=Firefox
 Comment=Firefox
 Exec=/usr/bin/firefox -no-remote -P default http://chits_server
 X-GNOME-Autostart-enabled=true" > $AUTOSTART_DIR/firefox.desktop
+  echo "
+# chits server should be found at 192.168.0.1  
+192.168.0.1 chits_server" >> /etc/hosts
+  wget 
+  wget http://github.com/mikeymckay/chits/raw/master/install/tarlac_firefox_profile.zip
+  unzip tarlac_firefox_profile.zip
 }
 
 server () {
