@@ -33,15 +33,16 @@ Comment[en_US]=Firefox
 Comment=Firefox
 Exec=/usr/bin/firefox -no-remote -P default http://chits_server
 X-GNOME-Autostart-enabled=true" > $AUTOSTART_DIR/firefox.desktop
-  echo "
-# chits server should be found at 192.168.0.1  
-192.168.0.1 chits_server" >> /etc/hosts
+
+# Create firefox profile with kiosk/fullscreen mode enabled
   wget http://github.com/mikeymckay/chits/raw/master/install/tarlac_firefox_profile.zip
-  unzip tarlac_firefox_profile.zip
+# unzip this as the user to keep permissions right
+  su $SUDO_USER -c "unzip tarlac_firefox_profile.zip"
 }
 
 server () {
   echo "Server"
+  install "dnsmasq"
   apt-get --assume-yes install $PROGRAMS_TO_INSTALL
   apt-get --assume-yes remove $PROGRAMS_TO_REMOVE
   apt-get --assume-yes upgrade
@@ -49,11 +50,43 @@ server () {
   chmod +x chits_install.sh
   ./chits_install.sh
   echo "
+# ------------------------------
+# Added by tarlac_install script
+# ------------------------------
 # chits server should be found here
-127.0.0.1 chits_server" >> /etc/hosts
-# TODO set ip
-# setup dhcp
-# setup dns
+192.168.0.1 chits_server
+# ------------------------------
+" >> /etc/hosts
+
+# Set static IP
+    echo "
+auto eth0
+iface eth0 inet static
+address 192.168.0.1
+netmask 255.255.255.0
+gateway 192.168.0.1
+" > /etc/network/interfaces
+
+# setup DHCP and DNS
+# Prepend the following to /etc/dnsmasq.conf
+  echo "
+# ------------------------------
+# Added by tarlac_install script
+# ------------------------------
+# allow people to query based on hostname
+expand-hosts
+
+# Set the domain to be clinic, so http://chits.clinic will resolve, probably not important
+domain=clinic
+
+# Provide IP addresses in the range 10-50
+dhcp-range=192.168.0.10,192.168.0.50,12h
+# ------------------------------
+
+"|cat - /etc/dnsmasq.conf > /tmp/out && mv /tmp/out /etc/dnsmasq.conf
+
+# Handle external DNS resolution - do we want clients to be able to resolve external domains?
+#
 }
 
 client_and_server () {
@@ -64,7 +97,9 @@ client_and_server () {
 
 access_point () {
   echo "Access point"
+
 #TODO!!
+# setup gateway with dnsmasq
 
 }
 
@@ -90,8 +125,6 @@ do
 cat << !
 
 ${PROGRAMS_TO_INSTALL}
-
-Install Script for Tarlac
 
 1. Client
 2. Server
