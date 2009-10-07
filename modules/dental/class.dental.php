@@ -63,8 +63,8 @@
       // set_menu parameters
       // set_menu([module name], [menu title - what is displayed], menu categories (top menu)], [script executed in class])
       module::set_menu($this->module, "Dental Records", "PATIENTS", "_dental");
-      // set_menu parameters
-      // set_menu([module description], [module version], [module author], [module name/id]
+      // set_detail parameters
+      // set_detail([module description], [module version], [module author], [module name/id]
       module::set_detail($this->description, $this->version, $this->author, $this->module);
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
