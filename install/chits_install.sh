@@ -28,7 +28,7 @@ mysql -u root -p$MYSQL_ROOT_PASSWORD example_database < /var/www/chits/db/core_d
 echo "INSERT INTO user SET user='example_user',password=password('example_password'),host='localhost';FLUSH PRIVILEGES;GRANT ALL PRIVILEGES ON example_database.* to example_user@localhost IDENTIFIED BY 'example_password';" | mysql -u root mysql -p$MYSQL_ROOT_PASSWORD
 
 #Setup cucumber
-wget http://rubyforge.org/frs/download.php/60718/rubygems-1.3.5.tgz
+wget --output-file=rubygems-1.3.5.tgz http://rubyforge.org/frs/download.php/60718/rubygems-1.3.5.tgz
 tar xvf rubygems-1.3.5.tgz --directory /tmp
 ruby /tmp/rubygems-1.3.5/setup.rb
 ln -s /usr/bin/gem1.8 /usr/bin/gem
