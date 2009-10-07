@@ -9,12 +9,19 @@ PROGRAMS_TO_INSTALL='openssh-server wget'
 PROGRAMS_TO_REMOVE="gnome-games gnome-games-data openoffice.org-common f-spot ekiga evolution pidgin totem totem-common brasero rhythmbox synaptic gimp"
 
 # Call "install wget" to add wget to the list of programs to install
-install() {
+install () {
   PROGRAMS_TO_INSTALL="${PROGRAMS_TO_INSTALL} ${1}"
 }
 
-remove() {
-  PROGRAMS_TO_REMOVE="${PROGRAMS_TO_INSTALL} ${1}"
+remove () {
+  PROGRAMS_TO_REMOVE="${PROGRAMS_TO_REMOVE} ${1}"
+}
+
+set_mysql_root_password () {
+  echo "Enter the root password to setup mysql with:"
+  read MYSQL_ROOT_PASSWORD
+  echo "mysql-server mysql-server/root_password select ${MYSQL_ROOT_PASSWORD}" | debconf-set-selections
+  echo "mysql-server mysql-server/root_password_again select ${MYSQL_ROOT_PASSWORD}" | debconf-set-selections
 }
 
 client () {
@@ -124,6 +131,7 @@ client_and_server_and_access_point () {
 
 #TODO!!
 client_with_mysql_replication () {
+  set_mysql_root_password
   install "mysql-server"
   client
 }
