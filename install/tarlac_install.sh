@@ -46,7 +46,7 @@ Exec=/usr/bin/firefox -no-remote -P default http://chits_server
 X-GNOME-Autostart-enabled=true" > $AUTOSTART_DIR/firefox.desktop
 
 # Create firefox profile with kiosk/fullscreen mode enabled
-  wget --output-file=tarlac_firefox_profile.zip http://github.com/mikeymckay/chits/raw/master/install/tarlac_firefox_profile.zip
+  wget --output-document=tarlac_firefox_profile.zip http://github.com/mikeymckay/chits/raw/master/install/tarlac_firefox_profile.zip
 # unzip this as the user to keep permissions right
   su $SUDO_USER -c "unzip tarlac_firefox_profile.zip"
 }
@@ -57,7 +57,7 @@ server () {
   apt-get --assume-yes install $PROGRAMS_TO_INSTALL
   apt-get --assume-yes remove $PROGRAMS_TO_REMOVE
   apt-get --assume-yes upgrade
-  wget --output-file=chits_install.sh http://github.com/mikeymckay/chits/raw/master/install/chits_install.sh
+  wget --output-document=chits_install.sh http://github.com/mikeymckay/chits/raw/master/install/chits_install.sh
   chmod +x chits_install.sh
   ./chits_install.sh
   echo "
