@@ -106,8 +106,8 @@ dhcp-range=192.168.0.10,192.168.0.50,12h
 
 client_and_server () {
   echo "Client & Server"
-  server
   client
+  server
 }
 
 access_point () {
