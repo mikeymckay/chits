@@ -4,7 +4,7 @@
 # http://github.com/mikeymckay/chits/raw/master/install/mysql_replication.sh
 
 if [ -z "$SUDO_USER" ]; then
-    echo "$0 must be called from sudo"
+    echo "$0 must be called from sudo. Try: 'sudo ${0}'"
     exit 1
 fi
 
@@ -49,7 +49,11 @@ server-id=1
 
 /etc/init.d/mysql restart
 
-echo "GRANT REPLICATION SLAVE ON *.* TO 'chits_live'@'%' IDENTIFIED BY '${MYSQL_CHITS_LIVE_PASSWORD}'; FLUSH PRIVILEGES; USE chits_live; FLUSH TABLES WITH READ LOCK; SHOW MASTER STATUS;" | mysql -u root -p$MYSQL_ROOT_PASSWORD
+echo "GRANT REPLICATION SLAVE ON *.* TO 'chits_live'@'%' IDENTIFIED BY '${MYSQL_CHITS_LIVE_PASSWORD}'; 
+FLUSH PRIVILEGES; 
+USE chits_live;
+FLUSH TABLES WITH READ LOCK; 
+SHOW MASTER STATUS;" | mysql -u root -p$MYSQL_ROOT_PASSWORD
 
 # TODO http://www.ghacks.net/2009/04/09/set-up-mysql-database-replication/
 #

@@ -3,7 +3,7 @@
 # http://github.com/mikeymckay/chits/raw/master/install/mysql_replication.sh
 
 if [ -z "$SUDO_USER" ]; then
-    echo "$0 must be called from sudo"
+    echo "$0 must be called from sudo. Try: 'sudo ${0}'"
     exit 1
 fi
 

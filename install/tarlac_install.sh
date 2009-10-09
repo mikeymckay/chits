@@ -1,6 +1,6 @@
 #!/bin/sh
 if [ -z "$SUDO_USER" ]; then
-    echo "$0 must be called from sudo"
+    echo "$0 must be called from sudo. Try: 'sudo ${0}'"
     exit 1
 fi
 
@@ -150,6 +150,16 @@ client_with_mysql_replication () {
   set_mysql_root_password
   install "mysql-server"
   client
+  echo "Replication needs to be completed by logging onto the master computer and running the mysql_replication.sh script"
+}
+
+
+#TODO!!
+server_with_mysql_replication () {
+  server
+  wget http://github.com/mikeymckay/chits/raw/master/install/mysql_replication.sh
+  chmod +x mysql_replication.sh
+  echo "Once your all clients are on the network and ready, run: 'sudo ./mysql_replication'"
 }
 
 while : # Loop forever
