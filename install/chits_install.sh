@@ -48,10 +48,10 @@ create_database() {
   GRANT ALL PRIVILEGES ON ${db_name}.* to ${user_name}@'%' IDENTIFIED BY '${user_password}';" | mysql -u root mysql -p$MYSQL_ROOT_PASSWORD
 }
 
-create_database("chits_development", "chits_developer", "password")
-create_database("chits_live", "chits_live", "${CHITS_LIVE_PASSWORD}")
+create_database "chits_development" "chits_developer" "password"
+create_database "chits_live" "chits_live" "${CHITS_LIVE_PASSWORD}"
 # TODO use a core DB without users
-create_database("chits_testing", "chits_tester", "useless_password")
+create_database "chits_testing" "chits_tester" "useless_password"
 
 #echo "CREATE DATABASE chits_development;" | mysql -u root -p$MYSQL_ROOT_PASSWORD
 #mysql -u root -p$MYSQL_ROOT_PASSWORD example_database < /var/www/chits/db/core_data.sql

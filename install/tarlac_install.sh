@@ -11,11 +11,26 @@ echo "Do you want to remove un-needed packages like games, music players and ema
 read REMOVE
 
 # These are for all configurations
-PROGRAMS_TO_INSTALL='openssh-server wget'
+PROGRAMS_TO_INSTALL='openssh-server wget vim'
 
 if [ ! "${REMOVE}" = "n" ]; then
   PROGRAMS_TO_REMOVE="gnome-games gnome-games-data openoffice.org-common f-spot ekiga evolution pidgin totem totem-common brasero rhythmbox synaptic gimp"
 fi
+
+echo "
+set bell-style none
+
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+"\e[5C": forward-word
+"\e[5D": backward-word
+"\e\e[C": forward-word
+"\e\e[D": backward-word
+$if Bash
+  Space: magic-space
+$endif" > /home/$SUDO_USER/.inputrc
+
+
 
 # Call "install wget" to add wget to the list of programs to install
 install () {
