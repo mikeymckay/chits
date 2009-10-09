@@ -13,8 +13,14 @@ fi
 echo "Enter mysql root user password"
 read MYSQL_ROOT_PASSWORD
 
+echo "SHOW DATABASES;" | mysql -u root -p$MYSQL_ROOT_PASSWORD 
+
+echo "Checking that chits_live database exists"
+
 echo "Enter chits_live mysql password"
 read MYSQL_CHITS_LIVE_PASSWORD
+
+echo "TODO: Checking that chits_live database exists and that password works"
 
 echo "Enter IP addresses for slaves:"
 read SLAVE_IPS
@@ -28,7 +34,7 @@ echo "Configuring self as master"
 # Comment out the bind address so mysql accepts non-local connections
 sed -i 's/^bind-address.*127.0.0.1/#&/' /etc/mysql/my.cnf
 
-# Prepend the following to /etc/mysql/my.conf
+# Append the following to /etc/mysql/my.conf
   echo "
 # ----------------------------------------
 # Added by tarlac mysql_replication script:
@@ -39,7 +45,7 @@ binlog-do-db=sample_database
 server-id=1
 # ------------------------------
 
-"|cat - /etc/mysql/my.conf > /tmp/out && mv /tmp/out /etc/mysql/my.conf
+" >>  /etc/mysql/my.cnf 
 
 /etc/init.d/mysql restart
 

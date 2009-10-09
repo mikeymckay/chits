@@ -64,6 +64,7 @@ X-GNOME-Autostart-enabled=true" > $AUTOSTART_DIR/firefox.desktop
 
 server () {
   echo "Server"
+  set_mysql_root_password
   install "dnsmasq"
   apt-get --assume-yes install $PROGRAMS_TO_INSTALL
   apt-get --assume-yes remove $PROGRAMS_TO_REMOVE
@@ -71,7 +72,8 @@ server () {
     apt-get --assume-yes upgrade
   fi
   wget --output-document=chits_install.sh http://github.com/mikeymckay/chits/raw/master/install/chits_install.sh
-  chmod +x chits_install.sh
+  wget --output-document=mysql_replication.sh http://github.com/mikeymckay/chits/raw/master/install/mysql_replication.sh
+  chmod +x chits_install.sh mysql_replication.sh
   ./chits_install.sh
   echo "
 # ------------------------------
