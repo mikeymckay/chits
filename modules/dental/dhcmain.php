@@ -75,53 +75,41 @@
   
   echo "<table border=1 cellspacing=1 align='center' width=600>";
     echo "<tr>";
-      echo "<th>Individual Patient Treatment Record</th>";
+      echo "<th colspan=3>Individual Patient Treatment Record</th>";
     echo "</tr>";
     
     echo "<tr>";
-      echo "<td><i>Patient ID:</i> $patient_id</td>";
+      echo "<td colspan=3><i>Patient ID:</i> $patient_id</td>";
     echo "</tr>";
     
     echo "<tr>";
-      echo "<td><i>Name:</i> $patient_name</td>";
+      echo "<td colspan=3><i>Name:</i> $patient_name</td>";
     echo "</tr>";
     
     echo "<tr>";
       echo "<td><i>Date of Birth:</i> $patient_birthdate</td>";
-    //  echo "<td><i>Age:</i> $patient_age</td>";
-    //  echo "<td><i>Sex:</i> $patient_sex</td>";
-    echo "</tr>";
-    
-    echo "<tr>";
-    //  echo "<td><i>Date of Birth:</i> $patient_birthdate</td>";
       echo "<td><i>Age:</i> $patient_age</td>";
-    //  echo "<td><i>Sex:</i> $patient_sex</td>";
-    echo "</tr>";
-    
-    echo "<tr>";
-    //  echo "<td><i>Date of Birth:</i> $patient_birthdate</td>";
-    //  echo "<td><i>Age:</i> $patient_age</td>";
       echo "<td><i>Sex:</i> $patient_sex</td>";
     echo "</tr>";
     
     echo "<tr>";
-      echo "<td><i>Place of Birth:</i> $patient_place_of_birth</td>";
+      echo "<td colspan=3><i>Place of Birth:</i> $patient_place_of_birth</td>";
     echo "</td>";
     
     echo "<tr>";
-      echo "<td><i>Address:</i> $patient_address</td";    
+      echo "<td colspan=3><i>Address:</i> $patient_address</td";    
     echo "</tr>";
     
     echo "<tr>";
-      echo "<td><i>Occupation:</i> $patient_occupation</td>";
+      echo "<td colspan=3><i>Occupation:</i> $patient_occupation</td>";
     echo "</tr>";
     
     echo "<tr>";
-      echo "<td><i>Parent/Guardian:</i> $patient_parent</td>";
+      echo "<td colspan=3><i>Parent/Guardian:</i> $patient_parent</td>";
     echo "</tr>";
     
     echo "<tr>";
-      echo "<td><i>Medical History:</i> $patient_medical_history</td>";
+      echo "<td colspan=3><i>Medical History:</i> $patient_medical_history</td>";
     echo "</tr>";
   
   echo "</table>";
@@ -152,7 +140,7 @@
     
     echo "<tr>";
       echo "<td>Date of Oral Examination: ".
-        "<input type='textbox' size=10></input>".
+        "<input type='text' size=10 readonly='true' value='".date("Y-m-d")."'>"."</input>".
         "<i> (mm-dd-yyyy)</i>".
         "</td>";
     echo "</tr>";
@@ -210,66 +198,66 @@
   echo "<table border=1 align='center' width='600'>";
     
     echo "<tr>";
-      echo "<th align='left'>Oral Health Condition (B)</th>";
+      echo "<th align='left' colspan=2>Oral Health Condition (B)</th>";
     echo "</tr>";
     
     echo "<tr>";
-      echo "<td>Indicate number on the right side of the condition</td>";
+      echo "<td colspan=2>Indicate number on the right side of the condition</td>";
     echo "</tr>";
     
     echo "<tr>";
       echo "<td>Number of Permanent Teeth Present</td>";
-      echo "<td><input type='textbox' size=5></input></td>";
+      echo "<td align='center'><input type='text' size=5></input></td>";
     echo "</tr>";
     
     echo "<tr>";
       echo "<td>Number of Permanent Sound Teeth</td>";
-      echo "<td><input type='textbox' size=5></input></td>";
+      echo "<td align='center'><input type='text' size=5></input></td>";
     echo "</tr>";
     
     echo "<tr>";
       echo "<td>Number of Decayed Teeth (D)</td>";
-      echo "<td><input type='textbox' size=5></input></td>";
+      echo "<td align='center'><input type='text' size=5></input></td>";
     echo "</tr>";
     
     echo "<tr>";
       echo "<td>Number of Missing Teeth (M)</td>";
-      echo "<td><input type='textbox' size=5></input></td>";
+      echo "<td align='center'><input type='text' size=5></input></td>";
     echo "</tr>";
     
     echo "<tr>";
       echo "<td>Number of Filled Teeth (F)</td>";
-      echo "<td><input type='textbox' size=5></input></td>";
+      echo "<td align='center'><input type='text' size=5></input></td>";
     echo "</tr>";
     
     echo "<tr>";
       echo "<td>Total DMF Teeth</td>";
-      echo "<td><input type='textbox' size=5></input></td>";
+      echo "<td align='center'><input type='text' size=5></input></td>";
     echo "</tr>";
     
     echo "<tr>";
       echo "<td>Number of Temporary Teeth Present</td>";
-      echo "<td><input type='textbox' size=5></input></td>";
+      echo "<td align='center'><input type='text' size=5></input></td>";
     echo "</tr>";
     
     echo "<tr>";
       echo "<td>Number of Temporary Sound Teeth</td>";
-      echo "<td><input type='textbox' size=5></input></td>";
+      echo "<td align='center'><input type='text' size=5></input></td>";
     echo "</tr>";
     
     echo "<tr>";
       echo "<td>Number of decayed teeth (d)</td>";
-      echo "<td><input type='textbox' size=5></input></td>";
+      echo "<td align='center'><input type='text' size=5></input></td>";
     echo "</tr>";
     
     echo "<tr>";
       echo "<td>Number of filled teeth (f)</td>";
-      echo "<td><input type='textbox' size=5></input></td>";
+      echo "<td align='center'><input type='text' size=5></input></td>";
     echo "</tr>";
     
     echo "<tr>";
       echo "<td>Total df Teeth</td>";
-      echo "<td><input type='textbox' size=5></input></td>";
+      echo "<td align='center'><input type='text' size=5></input></td>";
     echo "</tr>";     
   
   echo "</table>";
@@ -339,6 +327,25 @@
   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   
+  // Comment date: Oct 8, '09
+  // The following codes are used to select a tooth_number
+  //    and the condition for that particular tooth.
+  // The selection will come entirely from the user.
+  // Further comments will be added later.
+  // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  echo "<table border=1 align='center' width=600>"; // make the border 0 later.
+    echo "<tr>";
+      echo "<th align='left'>SET PATIENT'S TOOTH CONDITION</th>"; 
+    echo "</tr>";
+  
+  echo "</table>";
+  
+  
+  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  
+  
+  
   
   // Comment date: Oct 6, '09
   // The following codes are used to populate a table with
@@ -348,6 +355,7 @@
   // Will see if this is acceptable, especially
   //   when querying the db.
   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  echo "<p>&nbsp</p>";
   
   // upper-teeth-temporary symbols and conditions
   echo "<table border=1 align='center' width=600>";
