@@ -102,28 +102,58 @@
         ") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin COMMENT='Patient Oral Health Condition' AUTO_INCREMENT=1 ;");
         
         
-      // The following codes will be used to create [m_dental_tooth_condition]
+      // The following codes will be used to create [m_lib_dental_tooth_condition]
       // If needed, change the table name to follow proper naming conventions in CHITS.
       // The table reflects the standard tooth conditions and their corresponding legends.
       // See the IPTR given by Dr. domingo for further reference.
-//      module::execsql("CREATE TABLE IF NOT EXISTS `m_dental_tooth_condition` (".
-//        "`legend` varchar(5) collate swe7_bin NOT NULL COMMENT 'condition legend',".
-//        "`status` varchar(50) collate swe7_bin NOT NULL COMMENT 'tooth status Perma/Tempo',".
-//        "`condition` varchar(50) NOT NULL COMMENT 'condition description',".
-//        "PRIMARY KEY  (`legend`)".
-//        ") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;"
+      module::execsql("CREATE TABLE IF NOT EXISTS `m_lib_dental_tooth_condition` (".
+        "`legend` varchar(5) collate swe7_bin NOT NULL COMMENT 'condition legend',".
+        "`status` varchar(50) collate swe7_bin NOT NULL COMMENT 'tooth status Perma/Tempo',".
+        "`condition` varchar(50) NOT NULL COMMENT 'condition description',".
+        "PRIMARY KEY  (`legend`)".
+        ") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
+        
+        
+      // The following codes will be used to insert the initial records for
+      //    m_lib_dental_tooth_condition.
+      module::execsql("INSERT INTO `m_lib_dental_tooth_condition` (`legend`, `status`, `condition`) VALUES".
+        "('D', 'Permanent', 'Decayed'),".
+        "('F', 'Permanent', 'Filled'),".
+        "('JC', 'Permanent', 'Jacket Crown'),".
+        "('M', 'Permanent', 'Missing'),".
+        "('P', 'Permanent', 'Pontic'),".
+        "('S', 'Permanent', 'Supernumerary Tooth'),".
+        "('Un', 'Permanent', 'Unerupted'),".
+        "('X', 'Permanent', 'Indicated for Extraction'),".
+        "('Y', 'Permanent', 'Sound/Sealed'),".
+        "('d', 'Temporary', 'Decayed'),".
+        "('e', 'Temporary', 'Missing'),".
+        "('f', 'Temporary', 'Filled'),".
+        "('jc', 'Temporary', 'Jacket Crown'),".
+        "('p', 'Temporary', 'Pontic'),".
+        "('s', 'Temporary', 'Supernumerary Tooth'),".
+        "('un', 'Temporary', 'Unerupted'),".
+        "('x', 'Temporary', 'Indicated for Extraction'),".
+        "('y', 'Temporary', 'Sound/Sealed');");
      
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     
-    
+    // Comment date: Oct 13, 2009, JVTolentino
+    // The drop_tables() function starts here.
+    // This function will be used to drop tables from CHITS DB.
+    // This function will be executed if the user opts to delete
+    //    the tables associated with this module.
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function drop_tables() {
+      module::execsql("DROP TABLE `m_dental_patient_ohc`");
+      module::execsql("DROP TABLE `m_lib_dental_tooth_condition`");
     }
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     
     
-
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     // Comment date: Oct. 13, 09, JVTolentino
     // The succeeding codes and functions will be used exclusively(??) for
@@ -187,53 +217,12 @@
       return "must find a way to link this to patient's medical history.";
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  
-  
     
-  
-  
-  
-    
-  
-  
-  
-      
-  
     
   
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                                                                                                                                                                                                                                                             
-                                                                                                                                                                                                                                                                                                      
+  
+                                                                                                                                                                                                                                                                                                        
     function _dental() {
       // Comment date: 0ct 6, '09
       // The following codes will be used to initialize the patient's
@@ -419,30 +408,25 @@
     
               echo "<tr>";
                 echo "<td width=200 align='left'>Select tooth condition:</td>";
-                //echo "<td width=100 align='left'><input type='text' size=5 name='tooth_condition'></input></td>";
-            
+                
+                // Comment date: Oct 14, '09, JVTolentino
+                // The following codes will be used to propagate a list box which will show
+                //    all the possible tooth condition that a patient may have.
+                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 echo "<td>";
-                  echo "<select name='select_condition'>";	// uppercaps = PERMANENT, lowercaps = TEMPORARY
-                    echo "<option value='Y'>Y</option>";	// Sound/Sealed
-                    echo "<option value='y'>y</option>";
-                    echo "<option value='D'>D</option>";	// Decayed
-                    echo "<option value='d'>d</option>";
-                    echo "<option value='F'>F</option>";	// Filled
-                    echo "<option value='f'>f</option>";
-                    echo "<option value='M'>M</option>";	// Missing
-                    echo "<option value='e'>e</option>";	// missing
-                    echo "<option value='X'>X</option>";	// Indicated for extraction
-                    echo "<option value='x'>x</option>";	
-                    echo "<option value='Un'>Un</option>";	// Unerupted
-                    echo "<option value='un'>un</option>";	
-                    echo "<option value='S'>S</option>";	//Supernumerary tooth
-                    echo "<option value='s'>s</option>";
-                    echo "<option value='JC'>JC</option>";	// Jacket Crown
-                    echo "<option value='jc'>jc</option>";
-                    echo "<option value='P'>P</option>";	// Pontic
-                    echo "<option value='p'>p</option>";
+                  $query = "SELECT DISTINCT legend FROM m_lib_dental_tooth_condition ORDER BY legend";
+                  $result = mysql_query($query)
+                    or die ("Couldn't execute query.");
+                  
+                  echo "<select name='select_condition'>";  
+                  while ($row = mysql_fetch_array($result)) {
+                    extract($row);
+                      echo "<option value='$legend'>$legend</option>";
+                  }
                   echo "</select>";
-                echo "</td>";
+                echo "</td>";     
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                
                 echo "<td width=100 align='center'><input type='submit' value='Save'></input></td>";
               echo "</tr>";
     
