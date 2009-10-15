@@ -31,9 +31,13 @@ Everything that we do must be easy to replicate. Instead of writing out complica
 ##Ubuntu installation
 
 Language: English
+
 Timezone: Manila
+
 Keyboard layout: USA
+
 Partitions: Use the entire disk
+
 Who are you: chits, chits, password, name 'pc1', 'Log in automatically'
 
 Restart
