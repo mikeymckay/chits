@@ -30,15 +30,19 @@ Everything that we do must be easy to replicate. Instead of writing out complica
 
 ##Ubuntu installation
 
-Language: English
-Timezone: Manila
-Keyboard layout: USA
-Partitions: Use the entire disk
-Who are you: chits, chits, password, name 'pc1', 'Log in automatically'
+* Language: English
 
-Restart
-Eject CD/USB Disk
-Applications :: Accessories :: Terminal
+* Timezone: Manila
+
+* Keyboard layout: USA
+
+* Partitions: Use the entire disk
+
+* Who are you: chits, chits, password, name 'pc1', 'Log in automatically'
+
+* Restart
+* Eject CD/USB Disk
+* Applications :: Accessories :: Terminal
 
     sudo apt-get install wget
     wget http://ow.ly/sPAq
