@@ -92,8 +92,9 @@
       //    patient/treatment record. See the IPTR given by Dr. Domingo for further reference.
       module::execsql("CREATE TABLE IF NOT EXISTS `m_dental_patient_ohc` (".
         "`ohc_id` float NOT NULL auto_increment COMMENT 'Patient Oral Health Condition',".
-        "`consult_id` float NOT NULL,".
         "`patient_id` int(11) NOT NULL,".
+        "`consult_id` float NOT NULL,".
+        "`is_patient_pregnant` tinyint(1) NOT NULL,".
         "`tooth_number` int(11) NOT NULL,".
         "`tooth_condition` varchar(5) collate swe7_bin NOT NULL,".
         "`date_of_oral` date NOT NULL,".
@@ -164,191 +165,107 @@
     
     
     
-    // Comment date: Oct 6, '09
-    // The following function will be used for acquiring tooth condition,
-    // the condition will be retrieved from db later.
-    // Delete and replace this comment if data are being retrieved from db.
+    // Comment date: Oct 16, '09, JVTolentino
+    // The following function will be used for acquiring tooth condition
+    //    from m_dental_patient_ohc.
+    // This function accepts two arguments:
+    //    1. $tn -> corresponds to the field tooth_number
+    //    2. $cid -> corresponds to the field consult_id
+    // Initial assessment is that the function will not need the patient's
+    //    id to get a unique record, likewise, the date of oral examination
+    //    is also not required. The field consult_id will most probably be
+    //    enough to get a unique tooth_condition for every oral examination.
+    //    If these arguments prove flawed, change the arguments so that it 
+    //    references the fields patient_id and date_of_oral.
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    function tooth_condition($tn) {
-      return '-'.$tn.'-';
+    function tooth_condition($tn, $cid) {
+      $query = "SELECT `tooth_condition` FROM `m_dental_patient_ohc` WHERE `tooth_number` = ".$tn." AND `consult_id` = ".$cid."";
+      $result = mysql_query($query)
+        or die ("Couldn't execute query.");
+      
+      if($row = mysql_fetch_assoc($result)) {
+        return $row['tooth_condition'];
+      }
+      else {
+        return "&nbsp;";
+      }
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  
-  
-    // Comment date: Oct 6, '09
-    // The following functions will be used for acquiring the patient's
-    //   personal info from a db.
-    // Delete and replace this comment if data are being retrieved from db.
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    function patient_name($p_id) {
-      return 'Jeffrey V. Tolentino';
-    }
-  
-    function patient_birthdate($p_id) {
-      return 'July 27, 1991';
-    }
-  
-    function patient_age($p_id) {
-      return '18';
-    }
-  
-    function patient_sex($p_id) {
-      return 'Male';
-    }
-  
-    function patient_place_of_birth($p_id) {
-      return "find out if this is included in the patient's info in CHITS.";
-    }
-  
-    function patient_address($p_id) {
-      return 'Gerona, Tarlac';
-    }
-  
-    function patient_occupation($p_id) {
-      return 'dunno';
-    }
-  
-    function patient_parent($p_id) {
-      return 'none';
-    }
-  
-    function patient_medical_history($p_id) {
-      return "must find a way to link this to patient's medical history.";
-    }
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
     
-    
-  
-    
-  
-                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                      
     function _dental() {
-      // Comment date: 0ct 6, '09
+      print "<form name='form_dental'>";
+      // Comment date: 0ct 6, '09, JVTolentino
       // The following codes will be used to initialize the patient's
       // teeth conditions. The teeth and condition symbols are based on
       // information gathered during my interview with Dr Leandro Domingo
       //    (Dental Health Coordinator - PHO) on Sep 24, '09.
-      // 	Permanent					Temporary
-      // 	Legend		Tooth Condition			Legend
-      //	Y		Sound/Sealed			y	(the original symbol is the check symbol, if possible, use it)
-      //	D		Decayed				d
-      //	F		Filled				f
-      //	M		Missing				e
-      //	X		Indicated for extraction	x
-      //	Un		Unerupted			un
-      //	S		Supernumerary tooth		s
-      //	JC		Jacket Crown			jc
-      //	P		Pontic				p
-      //	
-      //	Legend:
-      //	S - Sealant
-      //	PF - Permanent Filling (Composite, ??) ?? bad data due to poor photocopy
-      //	TF - Temporary Filling
-      // 	X - Extraction
-      //	O - Others
       // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       $toothnumber = 0;
       $condition[$toothnumber] = 'Y';
+      $consult_id = 1; // THIS VALUE IS FOR TESTING PURPOSES ONLY...YOU SHOULD CHANGE THIS TO THE REAL VALUE OF consult_id (from $_GET['consult_id']
   
       // upper-teeth (temporary)
       for($toothnumber=51; $toothnumber<=55; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber);
+        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
       }
       for($toothnumber=61; $toothnumber<=65; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber);
+        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
       }
   
       // upper-teeth (permanent)
       for($toothnumber=11; $toothnumber<=18; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber);
+        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
       }
       for($toothnumber=21; $toothnumber<=28; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber);
+        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
       }
   
       // lower-teeth (permanent)
       for($toothnumber=41; $toothnumber<=48; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber);
+        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
       }
       for($toothnumber=31; $toothnumber<=38; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber);
+        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
       }
   
       // lower-teeth (temporary)
       for($toothnumber=81; $toothnumber<=85; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber);
+        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
       }
       for($toothnumber=71; $toothnumber<=75; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber);
+        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
       }
       // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
       
-      
-      // Comment date: Oct 6, '09
-      // The following codes will be used to output to the 
-      //    screen the patient's personal info.
-      // These data are based on my interview with Dr Leandro Domingo
-      //    (Dental Health Coordinator - PHO) on Sep 24, '09.
+        
+      // Comment date: Oct 14, '09, JVTolentino
+      // The following codes are used to display the current date,
+      //    and if needed, the ability to change the consult date of the
+      //    patient. This is usually done when the patient's record 
+      //    are being recorded days later after his original consulatation
+      //    date.
       // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       echo "&nbsp;";
-      $patient_id = '1';
-      $patient_name = $this->patient_name($patient_id);
-      $patient_birthdate = $this->patient_birthdate($patient_id);
-      $patient_place_of_birth = $this->patient_place_of_birth($patient_id);
-      $patient_age = $this->patient_age($patient_id);
-      $patient_sex = $this->patient_sex($patient_id);
-      $patient_address = $this->patient_address($patient_id);
-      $patient_occupation = $this->patient_occupation($patient_id);
-      $patient_parent = $this->patient_parent($patient_id);
-      $patient_medical_history = $this->patient_medical_history($patient_id);
-  
-      echo "<table border=3 bordercolor='009900' cellspacing=1 align='center' width=600>";
+      echo "<table border=3 bordercolor='red' cellspacing=1 align='center' width=600>";
         echo "<tr>";
-          echo "<th colspan=3 bgcolor=#CC9900#>Individual Patient Treatment Record</th>";
+          echo "<th align='left' colspan=2 bgcolor=#CC9900#>Date of Oral Examination</th>";          
         echo "</tr>";
-    
+        
         echo "<tr>";
-          echo "<td colspan=3><i>Patient ID:</i> <b>$patient_id</b></td>";
+          echo "<td align='center' width=200>";
+            echo "<input type='text' name='date_of_oral' readonly='true' size=10 value='".date("m/d/Y")."'> <a href=\"javascript:show_calendar4('document.form_dental.date_of_oral', document.form_dental.date_of_oral.value);\"><img src='../images/cal.gif' width='16' height='16' border='0' alt='Click Here to Pick up the Date'></a></input>";
+          echo "</td>";
+          echo "<td> Click the image on the left to change the date of oral examination.</td>";
         echo "</tr>";
-    
-        echo "<tr>";
-          echo "<td colspan=3><i>Name:</i> <b>$patient_name</b></td>";
-        echo "</tr>";
-    
-        echo "<tr>";
-          echo "<td><i>Date of Birth:</i> <b>$patient_birthdate</b></td>";
-          echo "<td><i>Age:</i> <b>$patient_age</b></td>";
-          echo "<td><i>Sex:</i> <b>$patient_sex</b></td>";
-        echo "</tr>";
-    
-        echo "<tr>";
-          echo "<td colspan=3><i>Place of Birth:</i> <b>$patient_place_of_birth</b></td>";
-        echo "</tr>";
-    
-        echo "<tr>";
-          echo "<td colspan=3><i>Address:</i> <b>$patient_address</b></td";    
-        echo "</tr>";
-    
-        echo "<tr>";
-          echo "<td colspan=3><i>Occupation:</i> <b>$patient_occupation</b></td>";
-        echo "</tr>";
-    
-        echo "<tr>";
-          echo "<td colspan=3><i>Parent/Guardian:</i> <b>$patient_parent</b></td>";
-        echo "</tr>";
-    
-        echo "<tr>";
-          echo "<td colspan=3><i>Medical History:</i> <b>$patient_medical_history</b></td>";
-        echo "</tr>";
-  
-        echo "</table>";
-        // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      echo "</table>";
+      // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         
         
         
-        // Comment date: Oct 8, '09
+        // Comment date: Oct 8, '09, JVTolentino
         // The following codes are used to select a tooth_number
         //    and the condition for that particular tooth.
         // The selection will come entirely from the user.
@@ -367,8 +284,6 @@
     
               echo "<tr>";
                 echo "<td width=200 align='left'>Select tooth number:</td>";
-                //echo "<td width=200 align='left'><input type='text' size=5 name='tooth_number'></input></td>";
-            
                 echo "<td>";
                   echo "<select name='select_tooth'>";
                     for($i=55; $i>=51; $i--) {
@@ -583,7 +498,7 @@
       
         echo "<tr>";
           echo "<td>Date of Oral Examination: ".
-            "<input type='text' size=10 readonly='true' value='".date("Y-m-d")."'>"."</input>".
+            "<input type='text' size=10 readonly='true' value='".date("m/d/Y")."'>"."</input>".
             "<i> (mm-dd-yyyy)</i>".
             "</td>";
         echo "</tr>";
@@ -705,6 +620,8 @@
   
       echo "</table>";
       // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+      print "</form>";
     
     } // end of _dental()                 
   } // class ends here
