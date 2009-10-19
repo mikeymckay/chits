@@ -17,12 +17,12 @@ Feature: Family Folders
     And I click "FAMILY FOLDERS"
     When I fill in "family_number" with "1"
     And I press "Search"
-    Then I should see "SELECTED FAMILY"
+    Then I should see "COUNT"
 
    Scenario: Update Family Folder Details
     Given I am logged in as "user" with password "user"
     And I click "FAMILY FOLDERS"
-    When I fill in "family_number" with "1"
+    When I fill in "family_number" with "37"
     And I press "Search"
     And I should see "SELECTED FAMILY"
     And I click "edit"
@@ -34,11 +34,11 @@ Feature: Family Folders
 
 
    Scenario: Delete Family Folder
-    Given I am logged in as "user" with password "user"
+    Given I am logged in as "admin" with password "admin"
     And I click "PATIENTS"
     And I click "Family Folders"
-    And I click "No members"
-    Then I should see "1"
+    When I click "No members"
+    And I should see "1"
     And I click "delete"
-    And I click "Yes"
-    And I should not see "1"
+    And I press "Yes"
+    Then I should not see "1"
