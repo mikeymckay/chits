@@ -1,7 +1,7 @@
 <?
 // BEGIN SERVER CODE: DO NOT EDIT
 // Server generated code
-// Generated 2009-10-01 10:14:06
+// Generated 2009-10-16 15:57:32
 // Module: _module.php
 // Author: Herman Tolentino MD
 //
@@ -104,6 +104,17 @@ if (file_exists('../modules/database/class.database.php')) {
 		$database->init_help();
 	}
 }
+if (file_exists('../modules/dental/class.dental.php')) {
+	include '../modules/dental/class.dental.php';
+	$dental = new dental;
+	if (!$module->activated('dental') && $initmod) {
+		$dental->init_sql();
+		$dental->init_menu();
+		$dental->init_deps();
+		$dental->init_lang();
+		$dental->init_help();
+	}
+}
 if (file_exists('../modules/drug/class.drug.php')) {
 	include '../modules/drug/class.drug.php';
 	$drug = new drug;
@@ -146,17 +157,6 @@ if (file_exists('../modules/family/class.family.php')) {
 		$family->init_deps();
 		$family->init_lang();
 		$family->init_help();
-	}
-}
-if (file_exists('../modules/family_planning/class.family_planning.php')) {
-	include '../modules/family_planning/class.family_planning.php';
-	$family_planning = new family_planning;
-	if (!$module->activated('family_planning') && $initmod) {
-		$family_planning->init_sql();
-		$family_planning->init_menu();
-		$family_planning->init_deps();
-		$family_planning->init_lang();
-		$family_planning->init_help();
 	}
 }
 if (file_exists('../modules/graph/class.graph.php')) {
