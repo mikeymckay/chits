@@ -20,16 +20,15 @@ fi
 echo "
 set bell-style none
 
-"\e[A": history-search-backward
-"\e[B": history-search-forward
-"\e[5C": forward-word
-"\e[5D": backward-word
-"\e\e[C": forward-word
-"\e\e[D": backward-word
+\"\e[A\": history-search-backward
+\"\e[B\": history-search-forward
+\"\e[5C\": forward-word
+\"\e[5D\": backward-word
+\"\e\e[C\": forward-word
+\"\e\e[D\": backward-word
 $if Bash
   Space: magic-space
 $endif" > /home/$SUDO_USER/.inputrc
-
 
 
 # Call "install wget" to add wget to the list of programs to install
@@ -90,7 +89,7 @@ server () {
   export MYSQL_ROOT_PASSWORD 
   export CHITS_LIVE_PASSWORD
 
-  install "dnsmasq"
+  install "dnsmasq autossh"
   apt-get --assume-yes install $PROGRAMS_TO_INSTALL
   apt-get --assume-yes remove $PROGRAMS_TO_REMOVE
   if [ ! "${UPGRADE_ALL}" = "n" ]; then
