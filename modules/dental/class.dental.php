@@ -29,28 +29,58 @@
       $this->version = "0.1-".date("Y-m-d");
       $this->module = "dental";
       $this->description = "CHITS Module - Dental Health Care Program";
+      
+      
+      $this->toothnumber = 0;
+      $this->condition[$this->toothnumber] = 'Y';
+      $this->consult_id = 1; // THIS VALUE IS FOR TESTING PURPOSES ONLY...YOU SHOULD CHANGE THIS TO THE REAL VALUE OF consult_id (from $_GET['consult_id']
+      $this->patient_id = 1; // THIS VALUE IS FOR TESTING PURPOSES ONLY...YOU SHOULD CHANGE THIS TO THE REAL VALUE OF patient_id (from $_GET['patient_id']
+      $this->patient_pregnant = 0; // THIS VALUE IS FOR TESTING PURPOSES ONLY...YOU SHOULD FIND A WAY IF THE PATIENT IS REALLY PREGNANT OR NOT
+      $this->dentist = 1;  // THIS VALUE IS FOR TESTING PURPOSES ONLY...YOU SHOULD FIND OUT HOW TO GET THE ID OF THE CURRENT USER
+      
+      $this->save_flag = 'NOGO';	// THIS VARIABLE IS USED AS A FLAG FOR POSTING ON SELF, DELETE THIS IF IT PROVES NOT NEEDED.
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                                                                                                                                         
+      
+      
+      
+    // Comment date: Oct 21, '09, JVTolentino
+    // needed by healthcenter class
+    // reasons unknown
+    function _details_dental() {
+    }
                                                                                                                                           
     function init_deps() {
        module::set_dep($this->module, "module");
        module::set_dep($this->module, "healthcenter");
        module::set_dep($this->module, "patient");                               
     }
+      
+      
+      
                                                                                                                                                     
                                                                                                                                                       
     function init_lang() {
     }	
+    
+    
                                                                                                                                                                 
+    
                                                                                                                                                                   
     function init_stats() {
     }
+    
+    
+    
                                                                                                                                                                             
                                                                                                                                                                               
     function init_help() {
     }
                                                                                                                                                                                       
+    
+    
+    
                                                                                                                                                                                       
     // Comment date: Sep 25, '09
     // The init_menu() function starts here
@@ -67,17 +97,20 @@
                                                                                                                                                                                                                                             
       // set_menu parameters
       // set_menu([module name], [menu title - what is displayed], menu categories (top menu)], [script executed in class])
-      module::set_menu($this->module, "Dental Records", "PATIENTS", "_dental");
+      module::set_menu($this->module, "Dental Records", "PATIENTS", "_consult_dental");
       // set_detail parameters
       // set_detail([module description], [module version], [module author], [module name/id]
       module::set_detail($this->description, $this->version, $this->author, $this->module);
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    
+    
+    
                                                                                                                                                                                                                                                                         
     // Comment date: Oct 7, 2009, JVTolentino
     // The init_sql() function starts here.
-    // This function will initialize the tables for Dental in CHITS DB.
-    // Will add additional comments soon.
+    // This function will initialize the tables for the Dental Module in CHITS DB.
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function init_sql() {
       if (func_num_args()>0) {
@@ -141,6 +174,9 @@
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     
+    
+    
+    
     // Comment date: Oct 13, 2009, JVTolentino
     // The drop_tables() function starts here.
     // This function will be used to drop tables from CHITS DB.
@@ -155,6 +191,8 @@
     
     
     
+    
+    
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     // Comment date: Oct. 13, 09, JVTolentino
     // The succeeding codes and functions will be used exclusively(??) for
@@ -162,6 +200,8 @@
     //    are open-source, so feel free to modify, enhance, and distribute
     //    as you wish.
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    
     
     
     
@@ -191,64 +231,19 @@
       }
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-      
     
-                                                                                                                                                                                                                                                                                                      
-    function _dental() {
-      print "<form name='form_dental'>";
-      // Comment date: 0ct 6, '09, JVTolentino
-      // The following codes will be used to initialize the patient's
-      // teeth conditions. The teeth and condition symbols are based on
-      // information gathered during my interview with Dr Leandro Domingo
-      //    (Dental Health Coordinator - PHO) on Sep 24, '09.
-      // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      $toothnumber = 0;
-      $condition[$toothnumber] = 'Y';
-      $consult_id = 1; // THIS VALUE IS FOR TESTING PURPOSES ONLY...YOU SHOULD CHANGE THIS TO THE REAL VALUE OF consult_id (from $_GET['consult_id']
-  
-      // upper-teeth (temporary)
-      for($toothnumber=51; $toothnumber<=55; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
-      }
-      for($toothnumber=61; $toothnumber<=65; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
-      }
-  
-      // upper-teeth (permanent)
-      for($toothnumber=11; $toothnumber<=18; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
-      }
-      for($toothnumber=21; $toothnumber<=28; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
-      }
-  
-      // lower-teeth (permanent)
-      for($toothnumber=41; $toothnumber<=48; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
-      }
-      for($toothnumber=31; $toothnumber<=38; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
-      }
-  
-      // lower-teeth (temporary)
-      for($toothnumber=81; $toothnumber<=85; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
-      }
-      for($toothnumber=71; $toothnumber<=75; $toothnumber++) {
-        $condition[$toothnumber] = $this->tooth_condition($toothnumber, $consult_id);
-      }
-      // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-      
-      
-        
-      // Comment date: Oct 14, '09, JVTolentino
-      // The following codes are used to display the current date,
-      //    and if needed, the ability to change the consult date of the
-      //    patient. This is usually done when the patient's record 
-      //    are being recorded days later after his original consulatation
-      //    date.
-      // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      echo "&nbsp;";
+    
+    
+    
+    
+    // Comment date: Oct 14, '09, JVTolentino
+    // The following function is used to display the current date,
+    //    and if needed, the ability to change the consult date of the
+    //    patient. This is usually done when the patient's record 
+    //    are being recorded days later after his original consulatation
+    //    date.
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    function show_date_of_oral() {
       echo "<table border=3 bordercolor='red' cellspacing=1 align='center' width=600>";
         echo "<tr>";
           echo "<th align='left' colspan=2 bgcolor=#CC9900#>Date of Oral Examination</th>";          
@@ -256,32 +251,77 @@
         
         echo "<tr>";
           echo "<td align='center' width=200>";
-            echo "<input type='text' name='date_of_oral' readonly='true' size=10 value='".date("m/d/Y")."'> <a href=\"javascript:show_calendar4('document.form_dental.date_of_oral', document.form_dental.date_of_oral.value);\"><img src='../images/cal.gif' width='16' height='16' border='0' alt='Click Here to Pick up the Date'></a></input>";
+            echo "<input type='text' name='date_of_oral' readonly='true' size=10 value='".date("m/d/Y").
+            "'> <a href=\"javascript:show_calendar4('document.form_dental.date_of_oral', document.form_dental.date_of_oral.value);\">".
+            "<img src='../images/cal.gif' width='16' height='16' border='0' alt='Click Here to Pick up the Date'></a></input>";
           echo "</td>";
           echo "<td> Click the image on the left to change the date of oral examination.</td>";
         echo "</tr>";
       echo "</table>";
-      // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        
-        
-        
-        // Comment date: Oct 8, '09, JVTolentino
-        // The following codes are used to select a tooth_number
-        //    and the condition for that particular tooth.
-        // The selection will come entirely from the user.
-        // Further comments will be added later.
-        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        echo "&nbsp;";
-  
-        echo "<table border=3 bordercolor='red' align='center' width=500>";
-          echo "<tr>";
-            echo "<th align='left' bgcolor='CC9900'>Set Patient's Tooth Condition</th>";
-          echo "</tr>";
-  
-          echo "<tr>";
-            echo "<td>";
-              echo "<table align='center' border=0 cellspacing=0>";
+    }
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    
+    
+    
+    
+    // Comment date: Oct. 21, '09, JVTolentino
+    // The following function is used to get the patient's teeth
+    //    conditions.
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    function get_teeth_conditions() {
+      // upper-teeth (temporary)
+      for($this->toothnumber=51; $this->toothnumber<=55; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
+      }
+      for($this->toothnumber=61; $this->toothnumber<=65; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
+      }
+  
+      // upper-teeth (permanent)
+      for($this->toothnumber=11; $this->toothnumber<=18; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
+      }
+      for($this->toothnumber=21; $this->toothnumber<=28; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
+      }
+  
+      // lower-teeth (permanent)
+      for($this->toothnumber=41; $this->toothnumber<=48; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
+      }
+      for($this->toothnumber=31; $this->toothnumber<=38; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
+      }
+  
+      // lower-teeth (temporary)
+      for($this->toothnumber=81; $this->toothnumber<=85; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
+      }
+      for($this->toothnumber=71; $this->toothnumber<=75; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
+      }
+    }
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    
+    
+    
+    
+    // Comment date: Oct 8, '09, JVTolentino
+    // The following codes are used to select a tooth_number
+    //    and the condition for that particular tooth.
+    // The selection will come entirely from the user.
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    function select_tooth_and_condition() {
+      echo "<table border=3 bordercolor='red' align='center' width=500>";
+        echo "<tr>";
+          echo "<th align='left' bgcolor='CC9900'>Set Patient's Tooth Condition</th>";
+        echo "</tr>";
+  
+        echo "<tr>";
+          echo "<td>";
+            echo "<table align='center' border=0 cellspacing=0>";
               echo "<tr>";
                 echo "<td width=200 align='left'>Select tooth number:</td>";
                 echo "<td>";
@@ -333,7 +373,7 @@
                   $result = mysql_query($query)
                     or die ("Couldn't execute query.");
                   
-                  echo "<select name='select_condition'>";  
+                  echo "<select name='select_condition'>"; 
                   while ($row = mysql_fetch_array($result)) {
                     extract($row);
                       echo "<option value='$legend'>$legend</option>";
@@ -349,31 +389,33 @@
           echo "</td>";
         echo "</tr>";
       echo "</table>";
-      // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-      
-      
-      
-      // Comment date: Oct 6, '09
-      // The following codes are used to populate a table with
-      //   teeth symbols and conditions.
-      // My initial plan is to refresh the page every
-      //   tooth condition updates.
-      // Will see if this is acceptable, especially
-      //   when querying the db.
-      // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      echo "&nbsp;";
-  
+    }
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    
+    
+    
+    
+    // Comment date: Oct 6, '09
+    // The following codes are used to populate a table with
+    //   teeth symbols and conditions.
+    // My initial plan is to refresh the page every
+    //   tooth condition updates.
+    // Will see if this is acceptable, especially
+    //   when querying the db.
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    function show_teeth_conditions() {
       // upper-teeth-temporary symbols and conditions
       echo "<table border=3 bordercolor=#009900# align='center'>";
         echo "<tr>";
           echo "<td align='center'></td>";
           echo "<td align='center'></td>";
           echo "<td align='center'></td>";
-          for($toothnumber=55; $toothnumber>=51; $toothnumber--) {
-            echo "<td align='center'><b>$toothnumber</b></td>";
+          for($this->toothnumber=55; $this->toothnumber>=51; $this->toothnumber--) {
+            echo "<td align='center'><b>$this->toothnumber</b></td>";
           }
-          for($toothnumber=61; $toothnumber<=65; $toothnumber++) {
-            echo "<td align='center'><b>$toothnumber</b></td>";
+          for($this->toothnumber=61; $this->toothnumber<=65; $this->toothnumber++) {
+            echo "<td align='center'><b>$this->toothnumber</b></td>";
           }
           echo "<td align='center'></td>";
           echo "<td align='center'></td>";
@@ -384,11 +426,11 @@
           echo "<td align='center'></td>";
           echo "<td align='center'></td>";
           echo "<td align='center'></td>";
-          for($toothnumber=55; $toothnumber>=51; $toothnumber--) {
-            echo "<td align='center'>$condition[$toothnumber]</td>";
+          for($this->toothnumber=55; $this->toothnumber>=51; $this->toothnumber--) {
+            echo "<td align='center'>{$this->condition[$this->toothnumber]}</td>";
           }
-          for($toothnumber=61; $toothnumber<=65; $toothnumber++) {
-            echo "<td align='center'>$condition[$toothnumber]</td>";
+          for($this->toothnumber=61; $this->toothnumber<=65; $this->toothnumber++) {
+            echo "<td align='center'>{$this->condition[$this->toothnumber]}</td>";
           }
           echo "<td align='center'></td>";
           echo "<td align='center'></td>";
@@ -398,20 +440,20 @@
   
         // upper-teeth-permanent symbols and conditions
         echo "<tr>";
-          for($toothnumber=18; $toothnumber>=11; $toothnumber--) {
-            echo "<td align='center'>$condition[$toothnumber]</td>";
+          for($this->toothnumber=18; $this->toothnumber>=11; $this->toothnumber--) {
+            echo "<td align='center'>{$this->condition[$this->toothnumber]}</td>";
           }
-          for($toothnumber=21; $toothnumber<=28; $toothnumber++) {
-            echo "<td align='center'>$condition[$toothnumber]</td>";
+          for($this->toothnumber=21; $this->toothnumber<=28; $this->toothnumber++) {
+            echo "<td align='center'>{$this->condition[$this->toothnumber]}</td>";
           }
         echo "</tr>";
   
         echo "<tr>";
-          for($toothnumber=18; $toothnumber>=11; $toothnumber--) {
-            echo "<td align='center'><b>$toothnumber</b></td>";
+          for($this->toothnumber=18; $this->toothnumber>=11; $this->toothnumber--) {
+            echo "<td align='center'><b>$this->toothnumber</b></td>";
           }
-          for($toothnumber=21; $toothnumber<=28; $toothnumber++) {
-            echo "<td align='center'><b>$toothnumber</b></td>";
+          for($this->toothnumber=21; $this->toothnumber<=28; $this->toothnumber++) {
+            echo "<td align='center'><b>$this->toothnumber</b></td>";
           }
         echo "</tr>";
       echo "</table>";
@@ -421,20 +463,20 @@
       echo "&nbsp;";
       echo "<table border=3 bordercolor=#009900# align='center'>";
         echo "<tr>";
-          for($toothnumber=48; $toothnumber>=41; $toothnumber--) {
-            echo "<td align='center'><b>$toothnumber</b></td>";
+          for($this->toothnumber=48; $this->toothnumber>=41; $this->toothnumber--) {
+            echo "<td align='center'><b>$this->toothnumber</b></td>";
           }
-          for($toothnumber=31; $toothnumber<=38; $toothnumber++) {
-            echo "<td align='center'><b>$toothnumber</b></td>";
+          for($this->toothnumber=31; $this->toothnumber<=38; $this->toothnumber++) {
+            echo "<td align='center'><b>$this->toothnumber</b></td>";
           }
         echo "</tr>";
   
         echo "<tr>";
-          for($toothnumber=48; $toothnumber>=41; $toothnumber--) {
-            echo "<td align='center'>$condition[$toothnumber]</td>";
+          for($this->toothnumber=48; $this->toothnumber>=41; $this->toothnumber--) {
+            echo "<td align='center'>{$this->condition[$this->toothnumber]}</td>";
           }
-          for($toothnumber=31; $toothnumber<=38; $toothnumber++) {
-            echo "<td align='center'>$condition[$toothnumber]</td>";
+          for($this->toothnumber=31; $this->toothnumber<=38; $this->toothnumber++) {
+            echo "<td align='center'>{$this->condition[$this->toothnumber]}</td>";
           }
         echo "</tr>";
   
@@ -444,11 +486,11 @@
           echo "<td align='center'></td>";
           echo "<td align='center'></td>";
           echo "<td align='center'></td>";
-          for($toothnumber=85; $toothnumber>=81; $toothnumber--) {
-            echo "<td align='center'>$condition[$toothnumber]</td>";
+          for($this->toothnumber=85; $this->toothnumber>=81; $this->toothnumber--) {
+            echo "<td align='center'>{$this->condition[$this->toothnumber]}</td>";
           }
-          for($toothnumber=71; $toothnumber<=75; $toothnumber++) {
-            echo "<td align='center'>$condition[$toothnumber]</td>";
+          for($this->toothnumber=71; $this->toothnumber<=75; $this->toothnumber++) {
+            echo "<td align='center'>{$this->condition[$this->toothnumber]}</td>";
           }
           echo "<td align='center'></td>";
           echo "<td align='center'></td>";
@@ -459,21 +501,132 @@
           echo "<td align='center'></td>";
           echo "<td align='center'></td>";
           echo "<td align='center'></td>";
-          for($toothnumber=85; $toothnumber>=81; $toothnumber--) {
-            echo "<td align='center'><b>$toothnumber</b></td>";
+          for($this->toothnumber=85; $this->toothnumber>=81; $this->toothnumber--) {
+            echo "<td align='center'><b>$this->toothnumber</b></td>";
           }
-          for($toothnumber=71; $toothnumber<=75; $toothnumber++) {
-            echo "<td align='center'><b>$toothnumber</b></td>";
+          for($this->toothnumber=71; $this->toothnumber<=75; $this->toothnumber++) {
+            echo "<td align='center'><b>$this->toothnumber</b></td>";
           }
           echo "<td align='center'></td>";
           echo "<td align='center'></td>";
           echo "<td align='center'></td>";
         echo "</tr>";
       echo "</table>";
-      // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+    }
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    
+    
+    
+    // Comment date: Oct 21, '09, JVTolentino
+    // Initial codes for inserting records
+    function new_dental_record() {
+      $loc_patient_id = $_POST['h_patient_id'];
+      $loc_consult_id = $_POST['h_consult_id'];
+      $loc_patient_pregnant = $_POST['h_patient_pregnant'];
+      $loc_tooth_number = $_POST['select_tooth'];
+      $loc_tooth_condition = $_POST['select_condition'];
+      $loc_date_of_oral = $_POST['date_of_oral'];
+      $loc_dentist = $_POST['h_dentist'];
+        
+      $query = "INSERT INTO `m_dental_patient_ohc` (`patient_id`, `consult_id`, `is_patient_pregnant`, `tooth_number`, `tooth_condition`, `date_of_oral`, `dentist`) VALUES".
+        "($loc_patient_id, $loc_consult_id, $loc_patient_pregnant, $loc_tooth_number, '$loc_tooth_condition', '$loc_date_of_oral', $loc_dentist)";
+        
+      $result = mysql_query($query)
+        or die ("Couldn't insert new dental record.");
+        
+    
+    }
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    
+    
+    
+                                                                                                                                                                                                                                                                                                      
+    function _consult_dental() {
+    
+      //print_r($_SESSION);
+      echo "<form name='form_dental' action='$_POST[PHP_SELF]' method='POST'>";
+      
+      
+      // The following codes will initialize hidden textboxes and their values
+      echo "<input type='hidden' name='h_patient_id' value='{$this->patient_id}'></input>";
+      echo "<input type='hidden' name='h_consult_id' value='{$this->consult_id}'></input>";
+      echo "<input type='hidden' name='h_patient_pregnant' value='{$this->patient_pregnant}'></input>";
+      echo "<input type='hidden' name='h_dentist' value='{$this->dentist}'></input>";
+      
+      
+      
+      
+      if (@$_POST['h_save_flag'] == 'GO') {
+        $this->new_dental_record();
+        
+        echo "&nbsp;";
+        $this->show_date_of_oral();
+      
+        $this->get_teeth_conditions();
+      
+        echo "&nbsp;";
+        $this->select_tooth_and_condition();
+
+        echo "&nbsp;";
+        $this->show_teeth_conditions();
+      }
+      else {
+        echo "&nbsp;";
+        $this->show_date_of_oral();
+      
+        $this->get_teeth_conditions();
+      
+        echo "&nbsp;";
+        $this->select_tooth_and_condition();
+
+        echo "&nbsp;";
+        $this->show_teeth_conditions();
+      }
+      
+      echo "<input type='hidden' name='h_save_flag' value='GO'></input>";
+      
+        
+      
+      
+      
+        
+      
+      
+      
+      
+    
+    
+        
   
   
   
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      // FOLLOWING CODES IS FOR SHOWING ORAL HEALTH CONDITIONS A AND B IN IPTR
+
       // Comment date: Oct 6, '09
       // The following codes will be used to output to the 
       //    screen the patient's Oral Health Condition (A), 
@@ -621,7 +774,7 @@
       echo "</table>";
       // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
-      print "</form>";
+      echo "</form>";
     
     } // end of _dental()                 
   } // class ends here
