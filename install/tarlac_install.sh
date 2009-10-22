@@ -51,10 +51,21 @@ remove () {
 }
 
 set_mysql_root_password () {
-  echo "Enter the root password to setup mysql with:"
-  read MYSQL_ROOT_PASSWORD
+  if [ ! "$MYSQL_ROOT_PASSWORD" ]; then 
+    echo "Enter the root password to setup mysql with:"
+    read MYSQL_ROOT_PASSWORD
+  fi
   echo "mysql-server mysql-server/root_password select ${MYSQL_ROOT_PASSWORD}" | debconf-set-selections
   echo "mysql-server mysql-server/root_password_again select ${MYSQL_ROOT_PASSWORD}" | debconf-set-selections
+  export MYSQL_ROOT_PASSWORD 
+}
+
+set_chits_live_password () {
+  if [ ! "$CHITS_LIVE_PASSWORD" ]; then 
+    echo "Enter password for database user chits_live:"
+    read CHITS_LIVE_PASSWORD
+  fi
+  export CHITS_LIVE_PASSWORD
 }
 
 client () {
@@ -88,16 +99,8 @@ X-GNOME-Autostart-enabled=true" > $AUTOSTART_DIR/firefox.desktop
 
 server () {
   echo "Server"
-  if [ ! "$MYSQL_ROOT_PASSWORD" ]; then 
-    set_mysql_root_password; 
-  fi
-  if [ ! "$CHITS_LIVE_PASSWORD" ]; then 
-    echo "Enter password for database user chits_live:"
-    read CHITS_LIVE_PASSWORD
-  fi
-
-  export MYSQL_ROOT_PASSWORD 
-  export CHITS_LIVE_PASSWORD
+  set_mysql_root_password; 
+  set_chits_live_password;
 
   install "dnsmasq autossh curl"
   apt-get --assume-yes install $PROGRAMS_TO_INSTALL
@@ -179,6 +182,8 @@ dhcp-range=192.168.0.10,192.168.0.50,12h
 
 client_and_server () {
   echo "Client & Server"
+  set_mysql_root_password; 
+  set_chits_live_password;
   client
   server
 }
