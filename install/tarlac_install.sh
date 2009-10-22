@@ -4,13 +4,14 @@ if [ -z "$SUDO_USER" ]; then
     exit 1
 fi
 
+echo "Press enter if unsure about the following questions"
 echo "Do you want to upgrade all packages? ([y]/n)"
 read UPGRADE_ALL
 
 echo "Do you want to remove un-needed packages like games, music players and email? ([y]/n)"
 read REMOVE
 
-echo "Do you want to update your apt sources to only get security updates? ([y]/n)"
+echo "Do you want to update your apt sources list to remove updates (for a faster install)? ([y]/n)"
 read UPDATE_SOURCES
 
 # These are for all configurations
@@ -22,6 +23,8 @@ fi
 
 if [ ! "${UPDATE_SOURCES}" = "n" ]; then
   sed -i 's/^\(.*updates.*\)$/#\1/' /etc/apt/sources.list
+  sed -i 's/^\(.*security.*\)$/#\1/' /etc/apt/sources.list
+  apt-get update
 fi
 
 echo "
