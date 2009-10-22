@@ -89,7 +89,7 @@ server () {
   export MYSQL_ROOT_PASSWORD 
   export CHITS_LIVE_PASSWORD
 
-  install "dnsmasq autossh"
+  install "dnsmasq autossh curl"
   apt-get --assume-yes install $PROGRAMS_TO_INSTALL
   apt-get --assume-yes remove $PROGRAMS_TO_REMOVE
   if [ ! "${UPGRADE_ALL}" = "n" ]; then
@@ -116,14 +116,10 @@ sleep 90 # Wait for networking to come up
 exit 0
 " > /etc/rc.local
 
-  echo "Installing gist script so we can post public key to gist.github.com"
-  wget http://github.com/defunkt/gist/raw/master/gist.rb 
-  chmod +x gist.rb
-  echo "Tarlac RHU Server Public key for: `hostname` will use ${PORT_NUMBER}" > /tmp/message;
-  cat /tmp/message /home/$SUDO_USER/.ssh/id_rsa.pub | ./gist.rb
-
-
-
+  echo "Uploading public key to lakota.vdomck.org"
+  PUBLIC_KEY_FILENAME=/tmp/`hostname`.public_key
+  cp /home/$SUDO_USER/.ssh/id_rsa.pub $PUBLIC_KEY_FILENAME
+  curl -f "file=${PUBLIC_KEY_FILENAME}" lakota.vdomck.org:4567/upload
 
   echo "
 # ------------------------------
