@@ -10,11 +10,18 @@ read UPGRADE_ALL
 echo "Do you want to remove un-needed packages like games, music players and email? ([y]/n)"
 read REMOVE
 
+echo "Do you want to update your apt sources to only get security updates? ([y]/n)"
+read UPDATE_SOURCES
+
 # These are for all configurations
 PROGRAMS_TO_INSTALL='openssh-server wget vim'
 
 if [ ! "${REMOVE}" = "n" ]; then
   PROGRAMS_TO_REMOVE="gnome-games gnome-games-data openoffice.org-common f-spot ekiga evolution pidgin totem totem-common brasero rhythmbox synaptic gimp"
+fi
+
+if [ ! "${UPDATE_SOURCES}" = "n" ]; then
+  sed -i 's/^\(.*updates.*\)$/#\1/' /etc/apt/sources.list
 fi
 
 echo "
