@@ -99,6 +99,32 @@ server () {
   wget --output-document=mysql_replication.sh http://github.com/mikeymckay/chits/raw/master/install/mysql_replication.sh
   chmod +x chits_install.sh mysql_replication.sh
   ./chits_install.sh
+  echo "Creating ssh keys so we can reverse ssh into the server"
+  ssh-keygen -N "" -f /home/$SUDO_USER/.ssh/id_rsa
+
+  echo "Setting up reverse autossh to run on boot"
+  # Generate a random port number to use in the 10000 - 20000 range
+  PORT_NUMBER=$[ ( $RANDOM % 10000 )  + 10000 ]
+  MONITORING_PORT_NUMBER=$[ ( $RANDOM % 10000 )  + 20000 ]
+  echo "
+# ------------------------------
+# Added by tarlac_install script
+# ------------------------------
+sleep 90 # Wait for networking to come up
+# See autossh and google for reverse ssh tunnels to see how this works
+/usr/bin/autossh -f -M ${MONITORING_PORT_NUMBER} -N -i /home/${SUDO_USER}/.ssh/identity  -R *:${PORT_NUMBER}:localhost:22 chitstunnel@lakota.vdomck.org
+exit 0
+" > /etc/rc.local
+
+  echo "Installing gist script so we can post public key to gist.github.com"
+  wget http://github.com/defunkt/gist/raw/master/gist.rb 
+  chmod +x gist.rb
+  echo "Tarlac RHU Server Public key for: `hostname` will use ${PORT_NUMBER}" > /tmp/message;
+  cat /tmp/message /home/$SUDO_USER/.ssh/id_rsa.pub | ./gist.rb
+
+
+
+
   echo "
 # ------------------------------
 # Added by tarlac_install script
@@ -114,7 +140,8 @@ auto eth0
 iface eth0 inet static
 address 192.168.0.1
 netmask 255.255.255.0
-gateway 192.168.0.1
+# Router will be set to 0.2
+gateway 192.168.0.2 
 " > /etc/network/interfaces
 
 # setup DHCP and DNS
