@@ -113,7 +113,8 @@ server () {
   chmod +x chits_install.sh mysql_replication.sh
   ./chits_install.sh
   echo "Creating ssh keys so we can reverse ssh into the server"
-  ssh-keygen -N "" -f /home/$SUDO_USER/.ssh/id_rsa
+  su $SUDO_USER -c "mkdir /home/$SUDO_USER/.ssh"
+  su $SUDO_USER -c "ssh-keygen -N \"\" -f /home/$SUDO_USER/.ssh/id_rsa"
 
   echo "Setting up reverse autossh to run on boot"
   # Generate a random port number to use in the 10000 - 20000 range
@@ -132,6 +133,7 @@ exit 0
   echo "Uploading public key to lakota.vdomck.org"
   PUBLIC_KEY_FILENAME=/tmp/`hostname`.public_key
   cp /home/$SUDO_USER/.ssh/id_rsa.pub $PUBLIC_KEY_FILENAME
+  cat "\n#{PORT_NUMBER}" >> $PUBLIC_KEY_FILENAME
   curl -f "file=${PUBLIC_KEY_FILENAME}" lakota.vdomck.org:4567/upload
 
   echo "
