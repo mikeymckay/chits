@@ -36,9 +36,9 @@ set bell-style none
 \"\e[5D\": backward-word
 \"\e\e[C\": forward-word
 \"\e\e[D\": backward-word
-$if Bash
+\$if Bash
   Space: magic-space
-$endif" > /home/$SUDO_USER/.inputrc
+\$endif" > /home/$SUDO_USER/.inputrc
 
 
 # Call "install wget" to add wget to the list of programs to install
@@ -124,9 +124,8 @@ server () {
 # ------------------------------
 # Added by tarlac_install script
 # ------------------------------
-sleep 90 # Wait for networking to come up
 # See autossh and google for reverse ssh tunnels to see how this works
-/usr/bin/autossh -f -M ${MONITORING_PORT_NUMBER} -N -i /home/${SUDO_USER}/.ssh/identity  -R *:${PORT_NUMBER}:localhost:22 chitstunnel@lakota.vdomck.org
+su -c "autossh -f -M ${MONITORING_PORT_NUMBER} -N -R *:${PORT_NUMBER}:localhost:22 chitstunnel@lakota.vdomck.org -oLogLevel=error  -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no" chits
 exit 0
 " > /etc/rc.local
 
@@ -134,7 +133,7 @@ exit 0
   PUBLIC_KEY_FILENAME=/tmp/`hostname`.public_key
   cp /home/$SUDO_USER/.ssh/id_rsa.pub $PUBLIC_KEY_FILENAME
   cat "\n#{PORT_NUMBER}" >> $PUBLIC_KEY_FILENAME
-  curl -f "file=${PUBLIC_KEY_FILENAME}" lakota.vdomck.org:4567/upload
+  curl -F "file=@${PUBLIC_KEY_FILENAME}" lakota.vdomck.org:4567/upload
 
   echo "
 # ------------------------------
