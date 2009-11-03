@@ -116,18 +116,39 @@ server () {
   su $SUDO_USER -c "mkdir /home/$SUDO_USER/.ssh"
   su $SUDO_USER -c "ssh-keygen -N \"\" -f /home/$SUDO_USER/.ssh/id_rsa"
 
-  echo "Setting up reverse autossh to run on boot"
+  echo "Setting up reverse autossh to run when network comes up"
   # Generate a random port number to use in the 10000 - 20000 range
   PORT_NUMBER=$[ ( $RANDOM % 10000 )  + 10000 ]
   MONITORING_PORT_NUMBER=$[ ( $RANDOM % 10000 )  + 20000 ]
-  echo "#!/bin/sh -e
+  echo "#!/bin/sh
 # ------------------------------
 # Added by tarlac_install script
 # ------------------------------
 # See autossh and google for reverse ssh tunnels to see how this works
-su -c "autossh -f -M ${MONITORING_PORT_NUMBER} -N -R *:${PORT_NUMBER}:localhost:22 chitstunnel@lakota.vdomck.org -oLogLevel=error  -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no" chits
-exit 0
-" > /etc/rc.local
+
+# When this script runs it will allow you to ssh into this machine even if it is behind a firewall or has a NAT'd IP address. 
+# From any ssh capable machine you just type ssh -p $PORT_MIDDLEMAN_WILL_LISTEN_ON localusername@middleman
+
+# This is the username on your local server who has public key authentication setup at the middleman
+USER_TO_SSH_IN_AS=chitstunnel
+
+# This is the username and hostname/IP address for the middleman (internet accessible server)
+MIDDLEMAN_SERVER_AND_USERNAME=chitstunnel@chits.ph
+
+# Port that the middleman will listen on (use this value as the -p argument when sshing)
+PORT_MIDDLEMAN_WILL_LISTEN_ON=${PORT_NUMBER}
+
+# Connection monitoring port, don't need to know this one
+AUTOSSH_PORT=${MONITORING_PORT_NUMBER}
+
+# Ensures that autossh keeps trying to connect
+AUTOSSH_GATETIME=0
+su -c "autossh -f -N -R *:${PORT_MIDDLEMAN_WILL_LISTEN_ON}:localhost:22 ${MIDDLEMAN_SERVER_AND_USERNAME} -oLogLevel=error  -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no" $USER_TO_SSH_IN_AS
+
+
+" > /etc/network/if-up.d/reverse_ssh_tunnel
+
+  chmod +x /etc/network/if-up.d/reverse_ssh_tunnel
 
   echo "Uploading public key to lakota.vdomck.org"
   PUBLIC_KEY_FILENAME=/tmp/`hostname`.public_key
