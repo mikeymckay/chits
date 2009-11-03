@@ -93,7 +93,7 @@
                                                                                                                                                                                                                                             
       // set_menu parameters
       // set_menu([module name], [menu title - what is displayed], menu categories (top menu)], [script executed in class])
-      module::set_menu($this->module, "Dental Records", "PATIENTS", "_consult_dental");
+      //module::set_menu($this->module, "Dental Records", "PATIENTS", "_consult_dental");
       // set_detail parameters
       // set_detail([module description], [module version], [module author], [module name/id]
       module::set_detail($this->description, $this->version, $this->author, $this->module);
@@ -535,6 +535,7 @@
     
     // Comment date: Oct 21, '09, JVTolentino
     // Initial codes for inserting records
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function new_dental_record() {
       $loc_patient_id = $_POST['h_patient_id'];
       $loc_consult_id = $_POST['h_consult_id'];
@@ -542,13 +543,33 @@
       $loc_tooth_number = $_POST['select_tooth'];
       $loc_tooth_condition = $_POST['select_condition'];
       $loc_date_of_oral = $_POST['date_of_oral'];
+      list($month, $day, $year) = explode("/", $_POST['date_of_oral']);
+      $loc_date_of_oral = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
       $loc_dentist = $_POST['h_dentist'];
-        
-      $query = "INSERT INTO `m_dental_patient_ohc` (`patient_id`, `consult_id`, `is_patient_pregnant`, `tooth_number`, `tooth_condition`, `date_of_oral`, `dentist`) VALUES".
-        "($loc_patient_id, $loc_consult_id, $loc_patient_pregnant, $loc_tooth_number, '$loc_tooth_condition', '$loc_date_of_oral', $loc_dentist)";
-        
+      
+      
+      $query = "SELECT COUNT(*) AS flag_tooth FROM `m_dental_patient_ohc` WHERE `tooth_number` = $loc_tooth_number AND `consult_id` = $loc_consult_id";
       $result = mysql_query($query)
-        or die ("Couldn't insert new dental record.");
+        or die ("Couldn't execute query.");
+      
+      if($row = mysql_fetch_assoc($result)) {
+        if($row['flag_tooth'] == 0) {
+          $query = "INSERT INTO `m_dental_patient_ohc` (`patient_id`, `consult_id`, `is_patient_pregnant`, `tooth_number`, `tooth_condition`, `date_of_oral`, `dentist`) VALUES".
+            "($loc_patient_id, $loc_consult_id, $loc_patient_pregnant, $loc_tooth_number, '$loc_tooth_condition', '$loc_date_of_oral', $loc_dentist)";  
+        } 
+        else {
+          $query = "UPDATE `m_dental_patient_ohc` SET `tooth_number` = '$loc_tooth_number', `tooth_condition` = '$loc_tooth_condition' WHERE ".
+            "`patient_id` = $loc_patient_id AND `consult_id` = $loc_consult_id AND `tooth_number` = $loc_tooth_number ";
+        }
+      }
+      
+      $result = mysql_query($query)
+        or die ("Couldn't execute query.");
+      
+      
+      
+        
+      
         
     
     }
