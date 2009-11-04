@@ -1743,10 +1743,10 @@ CREATE TABLE IF NOT EXISTS `m_consult_vitals` (
   `vitals_heartrate` int(11) NOT NULL default '0',
   `vitals_resprate` int(11) NOT NULL default '0',
   `vitals_height` int(5) NOT NULL default '0',
+  `vitals_pulse` int(5) NOT NULL,
   PRIMARY KEY  (`consult_id`,`vitals_timestamp`),
   KEY `key_patient` (`patient_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
 --
 -- Dumping data for table `m_consult_vitals`
 --
@@ -16719,15 +16719,6 @@ INSERT INTO `terms` (`termid`, `languageid`, `langtext`, `remarks`, `translation
 ('BTN_SAVE_DETAILS', 'english', 'Save Details', NULL, NULL, '', ''),
 ('BTN_SIGN_OUT', 'english', 'Sign Out', NULL, NULL, '', 'Y'),
 ('BTN_SIGN_OUT', 'tagalog', 'Sign Out', NULL, NULL, '', 'N'),
-('FLABEL_BMI_HEADER', 'Compute BM', '', NULL, NULL, '', ''),
-('FLABEL_BMI_HEADER', 'english', 'Compute BMI', NULL, NULL, '', ''),
-('FLABEL_BMI_HT', 'english', 'Enter Height (cm)', NULL, NULL, '', ''),
-('FLABEL_BMI_HT', 'Enter Heig', '', NULL, NULL, '', ''),
-('FLABEL_BMI_HT', 'Enter Weig', '', NULL, NULL, '', ''),
-('FLABEL_BMI_WT', 'english', 'Enter Weight (kg)', NULL, NULL, '', ''),
-('FLABEL_BMI_WT', 'Enter Weig', '', NULL, NULL, '', ''),
-('FLABEL_NUM', 'Number of', '', NULL, NULL, '', ''),
-('FLABEL_SMOKE', 'Smoking?', '', NULL, NULL, '', ''),
 ('FTITLE_APPOINTMENTS_MADE_TODAY', 'english', 'APPOINTMENTS MADE TODAY', NULL, NULL, '', ''),
 ('FTITLE_APPOINTMENTS_TODAY', 'english', 'APPOINTMENTS TODAY', NULL, NULL, '', ''),
 ('FTITLE_APPOINTMENTS_TODAY', 'tagalog', 'MGA APPOINTMENT NGAYON', NULL, NULL, '', 'Y'),
@@ -17299,7 +17290,7 @@ INSERT INTO `terms` (`termid`, `languageid`, `langtext`, `remarks`, `translation
 ('THEAD_VACCINE_AGE', 'english', 'AGE IN WEEKS', NULL, NULL, '', '');
 
 
---- tables for report generation: childcare_indicators, crit_class, maternal_indicators, question, ques_cat
+-- tables for report generation: childcare_indicators, crit_class, maternal_indicators, question, ques_cat
 
 CREATE TABLE IF NOT EXISTS `childcare_indicators` (
   `ind_id` int(2) NOT NULL auto_increment,
@@ -17468,3 +17459,21 @@ INSERT INTO `ques_cat` (`cat_id`, `cat_label`) VALUES
 (6, 'Nutrition'),
 (7, 'Notifiable Diseases'),
 (8, 'Child Care');
+
+CREATE TABLE IF NOT EXISTS `m_lib_mc_delivery_location` (
+  `delivery_id` varchar(10) NOT NULL,
+  `delivery_name` text NOT NULL,
+  PRIMARY KEY  (`delivery_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `m_lib_mc_delivery_location`
+--
+
+INSERT INTO `m_lib_mc_delivery_location` (`delivery_id`, `delivery_name`) VALUES
+('HOME', 'Home'),
+('HOSP', 'Hospital'),
+('LYIN', 'Private Lying-In Clinic'),
+('HC', 'Health Center'),
+('BHS', 'Barangay Health Station'),
+('OTHERS', 'Others');
