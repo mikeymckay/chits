@@ -40,7 +40,6 @@ set bell-style none
   Space: magic-space
 \$endif" > /home/$SUDO_USER/.inputrc
 
-
 # Call "install wget" to add wget to the list of programs to install
 install () {
   PROGRAMS_TO_INSTALL="${PROGRAMS_TO_INSTALL} ${1}"

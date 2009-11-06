@@ -23,6 +23,7 @@ See [script](http://github.com/mikeymckay/chits/raw/master/install/tarlac_instal
 * Uninstall all games, applications, mail clients and lots of other stuff (visual application installer). But leave Firefox
 * Install Fullscreen extension for firefox (kiosk mode)
 * Set firefox homepage to CHITS
+* [client install script](http://github.com/mikeymckay/chits/blob/master/install/TODO)
 * Set optimum power settings when running on battery - lowest brightness, CPU scaling, etc. TODO
 
 ##2. server
