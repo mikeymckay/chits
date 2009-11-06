@@ -1,10 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Latest version can be found here:
 # http://github.com/mikeymckay/chits/raw/master/install/mysql_replication.sh
 #
 
 DATABASE_TO_REPLICATE=chits_live
+DATABASE_USERNAME=chits_live
 
 if [ -z "$SUDO_USER" ]; then
     echo "$0 must be called from sudo. Try: 'sudo ${0}'"
@@ -33,11 +34,13 @@ if [[ ! $DATABASES =~ ${DATABASE_TO_REPLICATE} ]]; then
 fi
 echo "Success!"
 
+read DATABASE_USERNAME
+
 echo "Enter ${DATABASE_TO_REPLICATE} mysql password"
 read DATABASE_PASSWORD
 
 echo "Checking that ${DATABASE_TO_REPLICATE} database exists, that password works, and that the game_user table exists"
-LOGIN_RESULT=`echo "SHOW TABLES;" | mysql -u ${DATABASE_TO_REPLICATE} -p${DATABASE_PASSWORD}`
+LOGIN_RESULT=`echo "SHOW TABLES;" | mysql -u ${DATABASE_USERNAME} -p${DATABASE_PASSWORD} ${DATABASE_TO_REPLICATE}`
 if [[ ! $LOGIN_RESULT =~ game_user ]]; then
   echo "Fail!"
   exit
