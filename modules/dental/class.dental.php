@@ -3,12 +3,12 @@
     
     // Author: Herman Tolentino MD
     // CHITS Project 2004
-            
+	
     // DENTAL HEALTH CARE PROGRAM MODULE
-                           
-    // Feel free to add additional comments anywhere.
+    
+	// Feel free to add additional comments anywhere.
     // Just add comment dates before the actual comment.
-                                                                      
+	
     // COMMENT DATE: Sep 25, '09
     // THESE ARE THE REQUIRED APIs/FUNCTIONS FOR EVERY MODULE
     // 1. init_deps()
@@ -19,8 +19,8 @@
     // 6. init_sql()
     // 7. CONSTRUCTOR FUNCTION
     // 8. drop_tables()
-                                                                                        
-                                                                                          
+
+	
     // Comment date: Sep 25, '09
     // The constructor function starts here
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -31,10 +31,10 @@
       $this->description = "CHITS Module - Dental Health Care Program";  
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                                                                                                                                        
-      
-      
-      
+	
+	
+	
+	
     // Comment date: Oct 21, '09, JVTolentino
     // This function is somehow needed by the healthcenter class, the reason 
     //    is unknown.
@@ -52,32 +52,32 @@
        module::set_dep($this->module, "healthcenter");
        module::set_dep($this->module, "patient");                               
     }
-      
-      
-      
-                                                                                                                                                    
-                                                                                                                                                      
+	
+	
+	
+	
+	
     function init_lang() {
     }	
     
     
-                                                                                                                                                                
+	
     
-                                                                                                                                                                  
+	
     function init_stats() {
     }
     
     
     
-                                                                                                                                                                            
-                                                                                                                                                                              
+	
+	
     function init_help() {
     }
-                                                                                                                                                                                      
+	
     
     
     
-                                                                                                                                                                                      
+	
     // Comment date: Sep 25, '09
     // The init_menu() function starts here
     // This function is used to include a link to the menu pane,
@@ -90,7 +90,7 @@
       }
       
       //print_r($arg_list);
-                                                                                                                                                                                                                                            
+		
       // set_menu parameters
       // set_menu([module name], [menu title - what is displayed], menu categories (top menu)], [script executed in class])
       //module::set_menu($this->module, "Dental Records", "PATIENTS", "_consult_dental");
@@ -103,7 +103,7 @@
     
     
     
-                                                                                                                                                                                                                                                                        
+	
     // Comment date: Oct 7, 2009, JVTolentino
     // The init_sql() function starts here.
     // This function will initialize the tables for the Dental Module in CHITS DB.
@@ -200,6 +200,7 @@
     function drop_tables() {
       module::execsql("DROP TABLE `m_dental_patient_ohc`");
       module::execsql("DROP TABLE `m_lib_dental_tooth_condition`");
+      module::execsql("DROP TABLE `m_dental_patient_ohc_table_a`");
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -288,40 +289,37 @@
     //    accept one argument, the age of the patient, and use it to dynamically
     //    get only the relevant teeth numbers and conditions.
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    function get_teeth_conditions($p_age) {
-      if($p_age < 6) { // tentative value for temporary teeth
-        // upper-teeth (temporary)
-        for($this->toothnumber=51; $this->toothnumber<=55; $this->toothnumber++) {
-          $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
-        }
-        for($this->toothnumber=61; $this->toothnumber<=65; $this->toothnumber++) {
-          $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
-        }
-        
-        // lower-teeth (temporary)
-        for($this->toothnumber=81; $this->toothnumber<=85; $this->toothnumber++) {
-          $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
-        }
-        for($this->toothnumber=71; $this->toothnumber<=75; $this->toothnumber++) {
-          $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
-        }
+    function get_teeth_conditions() {
+      // upper-teeth (temporary)
+      for($this->toothnumber=51; $this->toothnumber<=55; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
       }
-      else {
-        // upper-teeth (permanent)
-        for($this->toothnumber=11; $this->toothnumber<=18; $this->toothnumber++) {
-          $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
-        }
-        for($this->toothnumber=21; $this->toothnumber<=28; $this->toothnumber++) {
-          $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
-        }
+      for($this->toothnumber=61; $this->toothnumber<=65; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
+      }
+        
+      // lower-teeth (temporary)
+      for($this->toothnumber=81; $this->toothnumber<=85; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
+      }
+      for($this->toothnumber=71; $this->toothnumber<=75; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
+      }
+    
+      // upper-teeth (permanent)
+      for($this->toothnumber=11; $this->toothnumber<=18; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
+      }
+      for($this->toothnumber=21; $this->toothnumber<=28; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
+      }
   
-        // lower-teeth (permanent)
-        for($this->toothnumber=41; $this->toothnumber<=48; $this->toothnumber++) {
-          $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
-        }
-        for($this->toothnumber=31; $this->toothnumber<=38; $this->toothnumber++) {
-          $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
-        }
+      // lower-teeth (permanent)
+      for($this->toothnumber=41; $this->toothnumber<=48; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
+      }
+      for($this->toothnumber=31; $this->toothnumber<=38; $this->toothnumber++) {
+        $this->condition[$this->toothnumber] = $this->tooth_condition($this->toothnumber, $this->consult_id);
       }
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -340,7 +338,7 @@
     //    accept one argument, the age of the patient, and use it to dynamically
     //    show in the listbox the relevant teeth and conditions.
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    function select_tooth_and_condition($p_age) {
+    function select_tooth_and_condition() {
       echo "<table border=3 bordercolor='red' align='center' width=500>";
         echo "<tr>";
           echo "<th align='left' bgcolor='CC9900'>Set Patient's Tooth Condition</th>";
@@ -354,40 +352,38 @@
                 echo "<td>";
                   echo "<select name='select_tooth'>";
                   echo "<option value='0'></option>";
-                    if($p_age < 6) { // TENTATIVE VALUE FOR TEMPORARY TEETH
-                      for($i=55; $i>=51; $i--) {
-                        echo "<option value=$i>$i</option>";
-                      }
-                
-                      for($i=61; $i<=65; $i++) {
-                        echo "<option value=$i>$i</option>";
-                      }
-                
-                      for($i=85; $i>=81; $i--) {
-                        echo "<option value=$i>$i</option>";
-                      }
-                
-                      for($i=71; $i<=75; $i++) {
-                        echo "<option value=$i>$i</option>";
-                      }
+                    for($i=11; $i<=18; $i++) {
+                      echo "<option value=$i>$i</option>";
                     }
-                    else {
-                      for($i=18; $i>=11; $i--) {
-                        echo "<option value=$i>$i</option>";
-                      }
                 
-                      for($i=21; $i<=28; $i++) {
-                        echo "<option value=$i>$i</option>";
-                      }
+                    for($i=21; $i<=28; $i++) {
+                      echo "<option value=$i>$i</option>";
+                    }
                 
-                      for($i=48; $i>=41; $i--) {
-                        echo "<option value=$i>$i</option>";
-                      }
+                    for($i=31; $i<=38; $i++) {
+                      echo "<option value=$i>$i</option>";
+                    }
                 
-                      for($i=31; $i<=38; $i++) {
-                        echo "<option value=$i>$i</option>";
-                      }
-                    }   
+                    for($i=41; $i<=48; $i++) {
+                      echo "<option value=$i>$i</option>";
+                    }
+
+                    for($i=51; $i<=55; $i++) {
+                      echo "<option value=$i>$i</option>";
+                    }
+                
+                    for($i=61; $i<=65; $i++) {
+                      echo "<option value=$i>$i</option>";
+                    }
+                
+                    for($i=71; $i<=75; $i++) {
+                      echo "<option value=$i>$i</option>";
+                    }
+                
+                    for($i=81; $i<=85; $i++) {
+                      echo "<option value=$i>$i</option>";
+                    }
+
                   echo "</select>";
                 echo "</td>";
               echo "</tr>";
@@ -400,12 +396,7 @@
                 //    all the possible tooth condition that a patient may have.
                 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 echo "<td>";
-                  if($p_age < 6) { // TENTATIVE VALUE FOR TEMPORARY TEETH
-                    $query = "SELECT DISTINCT legend FROM m_lib_dental_tooth_condition WHERE status='Temporary' ORDER BY legend";
-                  }
-                  else {
-                    $query = "SELECT DISTINCT legend FROM m_lib_dental_tooth_condition WHERE status='Permanent' ORDER BY legend";
-                  }
+                  $query = "SELECT DISTINCT legend FROM m_lib_dental_tooth_condition ORDER BY legend";
                   $result = mysql_query($query)
                     or die ("Couldn't execute query.");
                   
@@ -425,6 +416,12 @@
             echo "</table>";
           echo "</td>";
         echo "</tr>";
+		
+		echo "<tr>";
+          echo "<td>Use capital letters to record the condition of permanent".
+            " dentition and small letters for the status of temporary dentition.</td>";
+        echo "</tr>";
+		
       echo "</table>";
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -441,7 +438,7 @@
     // Will see if this is acceptable, especially
     //   when querying the db.
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    function show_teeth_conditions($p_age) {
+    function show_teeth_conditions() {
       echo "<table border=3 bordercolor=#009900# align='center'>";
         // upper-teeth-temporary symbols and conditions
         echo "<tr>";
@@ -554,10 +551,89 @@
     
     
     
+    // Comment date: Oct 22, '09, JVTolentino
+    // Initial codes for inserting records in m_dental_patient_ohc_table_a
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    function new_ohc_table_a_record() {
+      $loc_patient_id = $_POST['h_patient_id'];
+      $loc_consult_id = $_POST['h_consult_id'];
+      
+      list($month, $day, $year) = explode("/", $_POST['date_of_oral']);
+      $loc_date_of_oral = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+
+      if($_POST['cb_dental_caries'] != "YES") {
+        $loc_dental_caries = "NO";
+      } else {
+        $loc_dental_caries = $_POST['cb_dental_caries'];
+      }
+      
+      if($_POST['cb_gingivitis_periodontal_disease'] != "YES") {
+        $loc_gingivitis_periodontal_disease = "NO";
+      } else {
+        $loc_gingivitis_periodontal_disease = $_POST['cb_gingivitis_periodontal_disease'];
+      }
+      
+      if($_POST['cb_debris'] != "YES") {
+        $loc_debris = "NO";
+      } else {
+        $loc_debris = $_POST['cb_debris'];
+      }
+      
+      if($_POST['cb_calculus'] != "YES") {
+        $loc_calculus = "NO";
+      } else {
+        $loc_calculus = $_POST['cb_calculus'];
+      }
+      
+      if($_POST['cb_abnormal_growth'] != "YES") {
+        $loc_abnormal_growth = "NO";
+      } else {
+        $loc_abnormal_growth = $_POST['cb_abnormal_growth'];
+      }
+      
+      if($_POST['cb_cleft_lip_palate'] != "YES") {
+        $loc_cleft_lip_palate = "NO";
+      } else {
+        $loc_cleft_lip_palate = $_POST['cb_cleft_lip_palate'];
+      }
+      
+      if($_POST['cb_others'] != "YES") {
+        $loc_others = "NO";
+      } else {
+        $loc_others = $_POST['cb_others'];
+      }
+      
+      
+      $query = "SELECT COUNT(*) AS flag_rec FROM m_dental_patient_ohc_table_a WHERE patient_id = $loc_patient_id AND consult_id = $loc_consult_id ";
+      $result = mysql_query($query)
+        or die("Couldn't execute query.");
+        
+      if($row = mysql_fetch_assoc($result)) {
+        if($row['flag_rec'] == 0) {
+          $query = "INSERT INTO `m_dental_patient_ohc_table_a` (`patient_id`, `consult_id`, `date_of_oral`, `dental_caries`, `gingivitis_periodontal_disease`, `debris`, `calculus`, `abnormal_growth`, `cleft_lip_palate`, `others`) VALUES".
+            "($loc_patient_id, $loc_consult_id, '$loc_date_of_oral', '$loc_dental_caries', '$loc_gingivitis_periodontal_disease', '$loc_debris', '$loc_calculus', '$loc_abnormal_growth', '$loc_cleft_lip_palate', '$loc_others')";
+        }
+        else {
+          $query = "UPDATE `m_dental_patient_ohc_table_a` SET `dental_caries` = '$loc_dental_caries', `gingivitis_periodontal_disease` = '$loc_gingivitis_periodontal_disease', `debris` = '$loc_debris', `calculus` = '$loc_calculus', `abnormal_growth` = '$loc_abnormal_growth', `cleft_lip_palate` = '$loc_cleft_lip_palate', `others` = '$loc_others' ".
+            "WHERE `consult_id` = $loc_consult_id AND `patient_id` = $loc_patient_id ";
+        }    
+      }
+        
+      $result = mysql_query($query)
+        or die("Couldn't execute query.");
+    }
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    
+    
+    
+    
     // Comment date: Oct 21, '09, JVTolentino
     // Initial codes for inserting records
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function new_dental_record() {
+      // The following variables are used for inserting a new record in
+      //    m_dental_patient_ohc
       $loc_patient_id = $_POST['h_patient_id'];
       $loc_consult_id = $_POST['h_consult_id'];
       $loc_patient_pregnant = $_POST['h_patient_pregnant'];
@@ -570,23 +646,23 @@
       
       
       if(($loc_tooth_number == "0") || ($loc_tooth_condition == "0")) {
-        echo "testing";
+        $this->new_ohc_table_a_record();
       }
       else {
-        $query = "SELECT COUNT(*) AS flag_tooth FROM `m_dental_patient_ohc` WHERE `tooth_number` = $loc_tooth_number AND `consult_id` = $loc_consult_id";
+        $query = "SELECT COUNT(*) AS flag_tooth FROM `m_dental_patient_ohc` WHERE `tooth_number` = $loc_tooth_number AND `consult_id` = $loc_consult_id ";
         $result = mysql_query($query)
           or die ("Couldn't execute query.");
       
-          if($row = mysql_fetch_assoc($result)) {
-            if($row['flag_tooth'] == 0) {
-              $query = "INSERT INTO `m_dental_patient_ohc` (`patient_id`, `consult_id`, `is_patient_pregnant`, `tooth_number`, `tooth_condition`, `date_of_oral`, `dentist`) VALUES".
-                "($loc_patient_id, $loc_consult_id, $loc_patient_pregnant, $loc_tooth_number, '$loc_tooth_condition', '$loc_date_of_oral', $loc_dentist)";  
-            } 
-            else {
-              $query = "UPDATE `m_dental_patient_ohc` SET `tooth_number` = '$loc_tooth_number', `tooth_condition` = '$loc_tooth_condition' WHERE ".
-                "`patient_id` = $loc_patient_id AND `consult_id` = $loc_consult_id AND `tooth_number` = $loc_tooth_number ";
-            }
+        if($row = mysql_fetch_assoc($result)) {
+          if($row['flag_tooth'] == 0) {
+            $query = "INSERT INTO `m_dental_patient_ohc` (`patient_id`, `consult_id`, `is_patient_pregnant`, `tooth_number`, `tooth_condition`, `date_of_oral`, `dentist`) VALUES".
+              "($loc_patient_id, $loc_consult_id, $loc_patient_pregnant, $loc_tooth_number, '$loc_tooth_condition', '$loc_date_of_oral', $loc_dentist)";  
+          } 
+          else {
+            $query = "UPDATE `m_dental_patient_ohc` SET `tooth_number` = '$loc_tooth_number', `tooth_condition` = '$loc_tooth_condition' WHERE ".
+              "`patient_id` = $loc_patient_id AND `consult_id` = $loc_consult_id AND `tooth_number` = $loc_tooth_number ";
           }
+        }
       
         $result = mysql_query($query)
           or die ("Couldn't execute query.");
@@ -602,33 +678,31 @@
     // This function will query m_lib_dental_tooth_condition and show tooth condition
     //    legends.
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    function show_tooth_legends($p_age) {
-      echo "<table border=3 bordercolor='red' align='center' width=500>";
+    function show_tooth_legends() {
+      echo "<table border=3 bordercolor=#009900# align='center' width=500>";
         echo "<tr>";
           echo "<th align='left' bgcolor='CC9900' colspan=3>Tooth Condition Legends</th>";
         echo "</tr>";
         
         echo "<tr>";
-          echo "<td align='center'><i>Legend</i></td>";
-          echo "<td align='center'><i>Tooth Condition</i></td>";
-          echo "<td align='center'><i>Tooth Status</i></td>";
+          echo "<td colspan=2>Capital letters shall be used for recording the condition of permanent".
+            " dentition and small letters for the status of temporary dentition.</td>";
         echo "</tr>";
         
+        echo "<tr>";
+          echo "<td align='center'><i>Legend</i></td>";
+          echo "<td align='center'><i>Tooth Condition</i></td>";
+        echo "</tr>";
         
-        if($p_age < 6) { // TENTATIVE VALUE FOR TEMPORARY TEETH
-          $query = "SELECT * FROM m_lib_dental_tooth_condition WHERE status='Temporary' ORDER BY legend";
-        }
-        else {
-           $query = "SELECT * FROM m_lib_dental_tooth_condition WHERE status='Permanent' ORDER BY legend"; 
-        }
+
+        $query = "SELECT * FROM m_lib_dental_tooth_condition ORDER BY legend"; 
         $result = mysql_query($query);
         
         while ($row = mysql_fetch_array($result)) {
           extract($row);
             echo "<tr>";
-              echo "<td align='center'>$legend</td>";
               echo "<td align='center'>$condition</td>";
-              echo "<td align='center'>$status</td>";
+              echo "<td align='center'>$legend</td>";
             echo "</tr>";
           }
       echo "</table>";
@@ -644,16 +718,16 @@
     // Oral Health Condition (A).
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function show_ohc_table_a($p_id) {
-      echo "<table border=3 bordercolor=#009900# align='center'>";
+      echo "<table border=3 bordercolor='red' align='center'>";
         echo "<tr>";
-          echo "<th align='left' bgcolor='CC9900' colspan=6>Oral Health Condition (A)</th>";
+          echo "<th align='left' bgcolor='CC9900' colspan=7>Oral Health Condition (A)</th>";
         echo "</tr>";
       
       
         echo "<tr>";
-          echo "<td>Check the box if the condition is present on patient.</td>";
+          echo "<td colspan=7>Check the box if the condition is present on patient.</td>";
         echo "</tr>";
-      
+        
         
         echo "<tr>";
           echo "<td>Date of Oral Examination</td>";
@@ -663,140 +737,442 @@
             or die("Couldn't execute query.");
             
           echo "<td>&nbsp;</td>";
-            
-          for($ctr=1; $ctr<=5; $ctr++) {
-            while($row = mysql_fetch_array($result)) {
-              extract($row);
-              echo"<td align='center'>$date_of_oral</td>";
-            }
+          
+          $ctr = 1;  
+          while(($row = mysql_fetch_array($result)) && ($ctr <=5)) {
+            extract($row);
+            echo"<td align='center'>$date_of_oral</td>";
+            $ctr++;
           }
         echo "</tr>";
        
         
         echo "<tr>";
           echo "<td>Dental Caries</td>";
-          echo "<td><input type='checkbox' name='cb_dental_caries'></input></td>";
+          echo "<td align='center'><input type='checkbox' name='cb_dental_caries' value='YES'></input></td>";
           
           $query = "SELECT dental_caries FROM m_dental_patient_ohc_table_a WHERE patient_id = $p_id ORDER BY consult_id DESC";
           $result = mysql_query($query)
             or die("Couldn't execute query.");
             
-          for($ctr=1; $ctr<=5; $ctr++) {
-            while($row = mysql_fetch_array($result)) {
-              extract($row);
-              echo"<td align='center'>$dental_caries</td>";
-            }
+          $ctr = 1;
+          while(($row = mysql_fetch_array($result)) && ($ctr <=5)) {
+            extract($row);
+            echo"<td align='center'>$dental_caries</td>";
+            $ctr++;
           }
         echo "</tr>";
        
         
         echo "<tr>";
           echo "<td>Gingivitis/Periodontal Disease</td>";
-          echo "<td><input type='checkbox' name='cb_gingivitis_periodontal_disease'></input></td>";
+          echo "<td align='center'><input type='checkbox' name='cb_gingivitis_periodontal_disease' value='YES'></input></td>";
           
           $query = "SELECT gingivitis_periodontal_disease FROM m_dental_patient_ohc_table_a WHERE patient_id = $p_id ORDER BY consult_id DESC";
           $result = mysql_query($query)
             or die("Couldn't execute query.");
             
-          for($ctr=1; $ctr<=5; $ctr++) {
-            while($row = mysql_fetch_array($result)) {
-              extract($row);
-              echo"<td align='center'>$gingivitis_periodontal_disease</td>";
-            }
+          $ctr = 1;
+          while(($row = mysql_fetch_array($result)) && ($ctr <=5)) {
+            extract($row);
+            echo"<td align='center'>$gingivitis_periodontal_disease</td>";
+            $ctr++;
           }
         echo "</tr>";
         
         
         echo "<tr>";
           echo "<td>Debris</td>";
-          echo "<td><input type='checkbox' name='cb_debris'></input></td>";
+          echo "<td align='center'><input type='checkbox' name='cb_debris' value='YES'></input></td>";
           
           $query = "SELECT debris FROM m_dental_patient_ohc_table_a WHERE patient_id = $p_id ORDER BY consult_id DESC";
           $result = mysql_query($query)
             or die("Couldn't execute query.");
             
-          for($ctr=1; $ctr<=5; $ctr++) {
-            while($row = mysql_fetch_array($result)) {
-              extract($row);
-              echo"<td align='center'>$debris</td>";
-            }
+          $ctr = 1;
+          while(($row = mysql_fetch_array($result)) && ($ctr <=5)) {
+            extract($row);
+            echo"<td align='center'>$debris</td>";
+            $ctr++;
           }
         echo "</tr>";
         
         
         echo "<tr>";
           echo "<td>Calculus</td>";
-          echo "<td><input type='checkbox' name='cb_calculus'></input></td>";
+          echo "<td align='center'><input type='checkbox' name='cb_calculus' value='YES'></input></td>";
           
           $query = "SELECT calculus FROM m_dental_patient_ohc_table_a WHERE patient_id = $p_id ORDER BY consult_id DESC";
           $result = mysql_query($query)
             or die("Couldn't execute query.");
             
-          for($ctr=1; $ctr<=5; $ctr++) {
-            while($row = mysql_fetch_array($result)) {
-              extract($row);
-              echo"<td align='center'>$calculus</td>";
-            }
+          $ctr = 1;
+          while(($row = mysql_fetch_array($result)) && ($ctr <=5)) {
+            extract($row);
+            echo"<td align='center'>$calculus</td>";
+            $ctr++;
           }
         echo "</tr>";
         
         
         echo "<tr>";
           echo "<td>abnormal_growth</td>";
-          echo "<td><input type='checkbox' name='cb_abnormal_growth'></input></td>";
+          echo "<td align='center'><input type='checkbox' name='cb_abnormal_growth' value='YES'></input></td>";
           
           $query = "SELECT abnormal_growth FROM m_dental_patient_ohc_table_a WHERE patient_id = $p_id ORDER BY consult_id DESC";
           $result = mysql_query($query)
             or die("Couldn't execute query.");
             
-          for($ctr=1; $ctr<=5; $ctr++) {
-            while($row = mysql_fetch_array($result)) {
-              extract($row);
-              echo"<td align='center'>$abnormal_growth</td>";
-            }
+          $ctr = 1;
+          while(($row = mysql_fetch_array($result)) && ($ctr <=5)) {
+            extract($row);
+            echo"<td align='center'>$abnormal_growth</td>";
+            $ctr++;
           }
         echo "</tr>";
         
         
         echo "<tr>";
           echo "<td>Cleft Lip/Palate</td>";
-          echo "<td><input type='checkbox' name='cb_cleft_lip_palate'></input></td>";
+          echo "<td align='center'><input type='checkbox' name='cb_cleft_lip_palate' value='YES'></input></td>";
           
           $query = "SELECT cleft_lip_palate FROM m_dental_patient_ohc_table_a WHERE patient_id = $p_id ORDER BY consult_id DESC";
           $result = mysql_query($query)
             or die("Couldn't execute query.");
             
-          for($ctr=1; $ctr<=5; $ctr++) {
-            while($row = mysql_fetch_array($result)) {
-              extract($row);
-              echo"<td align='center'>$cleft_lip_palate</td>";
-            }
+          $ctr = 1;
+          while(($row = mysql_fetch_array($result)) && ($ctr <=5)) {
+            extract($row);
+            echo"<td align='center'>$cleft_lip_palate</td>";
+            $ctr++;
           }
         echo "</tr>";
         
         
         echo "<tr>";
-          echo "<td>Others</td>";
-          echo "<td><input type='checkbox' name='cb_others'></input></td>";
+          echo "<td>Others (supernumerary / mesiodens, etc.)</td>";
+          echo "<td align='center'><input type='checkbox' name='cb_others' value='YES'></input></td>";
           
           $query = "SELECT others FROM m_dental_patient_ohc_table_a WHERE patient_id = $p_id ORDER BY consult_id DESC";
           $result = mysql_query($query)
             or die("Couldn't execute query.");
             
-          for($ctr=1; $ctr<=5; $ctr++) {
-            while($row = mysql_fetch_array($result)) {
-              extract($row);
-              echo"<td align='center'>$others</td>";
-            }
+          $ctr = 1;
+          while(($row = mysql_fetch_array($result)) && ($ctr <=5)) {
+            extract($row);
+            echo"<td align='center'>$others</td>";
+            $ctr++;
           }
         echo "</tr>";
-          
+        
+        
+        echo "<tr>";
+          echo "<td align='center' colspan=7><input type='submit' value='Save OHC(A)'></input>".
+            "<br>Note: To save OHC(A), tooth number and/or tooth condition must be blank.</td>";
+        echo "</tr>";
+      
       
       echo "</table>";
     
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 09, '09, JVTolentino
+    // This function is used to get the patient's number of teeth present during a consultation.
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function get_no_of_teeth_present($c_id, $dentition_status) {
+		if($dentition_status == "PERMANENT") {
+			$query = "SELECT COUNT(*) AS no_of_teeth_present FROM m_dental_patient_ohc ".
+				"WHERE consult_id = $c_id AND tooth_condition <> 'M' AND ".
+				"((tooth_number BETWEEN 10 AND 29) OR (tooth_number BETWEEN 30 AND 49)) ";
+		} elseif ($dentition_status == "TEMPORARY") {
+			$query = "SELECT COUNT(*) AS no_of_teeth_present FROM m_dental_patient_ohc ".
+				"WHERE consult_id = $c_id AND tooth_condition <> 'e' AND ".
+				"((tooth_number BETWEEN 50 AND 66) OR (tooth_number BETWEEN 70 AND 86)) ";
+		}
+		$result = mysql_query($query)
+			or die("Couldn't execute query.");
+		if($row = mysql_fetch_assoc($result)) {
+			return $row['no_of_teeth_present'];
+		}
+	}
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 09, '09, JVTolentino
+    // This function is used to get the patient's number of sound teeth during a consultation.
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function get_no_of_sound_teeth($c_id, $dentition_status) {
+		if($dentition_status == "PERMANENT") {
+			$query = "SELECT COUNT(*) AS no_of_sound_teeth ".
+				"FROM m_dental_patient_ohc WHERE consult_id = $c_id ".
+				"AND tooth_condition = 'Y' AND ".
+				"((tooth_number BETWEEN 10 AND 29) OR (tooth_number BETWEEN 30 AND 49)) ";
+		} elseif($dentition_status == "TEMPORARY") {
+			$query = "SELECT COUNT(*) AS no_of_sound_teeth ".
+				"FROM m_dental_patient_ohc WHERE consult_id = $c_id ".
+				"AND tooth_condition = 'y' AND ".
+				"((tooth_number BETWEEN 50 AND 66) OR (tooth_number BETWEEN 70 AND 86)) ";
+		}
+		$result = mysql_query($query)
+			or die("Couldn't execute query.");
+		if($row = mysql_fetch_assoc($result)) {
+			return $row['no_of_sound_teeth'];
+		}
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 09, '09, JVTolentino
+    // This function is used to get the patient's number of decayed teeth during a consultation.
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function get_no_of_decayed_teeth($c_id, $dentition_status) {
+		if ($dentition_status == "PERMANENT") {
+			$query = "SELECT COUNT(*) AS no_of_decayed_teeth ".
+				"FROM m_dental_patient_ohc WHERE consult_id = $c_id ".
+				"AND tooth_condition = 'D' AND ".
+				"((tooth_number BETWEEN 10 AND 29) OR (tooth_number BETWEEN 30 AND 49)) ";
+		} elseif ($dentition_status == "TEMPORARY") {
+			$query = "SELECT COUNT(*) AS no_of_decayed_teeth ".
+				"FROM m_dental_patient_ohc WHERE consult_id = $c_id ".
+				"AND tooth_condition = 'd' AND ".
+				"((tooth_number BETWEEN 50 AND 66) OR (tooth_number BETWEEN 70 AND 86)) ";
+		}
+		$result = mysql_query($query)
+			or die("Couldn't execute query.");
+		if($row = mysql_fetch_assoc($result)) {
+			return $row['no_of_decayed_teeth'];
+		}
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 09, '09, JVTolentino
+    // This function is used to get the patient's number of missing teeth during a consultation.
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function get_no_of_missing_teeth($c_id, $dentition_status) {
+		if ($dentition_status == "PERMANENT") {
+			$query = "SELECT COUNT(*) AS no_of_missing_teeth ".
+				"FROM m_dental_patient_ohc WHERE consult_id = $c_id ".
+				"AND tooth_condition = 'M' AND ".
+				"((tooth_number BETWEEN 10 AND 29) OR (tooth_number BETWEEN 30 AND 49)) ";
+		} elseif ($dentition_status == "TEMPORARY") {
+			$query = "SELECT COUNT(*) AS no_of_missing_teeth ".
+				"FROM m_dental_patient_ohc WHERE consult_id = $c_id ".
+				"AND tooth_condition = 'e' AND ".
+				"((tooth_number BETWEEN 50 AND 66) OR (tooth_number BETWEEN 70 AND 86)) ";
+		}
+		$result = mysql_query($query)
+			or die("Couldn't execute query.");
+		if($row = mysql_fetch_assoc($result)) {
+			return $row['no_of_missing_teeth'];
+		}
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 09, '09, JVTolentino
+    // This function is used to get the patient's number of filled teeth during a consultation.
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function get_no_of_filled_teeth($c_id, $dentition_status) {
+		if ($dentition_status == "PERMANENT") {
+			$query = "SELECT COUNT(*) AS no_of_filled_teeth ".
+				"FROM m_dental_patient_ohc WHERE consult_id = $c_id ".
+				"AND tooth_condition = 'F' AND ".
+				"((tooth_number BETWEEN 10 AND 29) OR (tooth_number BETWEEN 30 AND 49)) ";
+		} elseif ($dentition_status == "TEMPORARY") {
+			$query = "SELECT COUNT(*) AS no_of_filled_teeth ".
+				"FROM m_dental_patient_ohc WHERE consult_id = $c_id ".
+				"AND tooth_condition = 'f' AND ".
+				"((tooth_number BETWEEN 50 AND 66) OR (tooth_number BETWEEN 70 AND 86)) ";
+		}
+		$result = mysql_query($query)
+			or die("Couldn't execute query.");
+		if($row = mysql_fetch_assoc($result)) {
+			return $row['no_of_filled_teeth'];
+		}
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    
+    
+    
+    
+    // Comment date: Nov 05, '09, JVTolentino
+    // This function is used to create a table for the patient's
+    // Oral Health Condition (B).
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    function show_ohc_table_b($p_id) {
+		$query = "SELECT DISTINCT consult_id FROM m_dental_patient_ohc WHERE patient_id = $p_id ".
+			"ORDER BY consult_id DESC";
+		$result = mysql_query($query)
+			or die("Couldnt' execute query.");
+		
+		$total_consults = 0;
+		while($row = mysql_fetch_array($result)) {
+			extract($row);
+			$patient_consults[$total_consults] = $consult_id;
+			$total_consults++;
+		}
+		$total_consults--;
+		
+		echo "<table border=3 bordercolor='red' align='center'>";
+			echo "<tr>";
+				echo "<th align='left' bgcolor='CC9900' colspan=2>Oral Health Condition (B)</th>";
+			echo "</tr>";
+			
+			// The following codes are used to show the last five consultation dates of the patient.
+			echo "<tr>";
+				echo "<td>Date of Oral Examination</td>";
+				for($i=0; ($i<=$total_consults) && ($i<=5); $i++) {
+					$query = "SELECT DISTINCT date_of_oral FROM m_dental_patient_ohc ".
+						"WHERE consult_id = ".$patient_consults[$i]." ";
+					$result = mysql_query($query)
+						or die("Couldn't query patient's dates of oral.");
+					if($row = mysql_fetch_assoc($result)) {
+						$date_of_oral[$i] = $row['date_of_oral'];
+					}
+					echo "<td align='center'>{$date_of_oral[$i]}</td>";
+					
+				}
+			echo "</tr>";
+			
+			// The following codes are used in obtatining the no. of permanent teeth present.
+			echo "<tr>";
+				echo "<td>Number of Permanent Teeth Present</td>";
+				for($i=0; ($i<=$total_consults) && ($i<=5); $i++) {
+					echo "<td align='center'>".
+						"{$this->get_no_of_teeth_present($patient_consults[$i], 'PERMANENT')}".
+						"</td>";
+				}
+			echo "</tr>";
+			
+			// The following codes are used in obtatining the no. of permanent sound teeth.
+			echo "<tr>";
+				echo "<td>Number of Permanent Sound Teeth</td>";
+				for($i=0; ($i<=$total_consults) && ($i<=5); $i++) {
+					echo "<td align='center'>".
+						"{$this->get_no_of_sound_teeth($patient_consults[$i], 'PERMANENT')}".
+						"</td>";
+				}
+			echo "</tr>";
+			
+			// The following codes are used in obtatining the no. of permanent decayed teeth.
+			echo "<tr>";
+				echo "<td>Number of Decayed Teeth (D)</td>";
+				for($i=0; ($i<=$total_consults) && ($i<=5); $i++) {
+					echo "<td align='center'>".
+						"{$this->get_no_of_decayed_teeth($patient_consults[$i], 'PERMANENT')}".
+						"</td>";
+				}
+			echo "</tr>";
+			
+			// The following codes are used in obtatining the no. of missing teeth.
+			echo "<tr>";
+				echo "<td>Number of Missing Teeth (M)</td>";
+				for($i=0; ($i<=$total_consults) && ($i<=5); $i++) {
+					echo "<td align='center'>".
+						"{$this->get_no_of_missing_teeth($patient_consults[$i], 'PERMANENT')}".
+						"</td>";
+				}
+			echo "</tr>";
+			
+			// The following codes are used in obtatining the no. of permanent filled teeth.
+			echo "<tr>";
+				echo "<td>Number of Filled Teeth (F)</td>";
+				for($i=0; ($i<=$total_consults) && ($i<=5); $i++) {
+					echo "<td align='center'>".
+						"{$this->get_no_of_filled_teeth($patient_consults[$i], 'PERMANENT')}".
+						"</td>";
+				}
+			echo "</tr>";
+			
+			// The following codes are used in obtatining the no. of DMF teeth.
+			echo "<tr>";
+				echo "<td>Total Number of DMF Teeth</td>";
+				for($i=0; ($i<=$total_consults) && ($i<=5); $i++) {
+					$total_DMF_teeth = 0; 	//resets total DMF to 0
+					$total_DMF_teeth = 
+						$this->get_no_of_decayed_teeth($patient_consults[$i], 'PERMANENT') +
+						$this->get_no_of_missing_teeth($patient_consults[$i], 'PERMANENT') +
+						$this->get_no_of_filled_teeth($patient_consults[$i], 'PERMANENT');
+					
+					echo "<td align='center'>$total_DMF_teeth</td>";
+				}
+			echo "</tr>";
+			
+			// The following codes are used in obtatining the no. of temporary teeth present.
+			echo "<tr>";
+				echo "<td>Number of Temporary Teeth Present</td>";
+				for($i=0; ($i<=$total_consults) && ($i<=5); $i++) {
+					echo "<td align='center'>".
+						"{$this->get_no_of_teeth_present($patient_consults[$i], 'TEMPORARY')}".
+						"</td>";
+				}
+			echo "</tr>";
+			
+			// The following codes are used in obtatining the no. of temporary sound teeth.
+			echo "<tr>";
+				echo "<td>Number of Temporary Sound Teeth</td>";
+				for($i=0; ($i<=$total_consults) && ($i<=5); $i++) {
+					echo "<td align='center'>".
+						"{$this->get_no_of_sound_teeth($patient_consults[$i], 'TEMPORARY')}".
+						"</td>";
+				}
+			echo "</tr>";
+			
+			// The following codes are used in obtatining the no. of temporary decayed teeth.
+			echo "<tr>";
+				echo "<td>Number of Decayed Teeth (d)</td>";
+				for($i=0; ($i<=$total_consults) && ($i<=5); $i++) {
+					echo "<td align='center'>".
+						"{$this->get_no_of_decayed_teeth($patient_consults[$i], 'TEMPORARY')}".
+						"</td>";
+				}
+			echo "</tr>";
+			
+			// The following codes are used in obtatining the no. of temporary filled teeth.
+			echo "<tr>";
+				echo "<td>Number of Filled Teeth (f)</td>";
+				for($i=0; ($i<=$total_consults) && ($i<=5); $i++) {
+					echo "<td align='center'>".
+						"{$this->get_no_of_filled_teeth($patient_consults[$i], 'TEMPORARY')}".
+						"</td>";
+				}
+			echo "</tr>";
+			
+			// The following codes are used in obtatining the no. of df teeth.
+			echo "<tr>";
+				echo "<td>Total Number of df Teeth</td>";
+				for($i=0; ($i<=$total_consults) && ($i<=5); $i++) {
+					$total_df_teeth = 0; 	//resets total df to 0
+					$total_df_teeth = 
+						$this->get_no_of_decayed_teeth($patient_consults[$i], 'TEMPORARY') +
+						$this->get_no_of_filled_teeth($patient_consults[$i], 'TEMPORARY');
+					
+					echo "<td align='center'>$total_df_teeth</td>";
+				}
+			echo "</tr>";
+			
+		echo "</table>";
+    }
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     
     
@@ -816,7 +1192,7 @@
       $dental->patient_id = healthcenter::get_patient_id($_GET['consult_id']);
       $dental->patient_age = healthcenter::get_patient_age($_GET['consult_id']);
       $dental->patient_pregnant = 0; // THIS VALUE IS FOR TESTING PURPOSES ONLY...YOU SHOULD FIND A WAY IF THE PATIENT IS REALLY PREGNANT OR NOT
-      $dental->dentist = 1;  // THIS VALUE IS FOR TESTING PURPOSES ONLY...YOU SHOULD FIND OUT HOW TO GET THE ID OF THE CURRENT USER
+      $dental->dentist = $_SESSION['userid'];
       
       // The following codes will initialize hidden textboxes and their values
       echo "<input type='hidden' name='h_patient_id' value='{$dental->patient_id}'></input>";
@@ -842,6 +1218,9 @@
         $dental->show_ohc_table_a($dental->patient_id);
         
         echo "&nbsp;";
+        $dental->show_ohc_table_b($dental->patient_id);
+        
+        echo "&nbsp;";
         $dental->show_tooth_legends($dental->patient_age);
       }
       else {
@@ -858,6 +1237,9 @@
         
         echo "&nbsp;";
         $dental->show_ohc_table_a($dental->patient_id);
+        
+        echo "&nbsp;";
+        $dental->show_ohc_table_b($dental->patient_id);
         
         echo "&nbsp;";
         $dental->show_tooth_legends($dental->patient_age);
