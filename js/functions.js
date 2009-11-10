@@ -4,13 +4,23 @@ function check_delete(){
 	}
 }
 
+function delete_fp_service(){
+	if(window.confirm('You are about to delete this record. Do you really wanted to delete this record?')){
+		form_fp_chart.confirm_del.value = 1;
+		form_fp_chart.submit();
+	}
+}
+
+function confirm_dropout(){
+		window.alert('form_methods.sel_dropout.value');
+}
+
 
 function show_bfeed_date(){
 	if(form_mc_postpartum.breastfeeding_flag.checked){
 		var str  = form_mc_postpartum.date_breastfed.value;
 		if(window.confirm(str.length)){
-			form_mc_postpartum.submit();
-		
+			form_mc_postpartum.submit();		
 		}
 	}
 }
@@ -67,4 +77,8 @@ function check_appt_info(){
 		}
 
 	}
+}
+
+function verify_patient_id(){		
+	window.open ("../site/verify_patient.php?id="+ form_visit1.spouse_name.value,"CHITS - Verify Patient ID","location=1,status=0,scrollbars=0,width=200,height=200,resizable=0,menubar=0,toolbars=0");
 }

@@ -4,3 +4,25 @@
 
 *** File '(Unnamed)'
 class.site.php
+
+*** These modified files were found in JOE when it aborted on Thu Oct  8 17:59:00 2009
+*** JOE was aborted by UNIX signal 1
+
+*** File '(Unnamed)'
+features/patient.feature
+features/patient.feature
+features/patient.feature
+features/patient.feature
+
+*** These modified files were found in JOE when it aborted on Sun Oct 11 00:35:49 2009
+*** JOE was aborted because the terminal closed
+
+*** These modified files were found in JOE when it aborted on Sun Oct 11 00:35:49 2009
+*** JOE was aborted by UNIX signal 1
+
+*** File '(Unnamed)'
+png
+
+*** File '(Unnamed)'
+modules/family/class.family.php
+modules/family/class.family.php
