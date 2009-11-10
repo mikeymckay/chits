@@ -1,11 +1,9 @@
 <?
 // BEGIN SERVER CODE: DO NOT EDIT
 // Server generated code
-<<<<<<< HEAD:modules/_menu.php
-// Generated 2009-11-10 15:05:13
-=======
+
 // Generated 2009-10-13 16:28:46
->>>>>>> alison/master:modules/_menu.php
+
 // Module: _menu.php
 // Author: Herman Tolentino MD
 //

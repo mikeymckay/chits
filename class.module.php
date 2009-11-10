@@ -305,14 +305,9 @@ Class Module {
             $author = $arg_list[2];         // module author
             $module = $arg_list[3];         // module name
         }
-<<<<<<< HEAD:class.module.php
+
         //print_r($arg_list);
 
-=======
-        
-        //print_r($arg_list);
-        
->>>>>>> alison/master:class.module.php
         $sql = "update modules set module_desc = '$description', ".
                "module_version = '".$version."', module_author = '".$author."' ".
                "where module_id = '$module';";
