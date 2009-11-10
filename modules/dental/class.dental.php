@@ -130,6 +130,23 @@
         "`dentist` float NOT NULL,".
         "PRIMARY KEY  (`ohc_id`)".
         ") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin COMMENT='Patient Oral Health Condition' AUTO_INCREMENT=1 ;");
+		
+		// The following codes will be used to create [m_dental_services].
+		// If needed, change the table name to follow proper naming conventions in CHITS.
+		// The table reflects the standard format on how to collect data regarding 
+		//    the dentist's services to patients. The entries on the fields [tooth_number]
+		//    and [service_provided] reflects what the dentists actually used in their 
+		//    patient/treatment record. See the IPTR given by Dr. Domingo for further reference.
+		module::execsql("CREATE TABLE IF NOT EXISTS `m_dental_services` (".
+			"`service_id` float NOT NULL auto_increment,".
+			"`patient_id` float NOT NULL,".
+			"`consult_id` float NOT NULL,".
+			"`tooth_number` int(11) NOT NULL,".
+			"`service_provided` varchar(5) collate swe7_bin NOT NULL,".
+			"`date_of_service` date NOT NULL,".
+			"`dentist` float NOT NULL,".
+			"PRIMARY KEY  (`service_id`)".
+			") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
         
         
       // The following codes will be used to create [m_lib_dental_tooth_condition]
@@ -142,6 +159,17 @@
         "`condition` varchar(50) NOT NULL COMMENT 'condition description',".
         "PRIMARY KEY  (`legend`)".
         ") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
+		
+		
+		// The following codes will be used to create [m_lib_dental_services]
+		// If needed, change the table name to follow proper naming conventions in CHITS.
+		// The table reflects the standard tooth services (including their legends) that can be provided.
+		// See the IPTR given by Dr. domingo for further reference.
+		module::execsql("CREATE TABLE IF NOT EXISTS `m_lib_dental_services` (".
+			"`legend` varchar(5) collate swe7_bin NOT NULL COMMENT 'service legend',".
+			"`service` varchar(50) NOT NULL COMMENT 'service description',".
+			"PRIMARY KEY  (`legend`)".
+			") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
         
         
       // The following codes will be used to insert the initial records for
@@ -165,6 +193,15 @@
         "('un', 'Temporary', 'Unerupted'),".
         "('x', 'Temporary', 'Indicated for Extraction'),".
         "('y', 'Temporary', 'Sound/Sealed');");
+		
+		// The following codes will be used to insert the initial records for
+		//    m_lib_dental_services.
+		module::execsql("INSERT INTO `m_lib_dental_services` (`legend`, `service`) VALUES".
+			"('O', 'Others'),".
+			"('PF', 'Permanent Filling'),".
+			"('S', 'Sealant'),".
+			"('TF', 'Temporary Filling'),".
+			"('X', 'Extraction');");
         
       
       // The following codes will be used to create m_dental_patient_ohc_table_a.
@@ -198,9 +235,11 @@
     //    the tables associated with this module.
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function drop_tables() {
-      module::execsql("DROP TABLE `m_dental_patient_ohc`");
-      module::execsql("DROP TABLE `m_lib_dental_tooth_condition`");
-      module::execsql("DROP TABLE `m_dental_patient_ohc_table_a`");
+		module::execsql("DROP TABLE `m_dental_patient_ohc`");
+		module::execsql("DROP TABLE `m_lib_dental_tooth_condition`");
+		module::execsql("DROP TABLE `m_dental_patient_ohc_table_a`");
+		module::execsql("DROP TABLE `m_lib_dental_services`");
+		module::execsql("DROP TABLE `m_dental_services`");
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -351,7 +390,6 @@
                 echo "<td width=200 align='left'>Select tooth number:</td>";
                 echo "<td>";
                   echo "<select name='select_tooth'>";
-                  echo "<option value='0'></option>";
                     for($i=11; $i<=18; $i++) {
                       echo "<option value=$i>$i</option>";
                     }
@@ -401,7 +439,6 @@
                     or die ("Couldn't execute query.");
                   
                   echo "<select name='select_condition'>"; 
-                    echo "<option value='0'></option>";
                   while ($row = mysql_fetch_array($result)) {
                     extract($row);
                       echo "<option value='$legend'>$legend</option>";
@@ -410,7 +447,8 @@
                 echo "</td>";     
                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                 
-                echo "<td width=100 align='center'><input type='submit' value='Save'></input></td>";
+                echo "<td width=100 align='center'><input type='submit' name='submit_button'".
+					"value='Save Tooth Condition'></input></td>";
               echo "</tr>";
     
             echo "</table>";
@@ -632,36 +670,50 @@
     // Initial codes for inserting records
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function new_dental_record() {
-      // The following variables are used for inserting a new record in
-      //    m_dental_patient_ohc
-      $loc_patient_id = $_POST['h_patient_id'];
-      $loc_consult_id = $_POST['h_consult_id'];
-      $loc_patient_pregnant = $_POST['h_patient_pregnant'];
-      $loc_tooth_number = $_POST['select_tooth'];
-      $loc_tooth_condition = $_POST['select_condition'];
-      $loc_date_of_oral = $_POST['date_of_oral'];
-      list($month, $day, $year) = explode("/", $_POST['date_of_oral']);
-      $loc_date_of_oral = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
-      $loc_dentist = $_POST['h_dentist'];
+		// The following variables are used for inserting a new record in
+		//    m_dental_patient_ohc
+		$loc_patient_id = $_POST['h_patient_id'];
+		$loc_consult_id = $_POST['h_consult_id'];
+		$loc_patient_pregnant = $_POST['h_patient_pregnant'];
+		$loc_tooth_number = $_POST['select_tooth'];
+		$loc_tooth_condition = $_POST['select_condition'];
+		$loc_date_of_oral = $_POST['date_of_oral'];
+		list($month, $day, $year) = explode("/", $_POST['date_of_oral']);
+		$loc_date_of_oral = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+		$loc_dentist = $_POST['h_dentist'];
+		
+		$loc_tooth_for_service = $_POST['select_tooth_for_service'];
+		$loc_service = $_POST['select_tooth_service'];
       
       
-      if(($loc_tooth_number == "0") || ($loc_tooth_condition == "0")) {
-        $this->new_ohc_table_a_record();
-      }
-      else {
-        $query = "SELECT COUNT(*) AS flag_tooth FROM `m_dental_patient_ohc` WHERE `tooth_number` = $loc_tooth_number AND `consult_id` = $loc_consult_id ";
-        $result = mysql_query($query)
-          or die ("Couldn't execute query.");
+		if(@$_POST['submit_button'] == "Save OHC(A)") {
+			$this->new_ohc_table_a_record();
+		} elseif (@$_POST['submit_button'] == "Save Service Provided")  {
+			$this->new_dental_service_record($loc_patient_id, $loc_consult_id, 
+				$loc_tooth_for_service, $loc_service, $loc_date_of_oral, $loc_dentist);
+		} elseif (@$_POST['submit_button'] == "Save Tooth Condition")  {
+			$query = "SELECT COUNT(*) AS flag_tooth FROM `m_dental_patient_ohc` ".
+				"WHERE `tooth_number` = $loc_tooth_number AND ".
+				"`consult_id` = $loc_consult_id ";
+			$result = mysql_query($query)
+				or die ("Couldn't execute query.");
       
-        if($row = mysql_fetch_assoc($result)) {
-          if($row['flag_tooth'] == 0) {
-            $query = "INSERT INTO `m_dental_patient_ohc` (`patient_id`, `consult_id`, `is_patient_pregnant`, `tooth_number`, `tooth_condition`, `date_of_oral`, `dentist`) VALUES".
-              "($loc_patient_id, $loc_consult_id, $loc_patient_pregnant, $loc_tooth_number, '$loc_tooth_condition', '$loc_date_of_oral', $loc_dentist)";  
-          } 
-          else {
-            $query = "UPDATE `m_dental_patient_ohc` SET `tooth_number` = '$loc_tooth_number', `tooth_condition` = '$loc_tooth_condition' WHERE ".
-              "`patient_id` = $loc_patient_id AND `consult_id` = $loc_consult_id AND `tooth_number` = $loc_tooth_number ";
-          }
+			if($row = mysql_fetch_assoc($result)) {
+				if($row['flag_tooth'] == 0) {
+					$query = "INSERT INTO `m_dental_patient_ohc` ".
+						"(`patient_id`, `consult_id`, `is_patient_pregnant`, ".
+						"`tooth_number`, `tooth_condition`, `date_of_oral`, `dentist`) ".
+						"VALUES($loc_patient_id, $loc_consult_id, $loc_patient_pregnant, ".
+						"$loc_tooth_number, '$loc_tooth_condition', '$loc_date_of_oral', $loc_dentist)";  
+			} else {
+				$query = "UPDATE `m_dental_patient_ohc` ".
+					"SET `tooth_number` = '$loc_tooth_number', ".
+					"`tooth_condition` = '$loc_tooth_condition', ".
+					"`dentist` = $loc_dentist ".
+					"WHERE `patient_id` = $loc_patient_id AND ".
+					"`consult_id` = $loc_consult_id AND ".
+					"`tooth_number` = $loc_tooth_number ";
+			}
         }
       
         $result = mysql_query($query)
@@ -705,6 +757,29 @@
               echo "<td align='center'>$legend</td>";
             echo "</tr>";
           }
+		
+		echo "<tr>";
+          echo "<th align='left' bgcolor='CC9900' colspan=3>Services Monitoring Legends</th>";
+        echo "</tr>";
+		
+		echo "<tr>";
+          echo "<td align='center'><i>Service</i></td>";
+          echo "<td align='center'><i>Legend</i></td>";
+        echo "</tr>";
+        
+
+        $query = "SELECT * FROM m_lib_dental_services ORDER BY legend"; 
+        $result = mysql_query($query);
+        
+        while ($row = mysql_fetch_array($result)) {
+          extract($row);
+            echo "<tr>";
+              echo "<td align='center'>$service</td>";
+              echo "<td align='center'>$legend</td>";
+            echo "</tr>";
+          }
+		
+		
       echo "</table>";
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -867,8 +942,8 @@
         
         
         echo "<tr>";
-          echo "<td align='center' colspan=7><input type='submit' value='Save OHC(A)'></input>".
-            "<br>Note: To save OHC(A), tooth number and/or tooth condition must be blank.</td>";
+          echo "<td align='center' colspan=7><input type='submit' name='submit_button' ".
+			"value='Save OHC(A)'></input></td>";
         echo "</tr>";
       
       
@@ -1173,8 +1248,420 @@
 		echo "</table>";
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 10, '09, JVTolentino
+    // The following function will be used for acquiring tooth condition
+    //    [from m_dental_services].
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    function tooth_service_acquired($tn, $c_id) {
+		$query = "SELECT service_provided FROM m_dental_services ".
+			"WHERE tooth_number = $tn AND consult_id = $c_id ";
+		$result = mysql_query($query)
+			or die ("Couldn't execute query.");
+      
+		if($row = mysql_fetch_assoc($result)) {
+			return $row['service_provided'];
+		} else {
+			return "&nbsp;";
+		}
+    }
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+    // Comment date: Nov 10, '09, JVTolentino
+    // This function is used for the Services Monitoring Chart
+	// Further comments will be added soon.
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function show_services_monitoring_chart($p_id) {
+		print "<table border=3 bordercolor='red' align='center'>";
+			print "<tr>";
+				print "<th align='left' bgcolor='CC9900'>Set Dental Service Provided to Patient</th>";
+			print "</tr>";
+			
+			echo "<tr>";
+          echo "<td>";
+            echo "<table align='center' border=0 cellspacing=0>";
+              echo "<tr>";
+                echo "<td width=200 align='left'>Select tooth number:</td>";
+                echo "<td>";
+                  echo "<select name='select_tooth_for_service'>";
+                    for($i=11; $i<=18; $i++) {
+                      echo "<option value=$i>$i</option>";
+                    }
+                
+                    for($i=21; $i<=28; $i++) {
+                      echo "<option value=$i>$i</option>";
+                    }
+                
+                    for($i=31; $i<=38; $i++) {
+                      echo "<option value=$i>$i</option>";
+                    }
+                
+                    for($i=41; $i<=48; $i++) {
+                      echo "<option value=$i>$i</option>";
+                    }
+
+                    for($i=51; $i<=55; $i++) {
+                      echo "<option value=$i>$i</option>";
+                    }
+                
+                    for($i=61; $i<=65; $i++) {
+                      echo "<option value=$i>$i</option>";
+                    }
+                
+                    for($i=71; $i<=75; $i++) {
+                      echo "<option value=$i>$i</option>";
+                    }
+                
+                    for($i=81; $i<=85; $i++) {
+                      echo "<option value=$i>$i</option>";
+                    }
+
+                  echo "</select>";
+                echo "</td>";
+              echo "</tr>";
     
+              echo "<tr>";
+                echo "<td width=200 align='left'>Select service:</td>";
+                
+                // Comment date: Nov 10, '09, JVTolentino
+                // The following codes will be used to propagate a list box which will show
+                //    all the possible tooth services that a dentist can provide to a patient.
+                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                echo "<td>";
+                  $query = "SELECT DISTINCT legend FROM m_lib_dental_services ORDER BY legend";
+                  $result = mysql_query($query)
+                    or die ("Couldn't execute query.");
+                  
+                  echo "<select name='select_tooth_service'>"; 
+                  while ($row = mysql_fetch_array($result)) {
+                    extract($row);
+                      echo "<option value='$legend'>$legend</option>";
+                  }
+                  echo "</select>";
+                echo "</td>";     
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                
+                echo "<td width=100 align='center'><input type='submit' name='submit_button'".
+					"value='Save Service Provided'></input></td>";
+              echo "</tr>";
     
+            echo "</table>";
+          echo "</td>";
+        echo "</tr>";
+		
+		print "</table>";
+		
+		print "&nbsp;";
+		
+		print "<table border=3 bordercolor='009900' align='center'>";
+			print "<tr>";
+				print "<th align='left' bgcolor='CC9900'>Services Monitoring Chart</th>";
+			print "</tr>";
+			
+			print "<tr>";
+			print "<td>";
+				$this->temp_upper_teeth_service_monitoring_chart($p_id);
+			print "</td>";
+		
+			print "<tr>";
+			print "<td>";
+				$this->temp_lower_teeth_service_monitoring_chart($p_id);
+			print "</td>";
+		
+			print "<tr>";
+			print "<td>";
+				$this->perm_upper_teeth_service_monitoring_chart($p_id);
+			print "</td>";
+		
+			print "<tr>";
+			print "<td>";
+				$this->perm_lower_teeth_service_monitoring_chart($p_id);
+			print "</td>";
+		print "</table>";
+	}
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 10, '09, JVTolentino
+    // This function is used to add another record to [m_dental_services].
+	// Further comments will be added if needed.
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function new_dental_service_record($p_id, $c_id, $tn, $service_provided, $date_of_service, $dentist) {
+		$query = "SELECT COUNT(*) AS flag_tooth FROM `m_dental_services` WHERE ".
+			"`tooth_number` = $tn AND `consult_id` = $c_id ";
+		$result = mysql_query($query)
+			or die ("Couldn't execute query.");
+      
+        if($row = mysql_fetch_assoc($result)) {
+			if($row['flag_tooth'] == 0) {
+				$query = "INSERT INTO `m_dental_services` (`patient_id`, `consult_id`, `tooth_number`, ".
+					"`service_provided`, `date_of_service`, `dentist`) VALUES".
+					"($p_id, $c_id, $tn, '$service_provided', '$date_of_service', $dentist)";  
+			} else {
+				$query = "UPDATE `m_dental_services` SET `tooth_number` = $tn, ".
+					"`service_provided` = '$service_provided'".
+					"`dentist` = $dentist ".
+					"WHERE `patient_id` = $p_id AND `consult_id` = $c_id AND `tooth_number` = $tn ";
+			}
+        }
+      
+        $result = mysql_query($query)
+			or die ("Couldn't execute query.");
+	}
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 10, '09, JVTolentino
+    // This function is used to display the services provided by the dentist to a patient.
+	// Upper teeth (temporary).
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function temp_upper_teeth_service_monitoring_chart($p_id) {
+		$query = "SELECT DISTINCT consult_id FROM m_dental_services WHERE patient_id = $p_id ".
+			"AND tooth_number BETWEEN 50 AND 66 ORDER BY consult_id DESC";
+		$result = mysql_query($query)
+			or die("Couldnt' execute query.");
+		
+		$total_consults = 0;
+		while($row = mysql_fetch_array($result)) {
+			extract($row);
+			$patient_consults[$total_consults] = $consult_id;
+			$total_consults++;
+		}
+		$total_consults--;
+		
+		echo "<table border=3 bordercolor=#009900# align='center'>";
+			echo "<tr>";
+				echo "<td align='center'>Date</td>";
+				for($loc_tooth_number=55; $loc_tooth_number>=51; $loc_tooth_number--) {
+					echo "<td align='center'><b>$loc_tooth_number</b></td>";
+				}
+				for($loc_tooth_number=61; $loc_tooth_number<=65; $loc_tooth_number++) {
+					echo "<td align='center'><b>$loc_tooth_number</b></td>";
+				}
+			echo "</tr>";
+			
+			for($i=0; $i<=$total_consults; $i++) {
+				$c_id = $patient_consults[$i];
+				$query = "SELECT * FROM `m_dental_services` ".
+					"WHERE `consult_id` = $c_id ";
+				$result = mysql_query($query)
+					or die ("Couldn't execute query.");
+      
+				if($row = mysql_fetch_assoc($result)) {
+					echo "<tr>";
+						echo "<td align='center'>{$row['date_of_service']}</td>";
+						for($loc_tooth_number=55; $loc_tooth_number>=51; $loc_tooth_number--) {
+							echo "<td align='center'>".
+								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
+								"</td>";
+						}
+						for($loc_tooth_number=61; $loc_tooth_number<=65; $loc_tooth_number++) {
+							echo "<td align='center'>".
+								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
+								"</td>";
+						}
+					echo "</tr>";
+				}
+			}
+		echo "</table>";
+	}
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 10, '09, JVTolentino
+    // This function is used to display the services provided by the dentist to a patient.
+	// Lower teeth (temporary).
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function temp_lower_teeth_service_monitoring_chart($p_id) {
+		$query = "SELECT DISTINCT consult_id FROM m_dental_services WHERE patient_id = $p_id ".
+			"AND tooth_number BETWEEN 70 AND 86 ORDER BY consult_id DESC";
+		$result = mysql_query($query)
+			or die("Couldnt' execute query.");
+		
+		$total_consults = 0;
+		while($row = mysql_fetch_array($result)) {
+			extract($row);
+			$patient_consults[$total_consults] = $consult_id;
+			$total_consults++;
+		}
+		$total_consults--;
+		
+		echo "<table border=3 bordercolor=#009900# align='center'>";
+			echo "<tr>";
+				echo "<td align='center'>Date</td>";
+				for($loc_tooth_number=85; $loc_tooth_number>=81; $loc_tooth_number--) {
+					echo "<td align='center'><b>$loc_tooth_number</b></td>";
+				}
+				for($loc_tooth_number=71; $loc_tooth_number<=75; $loc_tooth_number++) {
+					echo "<td align='center'><b>$loc_tooth_number</b></td>";
+				}
+			echo "</tr>";
+			
+			for($i=0; $i<=$total_consults; $i++) {
+				$c_id = $patient_consults[$i];
+				$query = "SELECT * FROM `m_dental_services` ".
+					"WHERE `consult_id` = $c_id ";
+				$result = mysql_query($query)
+					or die ("Couldn't execute query.");
+      
+				if($row = mysql_fetch_assoc($result)) {
+					echo "<tr>";
+						echo "<td align='center'>{$row['date_of_service']}</td>";
+						for($loc_tooth_number=85; $loc_tooth_number>=81; $loc_tooth_number--) {
+							echo "<td align='center'>".
+								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
+								"</td>";
+						}
+						for($loc_tooth_number=71; $loc_tooth_number<=75; $loc_tooth_number++) {
+							echo "<td align='center'>".
+								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
+								"</td>";
+						}
+					echo "</tr>";
+				}
+			}
+		echo "</table>";
+	}
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 10, '09, JVTolentino
+    // This function is used to display the services provided by the dentist to a patient.
+	// Upper teeth (permanent).
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function perm_upper_teeth_service_monitoring_chart($p_id) {
+		$query = "SELECT DISTINCT consult_id FROM m_dental_services WHERE patient_id = $p_id ".
+			"AND tooth_number BETWEEN 10 AND 29 ORDER BY consult_id DESC";
+		$result = mysql_query($query)
+			or die("Couldnt' execute query.");
+		
+		$total_consults = 0;
+		while($row = mysql_fetch_array($result)) {
+			extract($row);
+			$patient_consults[$total_consults] = $consult_id;
+			$total_consults++;
+		}
+		$total_consults--;
+		
+		echo "<table border=3 bordercolor=#009900# align='center'>";
+			echo "<tr>";
+				echo "<td align='center'>Date</td>";
+				for($loc_tooth_number=18; $loc_tooth_number>=11; $loc_tooth_number--) {
+					echo "<td align='center'><b>$loc_tooth_number</b></td>";
+				}
+				for($loc_tooth_number=21; $loc_tooth_number<=28; $loc_tooth_number++) {
+					echo "<td align='center'><b>$loc_tooth_number</b></td>";
+				}
+			echo "</tr>";
+			
+			for($i=0; $i<=$total_consults; $i++) {
+				$c_id = $patient_consults[$i];
+				$query = "SELECT * FROM `m_dental_services` ".
+					"WHERE `consult_id` = $c_id ";
+				$result = mysql_query($query)
+					or die ("Couldn't execute query.");
+      
+				if($row = mysql_fetch_assoc($result)) {
+					echo "<tr>";
+						echo "<td align='center'>{$row['date_of_service']}</td>";
+						for($loc_tooth_number=18; $loc_tooth_number>=11; $loc_tooth_number--) {
+							echo "<td align='center'>".
+								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
+								"</td>";
+						}
+						for($loc_tooth_number=21; $loc_tooth_number<=28; $loc_tooth_number++) {
+							echo "<td align='center'>".
+								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
+								"</td>";
+						}
+					echo "</tr>";
+				}
+			}
+		echo "</table>";
+	}
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 10, '09, JVTolentino
+    // This function is used to display the services provided by the dentist to a patient.
+	// Lower teeth (permanent).
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function perm_lower_teeth_service_monitoring_chart($p_id) {
+		$query = "SELECT DISTINCT consult_id FROM m_dental_services WHERE patient_id = $p_id ".
+			"AND tooth_number BETWEEN 30 AND 49 ORDER BY consult_id DESC";
+		$result = mysql_query($query)
+			or die("Couldnt' execute query.");
+		
+		$total_consults = 0;
+		while($row = mysql_fetch_array($result)) {
+			extract($row);
+			$patient_consults[$total_consults] = $consult_id;
+			$total_consults++;
+		}
+		$total_consults--;
+		
+		echo "<table border=3 bordercolor=#009900# align='center'>";
+			echo "<tr>";
+				echo "<td align='center'>Date</td>";
+				for($loc_tooth_number=48; $loc_tooth_number>=41; $loc_tooth_number--) {
+					echo "<td align='center'><b>$loc_tooth_number</b></td>";
+				}
+				for($loc_tooth_number=31; $loc_tooth_number<=38; $loc_tooth_number++) {
+					echo "<td align='center'><b>$loc_tooth_number</b></td>";
+				}
+			echo "</tr>";
+			
+			for($i=0; $i<=$total_consults; $i++) {
+				$c_id = $patient_consults[$i];
+				$query = "SELECT * FROM `m_dental_services` ".
+					"WHERE `consult_id` = $c_id ";
+				$result = mysql_query($query)
+					or die ("Couldn't execute query.");
+      
+				if($row = mysql_fetch_assoc($result)) {
+					echo "<tr>";
+						echo "<td align='center'>{$row['date_of_service']}</td>";
+						for($loc_tooth_number=48; $loc_tooth_number>=41; $loc_tooth_number--) {
+							echo "<td align='center'>".
+								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
+								"</td>";
+						}
+						for($loc_tooth_number=31; $loc_tooth_number<=38; $loc_tooth_number++) {
+							echo "<td align='center'>".
+								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
+								"</td>";
+						}
+					echo "</tr>";
+				}
+			}
+		echo "</table>";
+	}
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
     
     
     
@@ -1219,6 +1706,9 @@
         
         echo "&nbsp;";
         $dental->show_ohc_table_b($dental->patient_id);
+		
+		echo "&nbsp;";
+		$dental->show_services_monitoring_chart($dental->patient_id);
         
         echo "&nbsp;";
         $dental->show_tooth_legends($dental->patient_age);
@@ -1240,6 +1730,9 @@
         
         echo "&nbsp;";
         $dental->show_ohc_table_b($dental->patient_id);
+		
+		echo "&nbsp;";
+		$dental->show_services_monitoring_chart($dental->patient_id);
         
         echo "&nbsp;";
         $dental->show_tooth_legends($dental->patient_age);
@@ -1251,6 +1744,7 @@
       echo "</form>";
     
     } // end of _dental()                 
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   } // class ends here
-  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
 ?>
