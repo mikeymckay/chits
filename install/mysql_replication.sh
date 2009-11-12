@@ -15,8 +15,8 @@ fi
 echo "Checking that this script is being run from the server"
 IP_ADDRESSES=`ifconfig  | awk '/inet addr/ {split ($2,A,":"); print A[2]}'`
 if [[ ! $IP_ADDRESSES =~ 192.168.0.1 ]]; then
-  echo "Current IP addresses: [${IP_ADDRESSES}] do not include 192.168.0.1. This script should only be run from the server"
-  exit
+  echo "Current IP addresses: [${IP_ADDRESSES}] do not include 192.168.0.1. This script should only be run from the server, press ctrl-c to quit or enter to go on anyways"
+  read
 fi
 echo "Success!"
 
@@ -33,8 +33,6 @@ if [[ ! $DATABASES =~ ${DATABASE_TO_REPLICATE} ]]; then
   exit
 fi
 echo "Success!"
-
-read DATABASE_USERNAME
 
 echo "Enter ${DATABASE_TO_REPLICATE} mysql password"
 read DATABASE_PASSWORD
@@ -77,18 +75,20 @@ echo "Editing mysql configuration for replication"
 # Comment out the bind address so mysql accepts non-local connections
 sed -i 's/^bind-address.*127.0.0.1/#&/' /etc/mysql/my.cnf
 
-# Append the following to /etc/mysql/my.conf
-  echo "
+# Insert the following into the correct position of /etc/mysql/my.conf (DO NOT JUST APPEND)
+#
+ruby -i -p -e'$_.gsub!(/bind-address.*127.0.0.1/, "
 # ----------------------------------------
 # Added by tarlac mysql_replication script:
 # http://github.com/mikeymckay/chits/raw/master/install/mysql_replication.sh
 # ----------------------------------------
+# Allow connections from all addresses
+bind-address = 0.0.0.0
 log-bin = /var/log/mysql/mysql-bin.log
 binlog-do-db=${DATABASE_TO_REPLICATE}
 server-id=1
 # ------------------------------
-
-" >>  /etc/mysql/my.cnf 
+")' /etc/mysql/my.cnf
 
 /etc/init.d/mysql restart
 
