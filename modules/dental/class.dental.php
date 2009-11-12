@@ -123,7 +123,7 @@
         "`ohc_id` float NOT NULL auto_increment COMMENT 'Patient Oral Health Condition',".
         "`patient_id` int(11) NOT NULL,".
         "`consult_id` float NOT NULL,".
-        "`is_patient_pregnant` tinyint(1) NOT NULL,".
+        "`is_patient_pregnant` char(1) COLLATE swe7_bin NOT NULL,".
         "`tooth_number` int(11) NOT NULL,".
         "`tooth_condition` varchar(5) collate swe7_bin NOT NULL,".
         "`date_of_oral` date NOT NULL,".
@@ -367,100 +367,113 @@
     
     
     
-    // Comment date: Oct 8, '09, JVTolentino
-    // The following codes are used to select a tooth_number
-    //    and the condition for that particular tooth.
-    // The selection will come entirely from the user.
-    //
-    // Comment date: Oct 21 (4:21PM), '09, JVTolentino
-    // I will implement another feature in this function. The function will now
-    //    accept one argument, the age of the patient, and use it to dynamically
-    //    show in the listbox the relevant teeth and conditions.
+	// Comment date: Oct 8, '09, JVTolentino
+	// The following codes are used to select a tooth_number
+	//    and the condition for that particular tooth.
+   // The selection will come entirely from the user.
+   //
+   // Comment date: Oct 21 (4:21PM), '09, JVTolentino
+   // I will implement another feature in this function. The function will now
+   //    accept one argument, the age of the patient, and use it to dynamically
+   //    show in the listbox the relevant teeth and conditions.
+	//
+	// Comment date: Nov 12, '09, JVTolentino
+	// Due to the request and advise of Dr. Domingo (during our meeting last Nov. 09, 
+	//    I deleted the feature which was added on Oct 21, '09. 
+	//    It seems even older patients (above 4 y.o.) can still have temporary teeth. Therefore,
+	//    this function no longer accepts an argument.
+	//
+	// Comment date: Nov 12, '09, JVTolentino
+	// Added one item to element select_condition. The item will have a value '0'.
+	// If the user selects this option, the condition with reference to its respective tooth number
+	//    will be deleted in the database. The deletion will be handled by the function
+	//    new_dental_record().
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function select_tooth_and_condition() {
-      echo "<table border=3 bordercolor='red' align='center' width=500>";
-        echo "<tr>";
-          echo "<th align='left' bgcolor='CC9900'>Set Patient's Tooth Condition</th>";
-        echo "</tr>";
+		echo "<table border=3 bordercolor='red' align='center' width=500>";
+			echo "<tr>";
+			echo "<th align='left' bgcolor='CC9900'>Set Patient's Tooth Condition</th>";
+			echo "</tr>";
   
-        echo "<tr>";
-          echo "<td>";
-            echo "<table align='center' border=0 cellspacing=0>";
-              echo "<tr>";
-                echo "<td width=200 align='left'>Select tooth number:</td>";
-                echo "<td>";
-                  echo "<select name='select_tooth'>";
-                    for($i=11; $i<=18; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
+			echo "<tr>";
+				echo "<td>";
+					echo "<table align='center' border=0 cellspacing=0>";
+						echo "<tr>";
+							echo "<td width=200 align='left'>Select tooth number:</td>";
+							echo "<td>";
+								echo "<select name='select_tooth'>";
+									for($i=11; $i<=18; $i++) {
+										echo "<option value=$i>$i</option>";
+									}
                 
-                    for($i=21; $i<=28; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
+									for($i=21; $i<=28; $i++) {
+										echo "<option value=$i>$i</option>";
+									}
                 
-                    for($i=31; $i<=38; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
+									for($i=31; $i<=38; $i++) {
+										echo "<option value=$i>$i</option>";
+									}
                 
-                    for($i=41; $i<=48; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
+									for($i=41; $i<=48; $i++) {
+										echo "<option value=$i>$i</option>";
+									}
 
-                    for($i=51; $i<=55; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
+									for($i=51; $i<=55; $i++) {
+										echo "<option value=$i>$i</option>";
+									}
                 
-                    for($i=61; $i<=65; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
+									for($i=61; $i<=65; $i++) {
+										echo "<option value=$i>$i</option>";
+									}
                 
-                    for($i=71; $i<=75; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
+									for($i=71; $i<=75; $i++) {
+										echo "<option value=$i>$i</option>";
+									}
                 
-                    for($i=81; $i<=85; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
-
-                  echo "</select>";
-                echo "</td>";
-              echo "</tr>";
+									for($i=81; $i<=85; $i++) {
+										echo "<option value=$i>$i</option>";
+									}
+								echo "</select>";
+							echo "</td>";
+						echo "</tr>";
     
-              echo "<tr>";
-                echo "<td width=200 align='left'>Select tooth condition:</td>";
+						echo "<tr>";
+							echo "<td width=200 align='left'>Select tooth condition:</td>";
                 
-                // Comment date: Oct 14, '09, JVTolentino
-                // The following codes will be used to propagate a list box which will show
-                //    all the possible tooth condition that a patient may have.
-                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                echo "<td>";
-                  $query = "SELECT DISTINCT legend FROM m_lib_dental_tooth_condition ORDER BY legend";
-                  $result = mysql_query($query)
-                    or die ("Couldn't execute query.");
+							// Comment date: Oct 14, '09, JVTolentino
+							// The following codes will be used to propagate a list box which will show
+							//    all the possible tooth condition that a patient may have.
+							// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+							echo "<td>";
+								$query = "SELECT DISTINCT legend FROM m_lib_dental_tooth_condition ORDER BY legend";
+								$result = mysql_query($query)
+									or die ("Couldn't execute query.");
                   
-                  echo "<select name='select_condition'>"; 
-                  while ($row = mysql_fetch_array($result)) {
-                    extract($row);
-                      echo "<option value='$legend'>$legend</option>";
-                  }
-                  echo "</select>";
-                echo "</td>";     
-                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+								echo "<select name='select_condition'>"; 
+									echo "<option value='0'></option>";
+									while ($row = mysql_fetch_array($result)) {
+										extract($row);
+										echo "<option value='$legend'>$legend</option>";
+									}
+								echo "</select>";
+							echo "</td>";     
+							// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                 
-                echo "<td width=100 align='center'><input type='submit' name='submit_button'".
-					"value='Save Tooth Condition'></input></td>";
-              echo "</tr>";
+							echo "<td width=100 align='center'><input type='submit' name='submit_button'".
+								"value='Save Tooth Condition'></input></td>";
+						echo "</tr>";
     
-            echo "</table>";
-          echo "</td>";
-        echo "</tr>";
+					echo "</table>";
+				echo "</td>";
+			echo "</tr>";
 		
-		echo "<tr>";
-          echo "<td>Use capital letters to record the condition of permanent".
-            " dentition and small letters for the status of temporary dentition.</td>";
-        echo "</tr>";
-		
-      echo "</table>";
+			echo "<tr>";
+				echo "<td>&nbsp;&nbsp;&nbsp;Use capital letters to record the condition of permanent ".
+					"dentition and small letters for the status of temporary dentition.".
+					"<br>&nbsp;&nbsp;&nbsp;To delete a tooth condition, just select a tooth number and then ".
+					"leave the tooth condition blank.</td>";
+			echo "</tr>";
+		echo "</table>";
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -674,12 +687,12 @@
 		//    m_dental_patient_ohc
 		$loc_patient_id = $_POST['h_patient_id'];
 		$loc_consult_id = $_POST['h_consult_id'];
-		$loc_patient_pregnant = $_POST['h_patient_pregnant'];
 		$loc_tooth_number = $_POST['select_tooth'];
 		$loc_tooth_condition = $_POST['select_condition'];
 		$loc_date_of_oral = $_POST['date_of_oral'];
 		list($month, $day, $year) = explode("/", $_POST['date_of_oral']);
 		$loc_date_of_oral = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+		$loc_patient_pregnant = mc::check_if_pregnant($loc_patient_id, $loc_date_of_oral);
 		$loc_dentist = $_POST['h_dentist'];
 		
 		$loc_tooth_for_service = $_POST['select_tooth_for_service'];
@@ -691,34 +704,42 @@
 		} elseif (@$_POST['submit_button'] == "Save Service Provided")  {
 			$this->new_dental_service_record($loc_patient_id, $loc_consult_id, 
 				$loc_tooth_for_service, $loc_service, $loc_date_of_oral, $loc_dentist);
-		} elseif (@$_POST['submit_button'] == "Save Tooth Condition")  {
-			$query = "SELECT COUNT(*) AS flag_tooth FROM `m_dental_patient_ohc` ".
-				"WHERE `tooth_number` = $loc_tooth_number AND ".
-				"`consult_id` = $loc_consult_id ";
-			$result = mysql_query($query)
-				or die ("Couldn't execute query.");
-      
-			if($row = mysql_fetch_assoc($result)) {
-				if($row['flag_tooth'] == 0) {
-					$query = "INSERT INTO `m_dental_patient_ohc` ".
-						"(`patient_id`, `consult_id`, `is_patient_pregnant`, ".
-						"`tooth_number`, `tooth_condition`, `date_of_oral`, `dentist`) ".
-						"VALUES($loc_patient_id, $loc_consult_id, $loc_patient_pregnant, ".
-						"$loc_tooth_number, '$loc_tooth_condition', '$loc_date_of_oral', $loc_dentist)";  
+		} elseif (@$_POST['submit_button'] == "Save Tooth Condition") {
+			if($loc_tooth_condition == '0') {
+				$query = "DELETE FROM m_dental_patient_ohc ".
+					"WHERE tooth_number = $loc_tooth_number AND ".
+					"consult_id = $loc_consult_id ";
+				$result = mysql_query($query)
+					or die("Couldnt' delete record.");
 			} else {
-				$query = "UPDATE `m_dental_patient_ohc` ".
-					"SET `tooth_number` = '$loc_tooth_number', ".
-					"`tooth_condition` = '$loc_tooth_condition', ".
-					"`dentist` = $loc_dentist ".
-					"WHERE `patient_id` = $loc_patient_id AND ".
-					"`consult_id` = $loc_consult_id AND ".
-					"`tooth_number` = $loc_tooth_number ";
+				$query = "SELECT COUNT(*) AS flag_tooth FROM `m_dental_patient_ohc` ".
+					"WHERE `tooth_number` = $loc_tooth_number AND ".
+					"`consult_id` = $loc_consult_id ";
+				$result = mysql_query($query)
+					or die ("Couldn't execute query.");
+					
+				if($row = mysql_fetch_assoc($result)) {
+					if($row['flag_tooth'] == 0) {
+						$query = "INSERT INTO `m_dental_patient_ohc` ".
+							"(`patient_id`, `consult_id`, `is_patient_pregnant`, ".
+							"`tooth_number`, `tooth_condition`, `date_of_oral`, `dentist`) ".
+							"VALUES($loc_patient_id, $loc_consult_id, '$loc_patient_pregnant', ".
+							"$loc_tooth_number, '$loc_tooth_condition', '$loc_date_of_oral', $loc_dentist)";  
+					} else {
+					$query = "UPDATE `m_dental_patient_ohc` ".
+						"SET `tooth_number` = '$loc_tooth_number', ".
+						"`tooth_condition` = '$loc_tooth_condition', ".
+						"is_patient_pregnant = '$loc_patient_pregnant', ".
+						"`dentist` = $loc_dentist ".
+						"WHERE `patient_id` = $loc_patient_id AND ".
+						"`consult_id` = $loc_consult_id AND ".
+						"`tooth_number` = $loc_tooth_number ";
+					}
+				}
+				$result = mysql_query($query)
+					or die ("Couldn't execute query.");
 			}
-        }
-      
-        $result = mysql_query($query)
-          or die ("Couldn't execute query.");
-      }
+		}
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -1662,6 +1683,26 @@
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
+	
+	
+	
+	// Comment date: Nov 12, '09, JVTolentino
+    // This function will check if the patient is pregnant and show a message if the patient is.
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function show_message_if_patient_is_pregnant($p_id, $consultation_date) {
+		if(mc::check_if_pregnant($p_id, $consultation_date) == 'Y') {
+			print "<table border=3 bordercolor='red' align='center'>";
+				print "<tr>";
+					print "<th align='left' bgcolor='red'> ".
+						"Please be advised that according to our records, as of {$consultation_date}, ".
+						"this patient is pregnant.</th>";
+				print "</tr>";
+			print "</table>";
+		} 
+	}
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
     
     
     
@@ -1689,6 +1730,9 @@
       
       if (@$_POST['h_save_flag'] == 'GO') {
         $dental->new_dental_record();
+		
+		print "&nbsp;";
+		$dental->show_message_if_patient_is_pregnant($dental->patient_id, date("Y-m-d"));
         
         echo "&nbsp;";
         $dental->show_date_of_oral();
@@ -1712,8 +1756,10 @@
         
         echo "&nbsp;";
         $dental->show_tooth_legends($dental->patient_age);
-      }
-      else {
+      } else {
+		print "&nbsp;";  
+		$dental->show_message_if_patient_is_pregnant($dental->patient_id, date("Y-m-d"));
+		
         echo "&nbsp;";
         $dental->show_date_of_oral();
       
