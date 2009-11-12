@@ -674,13 +674,74 @@
         or die("Couldn't execute query.");
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 12, '09, JVTolentino
+	// This function will add a new record to [m_dental_patient_ohc].
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function new_dental_condition($patient_id, $consult_id, $is_patient_pregnant, 
+		$tooth_number, $tooth_condition, $date_of_oral, $dentist) {
+		$query = "INSERT INTO `m_dental_patient_ohc` ".
+			"(`patient_id`, `consult_id`, `is_patient_pregnant`, ".
+			"`tooth_number`, `tooth_condition`, `date_of_oral`, `dentist`) ".
+			"VALUES($patient_id, $consult_id, '$is_patient_pregnant', ".
+			"$tooth_number, '$tooth_condition', '$date_of_oral', $dentist)"; 
+		$result = mysql_query($query)
+			or die("Couldn't add new dental condition to the database.");
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 12, '09, JVTolentino
+	// This function will update a record in [m_dental_patient_ohc].
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function update_dental_condition($consult_id, $tooth_number, $tooth_condition, 
+		$is_patient_pregnant, $dentist) {
+		$query = "UPDATE m_dental_patient_ohc ".
+			"SET tooth_number = $tooth_number, ".
+			"tooth_condition = '$tooth_condition', ".
+			"is_patient_pregnant = '$is_patient_pregnant', ".
+			"dentist = $dentist ".
+			"WHERE consult_id = $consult_id AND ".
+			"tooth_number = $tooth_number ";
+		$result = mysql_query($query)
+			or die("Couldn't update the record on the database.");
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 12, '09, JVTolentino
+	// This function will delete a record in [m_dental_patient_ohc].
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function delete_dental_condition($consult_id, $tooth_number) {
+		$query = "DELETE FROM m_dental_patient_ohc ".
+			"WHERE tooth_number = $tooth_number AND ".
+			"consult_id = $consult_id ";
+		$result = mysql_query($query)
+			or die("Couldnt' delete record.");
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     
     
     
     
-    // Comment date: Oct 21, '09, JVTolentino
-    // Initial codes for inserting records
+   // Comment date: Oct 21, '09, JVTolentino
+	// Initial codes for inserting records.
+	//
+	// Comment date: Nov 12, '09, JVTolentino
+	// Added new feature to this function. If the user left the tooth condition blank, the record 
+	//    pointed by tooth_number and consult_id will be deleted. This feature was added
+	//    to give the user the ability to recover from mistakes when inputting a new record.
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function new_dental_record() {
 		// The following variables are used for inserting a new record in
@@ -706,36 +767,22 @@
 				$loc_tooth_for_service, $loc_service, $loc_date_of_oral, $loc_dentist);
 		} elseif (@$_POST['submit_button'] == "Save Tooth Condition") {
 			if($loc_tooth_condition == '0') {
-				$query = "DELETE FROM m_dental_patient_ohc ".
+				$this->delete_dental_condition($loc_consult_id, $loc_tooth_number);
+			} else {
+				$query = "SELECT * FROM m_dental_patient_ohc ".
 					"WHERE tooth_number = $loc_tooth_number AND ".
 					"consult_id = $loc_consult_id ";
 				$result = mysql_query($query)
-					or die("Couldnt' delete record.");
-			} else {
-				$query = "SELECT COUNT(*) AS flag_tooth FROM `m_dental_patient_ohc` ".
-					"WHERE `tooth_number` = $loc_tooth_number AND ".
-					"`consult_id` = $loc_consult_id ";
-				$result = mysql_query($query)
-					or die ("Couldn't execute query.");
+					or die ("Couldn't recognize if the record exists or not in the database.");
 					
-				if($row = mysql_fetch_assoc($result)) {
-					if($row['flag_tooth'] == 0) {
-						$query = "INSERT INTO `m_dental_patient_ohc` ".
-							"(`patient_id`, `consult_id`, `is_patient_pregnant`, ".
-							"`tooth_number`, `tooth_condition`, `date_of_oral`, `dentist`) ".
-							"VALUES($loc_patient_id, $loc_consult_id, '$loc_patient_pregnant', ".
-							"$loc_tooth_number, '$loc_tooth_condition', '$loc_date_of_oral', $loc_dentist)";  
-					} else {
-					$query = "UPDATE `m_dental_patient_ohc` ".
-						"SET `tooth_number` = '$loc_tooth_number', ".
-						"`tooth_condition` = '$loc_tooth_condition', ".
-						"is_patient_pregnant = '$loc_patient_pregnant', ".
-						"`dentist` = $loc_dentist ".
-						"WHERE `patient_id` = $loc_patient_id AND ".
-						"`consult_id` = $loc_consult_id AND ".
-						"`tooth_number` = $loc_tooth_number ";
-					}
+				if(mysql_num_rows($result)) {
+					$this->update_dental_condition($loc_consult_id, $loc_tooth_number, 
+						$loc_tooth_condition, $loc_patient_pregnant, $loc_dentist);
+				} else {
+					$this->new_dental_condition($loc_patient_id, $loc_consult_id, $loc_patient_pregnant, 
+						$loc_tooth_number, $loc_tooth_condition, $loc_date_of_oral, $loc_dentist);
 				}
+					
 				$result = mysql_query($query)
 					or die ("Couldn't execute query.");
 			}
@@ -1695,7 +1742,7 @@
 				print "<tr>";
 					print "<th align='left' bgcolor='red'> ".
 						"Please be advised that according to our records, as of {$consultation_date}, ".
-						"this patient is pregnant.</th>";
+						"your patient is pregnant.</th>";
 				print "</tr>";
 			print "</table>";
 		} 
@@ -1719,13 +1766,11 @@
       $dental->consult_id = $_GET['consult_id'];
       $dental->patient_id = healthcenter::get_patient_id($_GET['consult_id']);
       $dental->patient_age = healthcenter::get_patient_age($_GET['consult_id']);
-      $dental->patient_pregnant = 0; // THIS VALUE IS FOR TESTING PURPOSES ONLY...YOU SHOULD FIND A WAY IF THE PATIENT IS REALLY PREGNANT OR NOT
       $dental->dentist = $_SESSION['userid'];
       
       // The following codes will initialize hidden textboxes and their values
       echo "<input type='hidden' name='h_patient_id' value='{$dental->patient_id}'></input>";
       echo "<input type='hidden' name='h_consult_id' value='{$dental->consult_id}'></input>";
-      echo "<input type='hidden' name='h_patient_pregnant' value='{$dental->patient_pregnant}'></input>";
       echo "<input type='hidden' name='h_dentist' value='{$dental->dentist}'></input>";
       
       if (@$_POST['h_save_flag'] == 'GO') {
@@ -1789,7 +1834,7 @@
        
       echo "</form>";
     
-    } // end of _dental()                 
+    }
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   } // class ends here
   
