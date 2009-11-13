@@ -739,10 +739,23 @@
 	// Initial codes for inserting records.
 	//
 	// Comment date: Nov 12, '09, JVTolentino
-	// Added new feature to this function. If the user left the tooth condition blank, the record 
+	// Added new feature to this function. If the user left the 'tooth condition' blank, the record 
 	//    pointed by tooth_number and consult_id will be deleted. This feature was added
 	//    to give the user the ability to recover from mistakes when inputting a new record.
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	//
+	// Comment date: Nov 12, '09 (04:50PM), JVTolentino
+	// Modularized this function a little bit. Created three new functions, i.e.
+	//    new_dental_condition(), update_dental_condition(), delete_dental_condition(), and
+	//    moved some of the codes from here to those three functions accordingly.
+	//
+	// Comment date: Nov 13, '09, JVTolentino
+	// Added new feature to this function. If the user left the 'select service' blank, the record 
+	//    pointed by tooth_number_for_service and consult_id will be deleted. This feature was 
+	//    added to give the user the ability to recover from mistakes when inputting a new record.
+	// Furthermore, the function new_dental_service_record() was also deleted and was
+	//    replaced by three new functions new_dental_service(), update_dental_service(),
+	//    and delete_dental_service().
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function new_dental_record() {
 		// The following variables are used for inserting a new record in
 		//    m_dental_patient_ohc
@@ -756,16 +769,40 @@
 		$loc_patient_pregnant = mc::check_if_pregnant($loc_patient_id, $loc_date_of_oral);
 		$loc_dentist = $_POST['h_dentist'];
 		
+		// The following variables are used for inserting a new recod in [m_dental_services].
 		$loc_tooth_for_service = $_POST['select_tooth_for_service'];
 		$loc_service = $_POST['select_tooth_service'];
-      
-      
+		
+		
 		if(@$_POST['submit_button'] == "Save OHC(A)") {
 			$this->new_ohc_table_a_record();
-		} elseif (@$_POST['submit_button'] == "Save Service Provided")  {
-			$this->new_dental_service_record($loc_patient_id, $loc_consult_id, 
-				$loc_tooth_for_service, $loc_service, $loc_date_of_oral, $loc_dentist);
-		} elseif (@$_POST['submit_button'] == "Save Tooth Condition") {
+		} 
+		
+		// The following codes will be used to add, modify, or delete a record in
+		//    m_dental_services.
+		elseif (@$_POST['submit_button'] == "Save Service Provided")  {
+			if($loc_service == '0') {
+				$this->delete_dental_service($loc_consult_id, $loc_tooth_for_service);
+			} else {
+				$query = "SELECT * FROM m_dental_services WHERE ".
+					"tooth_number = $loc_tooth_for_service AND ".
+					"consult_id = $loc_consult_id ";
+				$result = mysql_query($query)
+					or die("Couldn't recognize if the record exists or not in the database.");
+			
+				if(mysql_num_rows($result)) {
+					$this->update_dental_service($loc_patient_id, $loc_consult_id, 
+						$loc_tooth_for_service, $loc_service, $loc_date_of_oral, $loc_dentist);
+				} else {
+					$this->new_dental_service($loc_patient_id, $loc_consult_id, 
+						$loc_tooth_for_service, $loc_service, $loc_date_of_oral, $loc_dentist);
+				}
+			}
+		} 
+		
+		// The following codes will be used to add, modify, or delete a record in 
+		//    m_dental_patient_ohc.
+		elseif (@$_POST['submit_button'] == "Save Tooth Condition") {
 			if($loc_tooth_condition == '0') {
 				$this->delete_dental_condition($loc_consult_id, $loc_tooth_number);
 			} else {
@@ -1409,10 +1446,11 @@
                     or die ("Couldn't execute query.");
                   
                   echo "<select name='select_tooth_service'>"; 
-                  while ($row = mysql_fetch_array($result)) {
-                    extract($row);
-                      echo "<option value='$legend'>$legend</option>";
-                  }
+							echo "<option value='0'></option>";
+							while ($row = mysql_fetch_array($result)) {
+								extract($row);
+								echo "<option value='$legend'>$legend</option>";
+							}
                   echo "</select>";
                 echo "</td>";     
                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1462,32 +1500,59 @@
 	
 	
 	// Comment date: Nov 10, '09, JVTolentino
-    // This function is used to add another record to [m_dental_services].
-	// Further comments will be added if needed.
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	function new_dental_service_record($p_id, $c_id, $tn, $service_provided, $date_of_service, $dentist) {
-		$query = "SELECT COUNT(*) AS flag_tooth FROM `m_dental_services` WHERE ".
-			"`tooth_number` = $tn AND `consult_id` = $c_id ";
+	// This function is used to add a record to [m_dental_services].
+   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function new_dental_service($patient_id, $consult_id, $tooth_number, 
+		$service_provided, $date_of_service, $dentist) {
+			print "$date_of_service";
+		$query = "INSERT INTO m_dental_services (patient_id, consult_id, tooth_number, ".
+			"service_provided, date_of_service, dentist) VALUES".
+			"($patient_id, $consult_id, $tooth_number, '$service_provided', ".
+			"'$date_of_service', $dentist)";
+		
 		$result = mysql_query($query)
-			or die ("Couldn't execute query.");
-      
-        if($row = mysql_fetch_assoc($result)) {
-			if($row['flag_tooth'] == 0) {
-				$query = "INSERT INTO `m_dental_services` (`patient_id`, `consult_id`, `tooth_number`, ".
-					"`service_provided`, `date_of_service`, `dentist`) VALUES".
-					"($p_id, $c_id, $tn, '$service_provided', '$date_of_service', $dentist)";  
-			} else {
-				$query = "UPDATE `m_dental_services` SET `tooth_number` = $tn, ".
-					"`service_provided` = '$service_provided'".
-					"`dentist` = $dentist ".
-					"WHERE `patient_id` = $p_id AND `consult_id` = $c_id AND `tooth_number` = $tn ";
-			}
-        }
-      
-        $result = mysql_query($query)
-			or die ("Couldn't execute query.");
+			or die("Couldn't add new dental service to the database.");
 	}
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 13, '09, JVTolentino
+	// This function is used to modify a record in [m_dental_services].
+   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function update_dental_service($patient_id, $consult_id, $tooth_number, 
+		$service_provided, $date_of_service, $dentist) {
+		$query = "UPDATE m_dental_services SET ".
+			"tooth_number = $tooth_number, ".
+			"service_provided = '$service_provided', ".
+			"date_of_service = '$date_of_service', ".
+			"dentist = $dentist ".
+			"WHERE patient_id = $patient_id AND ".
+			"consult_id = $consult_id AND ".
+			"tooth_number = $tooth_number ";
+		
+		$result = mysql_query($query)
+			or die("Couldn't add new dental service to the database.");
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Nov 13, '09, JVTolentino
+	// This function is used to delete a record in [m_dental_services].
+   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function delete_dental_service($consult_id, $tooth_number) {
+		$query = "DELETE FROM m_dental_services WHERE ".
+			"consult_id = $consult_id AND ".
+			"tooth_number = $tooth_number ";
+		$result = mysql_query($query)
+			or die("Couldnt' delete record.");
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
 	
