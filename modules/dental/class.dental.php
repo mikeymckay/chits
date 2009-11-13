@@ -290,30 +290,46 @@
     
     
     
-    // Comment date: Oct 14, '09, JVTolentino
-    // The following function is used to display the current date,
-    //    and if needed, the ability to change the consult date of the
-    //    patient. This is usually done when the patient's record 
-    //    are being recorded days later after his original consulatation
-    //    date.
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    function show_date_of_oral() {
-      echo "<table border=3 bordercolor='red' cellspacing=1 align='center' width=600>";
-        echo "<tr>";
-          echo "<th align='left' colspan=2 bgcolor=#CC9900#>Date of Oral Examination</th>";          
-        echo "</tr>";
-        
-        echo "<tr>";
-          echo "<td align='center' width=200>";
-            echo "<input type='text' name='date_of_oral' readonly='true' size=10 value='".date("m/d/Y").
-            "'> <a href=\"javascript:show_calendar4('document.form_dental.date_of_oral', document.form_dental.date_of_oral.value);\">".
-            "<img src='../images/cal.gif' width='16' height='16' border='0' alt='Click Here to Pick up the Date'></a></input>";
+   // Comment date: Oct 14, '09, JVTolentino
+   // The following function is used to display the current date,
+   //    and if needed, the ability to change the consult date of the
+   //    patient. This is usually done when the patient's record 
+   //    are being recorded days later after his original consulatation
+   //    date.
+	//
+	// Comment date: Nov 13, '09, JVTolentino
+	// Added additional condition on this function. If from a previous post the
+	//    user already set the date, it will carry over to the next instance of the page.
+   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   function show_date_of_oral() {
+		echo "<table border=3 bordercolor='red' cellspacing=1 align='center' width=600>";
+			echo "<tr>";
+				echo "<th align='left' colspan=2 bgcolor=#CC9900#>Date of Oral Examination</th>";          
+			echo "</tr>";
+       
+		echo "<tr>";
+			echo "<td align='center' width=200>";
+			if($_POST['date_of_oral'] == '') {
+				echo "<input type='text' name='date_of_oral' ".
+					"readonly='true' size=10 value='".date("m/d/Y").
+					"'> <a href=\"javascript:show_calendar4('document.form_dental.date_of_oral', ".
+					"document.form_dental.date_of_oral.value);\">".
+					"<img src='../images/cal.gif' width='16' height='16' border='0' ".
+					"alt='Click Here to Pick up the Date'></a></input>";
+			} else {
+				echo "<input type='text' name='date_of_oral' ".
+					"readonly='true' size=10 value='".$_POST['date_of_oral'].
+					"'> <a href=\"javascript:show_calendar4('document.form_dental.date_of_oral', ".
+					"document.form_dental.date_of_oral.value);\">".
+					"<img src='../images/cal.gif' width='16' height='16' border='0' ".
+					"alt='Click Here to Pick up the Date'></a></input>";
+			}
           echo "</td>";
           echo "<td> Click the image on the left to change the date of oral examination.</td>";
         echo "</tr>";
       echo "</table>";
-    }
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	}
+   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     
     
@@ -1199,7 +1215,8 @@
     // Oral Health Condition (B).
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function show_ohc_table_b($p_id) {
-		$query = "SELECT DISTINCT consult_id FROM m_dental_patient_ohc WHERE patient_id = $p_id ".
+		$query = "SELECT DISTINCT consult_id FROM m_dental_patient_ohc WHERE ". 
+			"patient_id = $p_id ".
 			"ORDER BY consult_id DESC";
 		$result = mysql_query($query)
 			or die("Couldnt' execute query.");
@@ -1805,8 +1822,8 @@
 		if(mc::check_if_pregnant($p_id, $consultation_date) == 'Y') {
 			print "<table border=3 bordercolor='red' align='center'>";
 				print "<tr>";
-					print "<th align='left' bgcolor='red'> ".
-						"Please be advised that according to our records, as of {$consultation_date}, ".
+					print "<th align='left' bgcolor='yellow'> ".
+						"Advisory: According to our records, as of {$consultation_date}, ".
 						"your patient is pregnant.</th>";
 				print "</tr>";
 			print "</table>";
