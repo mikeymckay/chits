@@ -21,7 +21,7 @@ if [ ! "$CHITS_LIVE_PASSWORD" ]; then
   read CHITS_LIVE_PASSWORD
 fi
 
-apt-get --assume-yes install apache2 mysql-server php5 php5-mysql openssh-server git-core wget ruby libxml2-dev libxslt1-dev ruby1.8-dev rdoc1.8 irb1.8 libopenssl-ruby1.8 build-essential php5-gd php5-xmlrpc php-xajax
+apt-get --assume-yes install apache2 mysql-server php5 php5-mysql openssh-server git-core wget ruby libxml2-dev libxslt1-dev ruby1.8-dev rdoc1.8 irb1.8 libopenssl-ruby1.8 build-essential php5-gd php5-xmlrpc php-xajax rsnapshot
 
 # Comment out the bind address so mysql accepts non-local connections
 sed -i 's/^bind-address.*127.0.0.1/#&/' /etc/mysql/my.cnf
@@ -52,6 +52,24 @@ create_database "chits_development" "chits_developer" "password"
 create_database "chits_live" "chits_live" "${CHITS_LIVE_PASSWORD}"
 # TODO use a core DB without users
 create_database "chits_testing" "chits_tester" "useless_password"
+
+sed -i 's/^snapshot_root.*/snapshot_root\t\/var\/www\/chits\/backups\//' /etc/rsnapshot.conf
+# Comment out all interval and backup lines
+sed -i 's/^\(interval.*\)/#\1/' /etc/rsnapshot.conf
+sed -i 's/^\(backup.*\)/#/' /etc/rsnapshot.conf
+echo "
+interval\tdaily\t7
+interval\tweekly\t4
+interval\tmonthly\t6
+
+backup_script\t/var/www/chits/scripts/dump_database.sh\t/var/www/chits/database_dumps
+"
+>> /etc/rsnapshot.conf
+
+echo "#!/bin/bash
+mysqldump -u chits_live -p${CHITS_LIVE_PASSWORD} chits_live > chits_live.sql
+" >> /var/www/chits/scripts/dump_database.sh
+chmod +x /var/www/chits/scripts/dump_database.sh
 
 #Setup cucumber
 wget --output-document=rubygems-1.3.5.tgz http://rubyforge.org/frs/download.php/60718/rubygems-1.3.5.tgz

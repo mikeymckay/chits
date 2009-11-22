@@ -67,6 +67,53 @@ set_chits_live_password () {
   export CHITS_LIVE_PASSWORD
 }
 
+autoconnect_to_access_point() {
+  NETWORK_MANAGER_SYSTEMS_CONNECTION_DIR=/etc/NetworkManager/system-connections
+  DEFAULT_SSID_FILE=$NETWORK_MANAGER_SYSTEMS_CONNECTION_DIR/Auto\ Default
+  if [ -e DEFAULT_SSID_FILE ]; then 
+    return
+  fi
+
+  echo "Setting up NetworkManager to automatically connect to access point with SSD 'default' during boot"
+  SSID_IN_BYTES="68;101;102;97;117;108;116;"
+# Get this by running ruby -i -e 'print "Default".unpack("U*").map{|c|"#{c};"}'
+# Change "default" to be name of SSID
+
+  mkdir --parents "${NETWORK_MANAGER_SYSTEMS_CONNECTION_DIR}"
+
+  echo "
+[connection]
+id=Auto default
+type=802-11-wireless
+autoconnect=true
+timestamp=1258702919
+
+[ipv4]
+method=auto
+ignore-auto-routes=false
+ignore-auto-dns=false
+dhcp-send-hostname=false
+never-default=false
+
+[ipv6]
+method=ignore
+ignore-auto-routes=false
+ignore-auto-dns=false
+never-default=false
+
+[802-11-wireless]
+ssid=${SSID_IN_BYTES}
+mode=infrastructure
+channel=0
+rate=0
+tx-power=0
+mtu=0
+" > ${DEFAULT_SSID_FILE}
+
+chmod 600 $DEFAULT_SSID_FILE
+
+}
+
 client () {
   echo "Client"
   install "tuxtype"
@@ -75,6 +122,8 @@ client () {
   if [ ! "${UPGRADE_ALL}" = "n" ]; then
     apt-get --assume-yes upgrade
   fi
+
+  autoconnect_to_access_point
 
 # Make firefox launch automatically and point it at http://chits_server
   AUTOSTART_DIR=$HOME/.config/autostart
@@ -101,21 +150,26 @@ server () {
   set_mysql_root_password; 
   set_chits_live_password;
 
-  install "dnsmasq autossh curl"
+  install "autossh curl"
   apt-get --assume-yes install $PROGRAMS_TO_INSTALL
   apt-get --assume-yes remove $PROGRAMS_TO_REMOVE
   if [ ! "${UPGRADE_ALL}" = "n" ]; then
     apt-get --assume-yes upgrade
   fi
+
+  autoconnect_to_access_point
+
   wget --output-document=chits_install.sh http://github.com/mikeymckay/chits/raw/master/install/chits_install.sh
-  wget --output-document=mysql_replication.sh http://github.com/mikeymckay/chits/raw/master/install/mysql_replication.sh
-  chmod +x chits_install.sh mysql_replication.sh
+
+  chmod +x chits_install.sh mysql_replication.sh setup_reverse_ssh_tunnel
   ./chits_install.sh
+
   echo "Creating ssh keys so we can reverse ssh into the server"
   su $SUDO_USER -c "mkdir /home/$SUDO_USER/.ssh"
   su $SUDO_USER -c "ssh-keygen -N \"\" -f /home/$SUDO_USER/.ssh/id_rsa"
 
   echo "Setting up reverse autossh to run when network comes up"
+  # TODO switch this to use more flexible script under separate github repo
   # Generate a random port number to use in the 10000 - 20000 range
   PORT_NUMBER=$[ ( $RANDOM % 10000 )  + 10000 ]
   MONITORING_PORT_NUMBER=$[ ( $RANDOM % 10000 )  + 20000 ]
@@ -142,6 +196,9 @@ AUTOSSH_PORT=${MONITORING_PORT_NUMBER}
 
 # Ensures that autossh keeps trying to connect
 AUTOSSH_GATETIME=0
+
+export AUTOSSH_GATETIME AUTOSSH_PORT
+
 su -c "autossh -f -N -R *:${PORT_MIDDLEMAN_WILL_LISTEN_ON}:localhost:22 ${MIDDLEMAN_SERVER_AND_USERNAME} -oLogLevel=error  -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no" $USER_TO_SSH_IN_AS
 
 
@@ -155,50 +212,6 @@ su -c "autossh -f -N -R *:${PORT_MIDDLEMAN_WILL_LISTEN_ON}:localhost:22 ${MIDDLE
   cat "\n#{PORT_NUMBER}" >> $PUBLIC_KEY_FILENAME
   curl -F "file=@${PUBLIC_KEY_FILENAME}" lakota.vdomck.org:4567/upload
 
-  echo "
-# ------------------------------
-# Added by tarlac_install script
-# ------------------------------
-# chits server should be found here
-192.168.0.1 chits_server
-# ------------------------------
-" >> /etc/hosts
-
-# Set static IP
-    echo "
-auto eth0
-iface eth0 inet static
-address 192.168.0.1
-netmask 255.255.255.0
-# Router will be set to 0.2
-gateway 192.168.0.2 
-" > /etc/network/interfaces
-
-# setup DHCP and DNS
-# Prepend the following to /etc/dnsmasq.conf
-  echo "
-# ------------------------------
-# Added by tarlac_install script
-# ------------------------------
-# allow people to query based on hostname
-expand-hosts
-
-# Set the domain to be clinic, so http://chits.clinic will resolve, probably not important
-domain=clinic
-
-# Provide IP addresses in the range 10-50
-dhcp-range=192.168.0.10,192.168.0.50,12h
-# ------------------------------
-
-"|cat - /etc/dnsmasq.conf > /tmp/out && mv /tmp/out /etc/dnsmasq.conf
-
-# Handle external DNS resolution - do we want clients to be able to resolve external domains?
-
-  echo "Restarting networking with new IP address (ssh connections may be dropped)"
-  /etc/init.d/networking restart
-  echo "Starting DCHP Server and DNS Server (dnsmasq)"
-  /etc/init.d/dnsmasq restart
-
 }
 
 client_and_server () {
@@ -207,25 +220,6 @@ client_and_server () {
   set_chits_live_password;
   client
   server
-}
-
-access_point () {
-  echo "Access point"
-
-#TODO!!
-# setup gateway with dnsmasq
-
-}
-
-server_and_access_point () {
-  server
-  access_point
-}
-
-client_and_server_and_access_point () {
-  server
-  client
-  access_point
 }
 
 #TODO!!
@@ -256,8 +250,6 @@ ${PROGRAMS_TO_INSTALL}
 1. Client
 2. Server
 3. Client & Server
-4. Server & Access Point
-5. Client & Server & Access Point
 6. Client with mysql replication
 7. Server with mysql replication
 8. Exit
@@ -271,8 +263,6 @@ case $choice in
 1) client; exit ;;
 2) server; exit ;;
 3) client_and_server; exit ;;
-4) server_and_access_point; exit ;;
-5) client_and_server_and_access_point ; exit ;;
 6) client_with_mysql_replication; exit ;;
 7) server_with_mysql_replication; exit ;;
 8) exit ;;
