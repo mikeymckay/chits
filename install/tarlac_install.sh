@@ -157,6 +157,21 @@ server () {
     apt-get --assume-yes upgrade
   fi
 
+  SERVER_IP_ADDRESS=192.168.2.2
+  SERVER_GATEWAY=192.168.2.1
+  echo "Setting static IP for server to: ${SERVER_IP_ADDRESS} and gateway to ${SERVER_GATEWAY}"
+
+  echo"
+auto lo
+iface lo inet loopback
+
+auto wlan0
+iface wlan0 inet static
+  address ${SERVER_IP_ADDRESS}
+  netmask 255.255.255.0
+  gateway ${SERVER_GATEWAY}
+" > /etc/network/interfaces
+
   autoconnect_to_access_point
 
   wget --output-document=chits_install.sh http://github.com/mikeymckay/chits/raw/master/install/chits_install.sh
