@@ -7,7 +7,7 @@
 
 DATABASE_TO_REPLICATE=chits_live
 SLAVE_USERNAME=replication_slave
-SERVER_IP_ADDRESS=192.168.0.1
+SERVER_IP_ADDRESS=192.168.2.2
 
 if [ -z "$SUDO_USER" ]; then
     echo "$0 must be called from sudo. Try: 'sudo ${0}'"
@@ -34,13 +34,13 @@ read SLAVE_PASSWORD
 echo "Checking that ${DATABASE_TO_REPLICATE} database exists"
 DATABASES=`echo "SHOW DATABASES;" | mysql -u root -p$MYSQL_ROOT_PASSWORD`
 if [[ ! $DATABASES =~ ${DATABASE_TO_REPLICATE} ]]; then
-  echo "Current database: [${IP_ADDRESSES}] do not include '${DATABASE_TO_REPLICATE}'. The '${DATABASE_TO_REPLICATE}' database should be setup and functional before running this script."
+  echo "Current databases: [${DATABASES}] do not include '${DATABASE_TO_REPLICATE}'. The '${DATABASE_TO_REPLICATE}' database should be setup and functional before running this script."
   exit
 fi
 echo "Success!"
 
 
-echo "Checking that ${DATABASE_TO_REPLICATE} database exists, that password works, and that the game_user table exists"
+echo "Checking that the game_user table exists"
 LOGIN_RESULT=`echo "SHOW TABLES;" | mysql -u root -p${MYSQL_ROOT_PASSWORD} ${DATABASE_TO_REPLICATE}`
 if [[ ! $LOGIN_RESULT =~ game_user ]]; then
   echo "Fail!"
@@ -53,7 +53,8 @@ read SLAVE_IPS
 IFS=','
 SLAVE_IPS=`echo ${SLAVE_IPS} | sed 's/ //g'`
 
-echo "Attempting to connect (via ssh) to each slave"
+echo "Each slave must have openssh-server and mysql-server installed."
+echo "Checking that we can ssh in and that mysql is running"
 
 for slave in $SLAVE_IPS
   do
@@ -67,13 +68,23 @@ for slave in $SLAVE_IPS
   echo "sshing to $slave"
   su -c "ssh $slave exit" $SUDO_USER
   if [ "$?" -ne "0" ]; then
-      echo "FAIL!"
+      echo "FAIL, on $slave you must apt-get install openssh-server"
+      exit
+  fi
+  echo "Success!"
+  echo "Checking for mysqld on $slave"
+  su -c "ssh $slave pgrep mysqld" $SUDO_USER
+  if [ "$?" -ne "0" ]; then
+      echo "FAIL, on $slave you must apt-get install mysql-server"
       exit
   fi
   echo "Success!"
 done
 
 
+echo "Making backup of mysql.cnf file"
+cp /etc/mysql/my.cnf /etc/mysql/my.cnf.orig
+echo "Editing mysql configuration for replication"
 # Use perl to insert the following into the correct position of /etc/mysql/my.conf (DO NOT JUST APPEND)
 #
 SERVER_ID=1
@@ -90,11 +101,7 @@ server-id=${SERVER_ID}
 # ------------------------------
 "
 
-echo "Making backup of mysql.cnf file"
-cp /etc/mysql/my.cnf /etc/mysql/my.cnf.orig
-echo "Editing mysql configuration for replication"
-#ruby -i -p -e "\$_.gsub!(/bind-address.*127.0.0.1/, '${MYSQL_CONF_ADDITIONS}')" /etc/mysql/my.cnf
-perl -i -p -e "print '${MYSQL_CONF_ADDITIONS}',$_='' if \$_ =~ /bind-address.*127.0.0.1/)" /etc/mysql/my.cnf
+perl -i -p -e "print '${MYSQL_CONF_ADDITIONS}',\$_='' if \$_ =~ /bind-address.*127.0.0.1/)" /etc/mysql/my.cnf
 
 /etc/init.d/mysql restart
 

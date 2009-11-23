@@ -69,12 +69,13 @@ set_chits_live_password () {
 
 autoconnect_to_access_point() {
   NETWORK_MANAGER_SYSTEMS_CONNECTION_DIR=/etc/NetworkManager/system-connections
-  DEFAULT_SSID_FILE=$NETWORK_MANAGER_SYSTEMS_CONNECTION_DIR/Auto\ Default
-  if [ -e DEFAULT_SSID_FILE ]; then 
+  DEFAULT_SSID_FILE="${NETWORK_MANAGER_SYSTEMS_CONNECTION_DIR}/Auto Default"
+  if [ -e "${DEFAULT_SSID_FILE}" ]; then 
     return
   fi
 
   echo "Setting up NetworkManager to automatically connect to access point with SSD 'default' during boot"
+  echo "Creating file at ${DEFAULT_SSID_FILE}"
   SSID_IN_BYTES="68;101;102;97;117;108;116;"
 # Get this by running ruby -i -e 'print "Default".unpack("U*").map{|c|"#{c};"}'
 # Change "default" to be name of SSID
@@ -108,9 +109,10 @@ channel=0
 rate=0
 tx-power=0
 mtu=0
-" > ${DEFAULT_SSID_FILE}
+" > "${DEFAULT_SSID_FILE}"
 
-chmod 600 $DEFAULT_SSID_FILE
+  chmod 600 "${DEFAULT_SSID_FILE}"
+
 
 }
 
@@ -136,7 +138,7 @@ Name=No Name
 Name[en_US]=Firefox
 Comment[en_US]=Firefox
 Comment=Firefox
-Exec=/usr/bin/firefox -no-remote -P default http://chits_server
+Exec=/usr/bin/firefox -fullscreen -no-remote -P default http://192.168.2.2
 X-GNOME-Autostart-enabled=true" > $AUTOSTART_DIR/firefox.desktop
 
 # Create firefox profile with kiosk/fullscreen mode enabled
