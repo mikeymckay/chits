@@ -104,10 +104,20 @@
     
     
 	
-    // Comment date: Oct 7, 2009, JVTolentino
-    // The init_sql() function starts here.
-    // This function will initialize the tables for the Dental Module in CHITS DB.
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	// Comment date: Oct 7, 2009, JVTolentino
+	// The init_sql() function starts here.
+	// This function will initialize the tables for the Dental Module in CHITS DB.
+	//
+	// Comment date: Dec 01, 09, JVTolentino
+	// According to the Data Dictionary in FHSIS orally fit children (12-71 months old) refers to 
+	// 	children who meet ALL of the following upon oral examination and/or completion of
+	// 	treatment:
+	// 	1. carries-free or decayed teeth filled
+	// 	2. has healthy gums
+	// 	3. no oral debris, and
+	// 	4. no dento-facial anomaly that limits normal function.
+	// Thus, an additional field was added in m_dental_patient_ohc_table_a: healthy_gums.
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function init_sql() {
       if (func_num_args()>0) {
         $arg_list = func_get_args();
@@ -205,43 +215,61 @@
         
       
       // The following codes will be used to create m_dental_patient_ohc_table_a.
-      // See the IPTR given by Dr. Domingo for further reference.
-      module::execsql("CREATE TABLE IF NOT EXISTS `m_dental_patient_ohc_table_a` (".
-        "`ohc_table_id` float NOT NULL auto_increment,".
-        "`patient_id` float NOT NULL,".
-        "`consult_id` float NOT NULL,".
-        "`date_of_oral` date NOT NULL,".
-        "`dental_caries` char(3) collate swe7_bin NOT NULL,".
-        "`gingivitis_periodontal_disease` char(3) collate swe7_bin NOT NULL,".
-        "`debris` char(3) collate swe7_bin NOT NULL,".
-        "`calculus` char(3) collate swe7_bin NOT NULL,".
-        "`abnormal_growth` char(3) collate swe7_bin NOT NULL,".
-        "`cleft_lip_palate` char(3) collate swe7_bin NOT NULL,".
-        "`others` char(3) collate swe7_bin NOT NULL,".
-        "PRIMARY KEY  (`ohc_table_id`)".
-        ") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
+		// See the IPTR given by Dr. Domingo for further reference.
+		module::execsql("CREATE TABLE IF NOT EXISTS `m_dental_patient_ohc_table_a` (".
+			"`ohc_table_id` float NOT NULL auto_increment,".
+			"`patient_id` float NOT NULL,".
+			"`consult_id` float NOT NULL,".
+			"`date_of_oral` date NOT NULL,".
+			"`dental_caries` char(3) collate swe7_bin NOT NULL,".
+			"`gingivitis_periodontal_disease` char(3) collate swe7_bin NOT NULL,".
+			"`debris` char(3) collate swe7_bin NOT NULL,".
+			"`calculus` char(3) collate swe7_bin NOT NULL,".
+			"`abnormal_growth` char(3) collate swe7_bin NOT NULL,".
+			"`cleft_lip_palate` char(3) collate swe7_bin NOT NULL,".
+			"`others` char(3) collate swe7_bin NOT NULL,".
+			"`healthy_gums` char(3) COLLATE swe7_bin NOT NULL,".
+			"PRIMARY KEY  (`ohc_table_id`)".
+			") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
+			
+		
+		// Comment date: Dec 01, 2009, JVTolentino
+		// The following codes will be used to create m_dental_fhsis.
+		// This table is experimental at this moment, I will continue to ponder about this one.
+		module::execsql("CREATE TABLE IF NOT EXISTS `m_dental_fhsis` (".
+			"`record_number` float NOT NULL AUTO_INCREMENT,".
+			"`consult_id` float NOT NULL,".
+			"`patient_id` float NOT NULL,".
+			"`indicator` int(11) NOT NULL,".
+			"`indicator_qualified` char(3) COLLATE swe7_bin NOT NULL,".
+			"`date_of_consultation` date NOT NULL,".
+			"`age` float NOT NULL,".
+			"`gender` char(1) COLLATE swe7_bin NOT NULL,".
+			"PRIMARY KEY (`record_number`)".
+			") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
      
-    }
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     
     
     
     
-    // Comment date: Oct 13, 2009, JVTolentino
-    // The drop_tables() function starts here.
-    // This function will be used to drop tables from CHITS DB.
-    // This function will be executed if the user opts to delete
-    //    the tables associated with this module.
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    function drop_tables() {
+	// Comment date: Oct 13, 2009, JVTolentino
+	// The drop_tables() function starts here.
+	// This function will be used to drop tables from CHITS DB.
+	// This function will be executed if the user opts to delete
+	//    the tables associated with this module.
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function drop_tables() {
 		module::execsql("DROP TABLE `m_dental_patient_ohc`");
 		module::execsql("DROP TABLE `m_lib_dental_tooth_condition`");
 		module::execsql("DROP TABLE `m_dental_patient_ohc_table_a`");
 		module::execsql("DROP TABLE `m_lib_dental_services`");
 		module::execsql("DROP TABLE `m_dental_services`");
-    }
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		module::execsql("DROP TABLE `m_dental_fhsis`"); //experiment...delete this if needed.
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     
     
@@ -621,12 +649,18 @@
     // Comment date: Oct 22, '09, JVTolentino
     // Initial codes for inserting records in m_dental_patient_ohc_table_a
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    function new_ohc_table_a_record() {
-      $loc_patient_id = $_POST['h_patient_id'];
-      $loc_consult_id = $_POST['h_consult_id'];
+	function new_ohc_table_a_record() {
+		$loc_patient_id = $_POST['h_patient_id'];
+		$loc_consult_id = $_POST['h_consult_id'];
       
-      list($month, $day, $year) = explode("/", $_POST['date_of_oral']);
-      $loc_date_of_oral = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+		list($month, $day, $year) = explode("/", $_POST['date_of_oral']);
+		$loc_date_of_oral = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+		
+		if($_POST['cb_healthy_gums'] != "YES") {
+			$loc_healthy_gums = "NO";
+		} else {
+			$loc_healthy_gums = $_POST['cb_healthy_gums'];
+		}
 
       if($_POST['cb_dental_caries'] != "YES") {
         $loc_dental_caries = "NO";
@@ -671,25 +705,35 @@
       }
       
       
-      $query = "SELECT COUNT(*) AS flag_rec FROM m_dental_patient_ohc_table_a WHERE patient_id = $loc_patient_id AND consult_id = $loc_consult_id ";
+		$query = "SELECT * FROM m_dental_patient_ohc_table_a ".
+			"WHERE patient_id = $loc_patient_id AND consult_id = $loc_consult_id ";
       $result = mysql_query($query)
         or die("Couldn't execute query.");
-        
-      if($row = mysql_fetch_assoc($result)) {
-        if($row['flag_rec'] == 0) {
-          $query = "INSERT INTO `m_dental_patient_ohc_table_a` (`patient_id`, `consult_id`, `date_of_oral`, `dental_caries`, `gingivitis_periodontal_disease`, `debris`, `calculus`, `abnormal_growth`, `cleft_lip_palate`, `others`) VALUES".
-            "($loc_patient_id, $loc_consult_id, '$loc_date_of_oral', '$loc_dental_caries', '$loc_gingivitis_periodontal_disease', '$loc_debris', '$loc_calculus', '$loc_abnormal_growth', '$loc_cleft_lip_palate', '$loc_others')";
-        }
-        else {
-          $query = "UPDATE `m_dental_patient_ohc_table_a` SET `dental_caries` = '$loc_dental_caries', `gingivitis_periodontal_disease` = '$loc_gingivitis_periodontal_disease', `debris` = '$loc_debris', `calculus` = '$loc_calculus', `abnormal_growth` = '$loc_abnormal_growth', `cleft_lip_palate` = '$loc_cleft_lip_palate', `others` = '$loc_others' ".
-            "WHERE `consult_id` = $loc_consult_id AND `patient_id` = $loc_patient_id ";
-        }    
+		
+		if(mysql_num_rows($result)) {
+			$query = "UPDATE m_dental_patient_ohc_table_a SET ".
+				"dental_caries = '$loc_dental_caries', ".
+				"gingivitis_periodontal_disease = '$loc_gingivitis_periodontal_disease', ".
+				"debris = '$loc_debris', ".
+				"calculus = '$loc_calculus', ".
+				"abnormal_growth = '$loc_abnormal_growth', ".
+				"cleft_lip_palate = '$loc_cleft_lip_palate', ".
+				"others = '$loc_others', ".
+				"healthy_gums = '$loc_healthy_gums' ".
+				"WHERE consult_id = $loc_consult_id AND patient_id = $loc_patient_id ";
+		} else {
+			$query = "INSERT INTO m_dental_patient_ohc_table_a ".
+				"(patient_id, consult_id, date_of_oral, dental_caries, gingivitis_periodontal_disease, ".
+				"debris, calculus, abnormal_growth, cleft_lip_palate, others, healthy_gums) ".
+				"VALUES($loc_patient_id, $loc_consult_id, '$loc_date_of_oral', '$loc_dental_caries', ".
+				"'$loc_gingivitis_periodontal_disease', '$loc_debris', '$loc_calculus', ".
+				"'$loc_abnormal_growth', '$loc_cleft_lip_palate', '$loc_others', '$loc_healthy_gums')";
       }
-        
+		
       $result = mysql_query($query)
-        or die("Couldn't execute query.");
-    }
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        or die("Couldn't execute query. ".mysql_error());
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
 	
@@ -771,10 +815,14 @@
 	// Furthermore, the function new_dental_service_record() was also deleted and was
 	//    replaced by three new functions new_dental_service(), update_dental_service(),
 	//    and delete_dental_service().
+	//
+	// Comment date: Dec 02, 2009, JVTolentino
+	// Added additional codes for populating the table [m_dental_fhsis]. This table is used
+	// 	for creating the dental report.
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function new_dental_record() {
 		// The following variables are used for inserting a new record in
-		//    m_dental_patient_ohc
+		//    m_dental_patient_ohc.
 		$loc_patient_id = $_POST['h_patient_id'];
 		$loc_consult_id = $_POST['h_consult_id'];
 		$loc_tooth_number = $_POST['select_tooth'];
@@ -785,7 +833,8 @@
 		$loc_patient_pregnant = mc::check_if_pregnant($loc_patient_id, $loc_date_of_oral);
 		$loc_dentist = $_POST['h_dentist'];
 		
-		// The following variables are used for inserting a new recod in [m_dental_services].
+		
+		// The following variables are used for inserting a new record in [m_dental_services].
 		$loc_tooth_for_service = $_POST['select_tooth_for_service'];
 		$loc_service = $_POST['select_tooth_service'];
 		
@@ -796,6 +845,15 @@
 		
 		// The following codes will be used to add, modify, or delete a record in
 		//    m_dental_services.
+		// 
+		// Comment date: Dec 01, '09, JVTolentino
+		// Added additional codes in here. It came to light that if the dentist provided
+		// 	a service to a patient, the service should also reflect to the patient's
+		// 	dental condition([m_dental_ohc]). I need to check this notion out with 
+		// 	Dr. Domingo. I'll comment further if this condition is needed, otherwise
+		// 	I will delete this comment later (if this comment is not deleted, it may just mean
+		// 	that I have spoken with Dr. Domingo and I've forgotten to delete this
+		// 	comment ^^).
 		elseif (@$_POST['submit_button'] == "Save Service Provided")  {
 			if($loc_service == '0') {
 				$this->delete_dental_service($loc_consult_id, $loc_tooth_for_service);
@@ -804,7 +862,7 @@
 					"tooth_number = $loc_tooth_for_service AND ".
 					"consult_id = $loc_consult_id ";
 				$result = mysql_query($query)
-					or die("Couldn't recognize if the record exists or not in the database.");
+					or die("Couldn't ascertain if the record already exists in the database.");
 			
 				if(mysql_num_rows($result)) {
 					$this->update_dental_service($loc_patient_id, $loc_consult_id, 
@@ -826,7 +884,7 @@
 					"WHERE tooth_number = $loc_tooth_number AND ".
 					"consult_id = $loc_consult_id ";
 				$result = mysql_query($query)
-					or die ("Couldn't recognize if the record exists or not in the database.");
+					or die ("Couldn't recognize if the record exists or not in the database. ".mysql_error());
 					
 				if(mysql_num_rows($result)) {
 					$this->update_dental_condition($loc_consult_id, $loc_tooth_number, 
@@ -837,8 +895,17 @@
 				}
 					
 				$result = mysql_query($query)
-					or die ("Couldn't execute query.");
+					or die ("Couldn't execute query. ".mysql_error());
 			}
+		}
+		
+		$loc_patient_age = healthcenter::get_patient_age($_GET['consult_id']);
+		$loc_patient_gender = $this->get_patient_gender($loc_patient_id);
+		
+		// Refer to FHSIS Manual for Dental Indicator 1
+		if ((($loc_patient_age * 12) >= 12) &&  (($loc_patient_age * 12) <=71)) {
+			$this->fhsis_indicator_1($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
+				$loc_patient_age, $loc_patient_gender);
 		}
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -909,10 +976,24 @@
     
     
     
-    // Comment date: Nov 04, '09, JVTolentino
-    // This function is used to create a table for the patient's
-    // Oral Health Condition (A).
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	// Comment date: Nov 04, '09, JVTolentino
+	// This function is used to create a table for the patient's
+	// Oral Health Condition (A).
+	//
+	// Comment date: Dec 01, '09, JVTolentino
+	// This came to my attention after reviewing the data dictionary for dental health care:
+	// Indicator: Oraly Fit Children (12-71 months old) (disaggregated by sex)
+	// Definition: Proportion of children 12 to 71 months old and are orally fit during a given point
+	//    in time.
+	// Definition of Terms: Orally Fit Children - refers to children who meet ALL of the following
+	//    upon oral examination and/or completion of treatment.
+	//    1. Carries-free or decayed teeth filled
+	// 	2. has healthy gums
+	// 	3. no oral debris, and 
+	// 	4. no dento-facial anomaly that limits normal function
+	// To meet this indicator an additional field was added to m_dental_patient_ohc_table_a:
+	// 	healthy_gums. Accordingly, codes were added to this function to meet this requirement.
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function show_ohc_table_a($p_id) {
       echo "<table border=3 bordercolor='red' align='center'>";
         echo "<tr>";
@@ -925,24 +1006,43 @@
         echo "</tr>";
         
         
-        echo "<tr>";
-          echo "<td>Date of Oral Examination</td>";
+			echo "<tr>";
+				echo "<td>Date of Oral Examination</td>";
           
-          $query = "SELECT date_of_oral FROM m_dental_patient_ohc_table_a WHERE patient_id = $p_id ORDER BY consult_id DESC";
-          $result = mysql_query($query)
-            or die("Couldn't execute query.");
-            
-          echo "<td>&nbsp;</td>";
+				$query = "SELECT date_of_oral FROM m_dental_patient_ohc_table_a WHERE patient_id = $p_id ORDER BY consult_id DESC";
+				$result = mysql_query($query)
+					or die("Couldn't execute query.");
+					
+				echo "<td>&nbsp;</td>";
           
-          $ctr = 1;  
-          while(($row = mysql_fetch_array($result)) && ($ctr <=5)) {
-            extract($row);
-            echo"<td align='center'>$date_of_oral</td>";
-            $ctr++;
-          }
-        echo "</tr>";
+				$ctr = 1;  
+				while(($row = mysql_fetch_array($result)) && ($ctr <=5)) {
+					extract($row);
+					echo"<td align='center'>$date_of_oral</td>";
+					$ctr++;
+				}
+			echo "</tr>";
+			
+			
+			echo "<tr>";
+				echo "<td>Healthy Gums</td>";
+				echo "<td align='center'><input type='checkbox' name='cb_healthy_gums' ".
+					"value='YES'></input></td>";
+					
+				$query = "SELECT healthy_gums FROM m_dental_patient_ohc_table_a ".
+					"WHERE patient_id = $p_id ORDER BY consult_id DESC";
+				$result = mysql_query($query)
+					or die("Couldnt' execute query. ".mysql_error());
+					
+				$ctr = 1;
+				while(($row = mysql_fetch_array($result)) && ($ctr <= 5)) {
+					extract($row);
+					echo "<td align='center'>$healthy_gums</td>";
+					$ctr++;
+				}
+			echo "</tr>";
+			
        
-        
         echo "<tr>";
           echo "<td>Dental Caries</td>";
           echo "<td align='center'><input type='checkbox' name='cb_dental_caries' value='YES'></input></td>";
@@ -1231,7 +1331,7 @@
 		
 		echo "<table border=3 bordercolor='red' align='center'>";
 			echo "<tr>";
-				echo "<th align='left' bgcolor='CC9900' colspan=2>Oral Health Condition (B)</th>";
+				echo "<th align='left' bgcolor='CC9900' colspan=7>Oral Health Condition (B)</th>";
 			echo "</tr>";
 			
 			// The following codes are used to show the last five consultation dates of the patient.
@@ -1521,14 +1621,14 @@
    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function new_dental_service($patient_id, $consult_id, $tooth_number, 
 		$service_provided, $date_of_service, $dentist) {
-			print "$date_of_service";
+			
 		$query = "INSERT INTO m_dental_services (patient_id, consult_id, tooth_number, ".
 			"service_provided, date_of_service, dentist) VALUES".
 			"($patient_id, $consult_id, $tooth_number, '$service_provided', ".
 			"'$date_of_service', $dentist)";
 		
 		$result = mysql_query($query)
-			or die("Couldn't add new dental service to the database.");
+			or die("Couldn't add new dental service to the database.".mysql_error());
 	}
    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
@@ -1809,7 +1909,7 @@
 			}
 		echo "</table>";
 	}
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
 	
@@ -1824,7 +1924,7 @@
 				print "<tr>";
 					print "<th align='left' bgcolor='yellow'> ".
 						"Advisory: According to our records, as of {$consultation_date}, ".
-						"your patient is pregnant.</th>";
+						"your patient is PREGNANT.</th>";
 				print "</tr>";
 			print "</table>";
 		} 
@@ -1832,9 +1932,103 @@
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
-    
-    
-    
+	
+	
+	
+	// Comment date: Dec 01, 2009, JVTolentino 
+	// Prototype code for FHSIS Indicator #1.
+	// Indicator:
+	//		Orally Fit Children (12-71 months old) (disaggregated by sex).
+	//	Definition:
+	//		Proportion of children 12 to 71 months old and are orally fit during a given point in time.
+	// Definition of Terms:
+	//		Orally Fit Children - refers to children who meet ALL of the following upon oral examination
+	//			and/or completion of treatment:
+	//				1. caries-free or decayed teeth filled
+	//				2. has healthy gums
+	//				3. no oral debris, and 
+	//				4. no dento-facial anomaly that limits normal functions.
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function fhsis_indicator_1($consult_id, $patient_id, $date_of_consultation, $age, $gender) {
+		//criteria:
+		//		orally fit = 1, not orally fit = 0.
+		$query = "SELECT * FROM m_dental_patient_ohc_table_a ".
+			"WHERE consult_id = $consult_id AND (dental_caries = 'YES' OR ".
+			"debris = 'YES' OR healthy_gums = 'NO')";
+			
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+			
+		if(mysql_num_rows($result)) {
+			$criteria = 0;
+		} else {
+			$criteria = 1;
+		}
+		
+		$query = "SELECT * FROM m_dental_patient_ohc ".
+			"WHERE consult_id = $consult_id AND (tooth_condition = 'D' OR ".
+			"tooth_condition = 'd') ";
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+			
+		if(mysql_num_rows($result)) {
+			$criteria = 0;
+		} else {
+			$criteria = 1;
+		}
+		
+		$indicator = 1;
+		if ($criteria == 1) {
+			$indicator_qualified = "YES";
+		} else {
+			$indicator_qualified = "NO";
+		}
+		
+		$query = "SELECT * FROM m_dental_fhsis WHERE consult_id = $consult_id ";
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+		
+		if(mysql_num_rows($result)) {
+			//update based on criteria
+			$query = "UPDATE m_dental_fhsis SET ".
+				"indicator_qualified = '$indicator_qualified', ".
+				"date_of_consultation = '$date_of_consultation' ".
+				"WHERE consult_id = $consult_id ";
+		} else {
+			// insert record
+			$query = "INSERT INTO m_dental_fhsis (consult_id, patient_id, indicator, ".
+				"indicator_qualified, date_of_consultation, age, gender) VALUES ".
+				"($consult_id, $patient_id, $indicator, '$indicator_qualified', ".
+				"'$date_of_consultation', $age, '$gender')";
+		}
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Dec 02, 2009, JVTolentino
+	// This function will query m_patient and get the patient's gender based on the patient's
+	// 	id.
+	
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function get_patient_gender($patient_id) {
+		$query = "SELECT patient_gender FROM m_patient WHERE patient_id = $patient_id ";
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+			
+		if($row = mysql_fetch_assoc($result)) {
+			return $row['patient_gender'];
+		}
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
     // Comment date: Nov 04, '09, JVTolentino
     // This is the main function for the dental module.
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
