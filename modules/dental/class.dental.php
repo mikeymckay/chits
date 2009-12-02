@@ -1944,7 +1944,8 @@
 	// Definition of Terms:
 	//		Orally Fit Children - refers to children who meet ALL of the following upon oral examination
 	//			and/or completion of treatment:
-	//				1. caries-free or decayed teeth filled
+	//				1.a caries-free or 
+	//				1.b decayed teeth filled
 	//				2. has healthy gums
 	//				3. no oral debris, and 
 	//				4. no dento-facial anomaly that limits normal functions.
@@ -1960,9 +1961,9 @@
 			or die("Couldn't execute query. ".mysql_error());
 			
 		if(mysql_num_rows($result)) {
-			$criteria = 0;
+			$criteria1a23 = 0;
 		} else {
-			$criteria = 1;
+			$criteria1a23 = 1;
 		}
 		
 		$query = "SELECT * FROM m_dental_patient_ohc ".
@@ -1972,13 +1973,13 @@
 			or die("Couldn't execute query. ".mysql_error());
 			
 		if(mysql_num_rows($result)) {
-			$criteria = 0;
+			$criteria1b = 0;
 		} else {
-			$criteria = 1;
+			$criteria1b = 1;
 		}
 		
 		$indicator = 1;
-		if ($criteria == 1) {
+		if (($criteria1a23 == 1) && ($criteria1b == 1)) {
 			$indicator_qualified = "YES";
 		} else {
 			$indicator_qualified = "NO";
