@@ -703,6 +703,12 @@
       } else {
         $loc_others = $_POST['cb_others'];
       }
+		
+		if($_POST['cb_dento_facial_anomaly'] != "YES") {
+			$loc_dento_facial_anomaly = "NO";
+		} else {
+			$loc_dento_facial_anomaly = $_POST['cb_dento_facial_anomaly'];
+		}
       
       
 		$query = "SELECT * FROM m_dental_patient_ohc_table_a ".
@@ -719,15 +725,17 @@
 				"abnormal_growth = '$loc_abnormal_growth', ".
 				"cleft_lip_palate = '$loc_cleft_lip_palate', ".
 				"others = '$loc_others', ".
-				"healthy_gums = '$loc_healthy_gums' ".
+				"healthy_gums = '$loc_healthy_gums', ".
+				"dento_facial_anomaly = '$loc_dento_facial_anomaly' ".
 				"WHERE consult_id = $loc_consult_id AND patient_id = $loc_patient_id ";
 		} else {
 			$query = "INSERT INTO m_dental_patient_ohc_table_a ".
 				"(patient_id, consult_id, date_of_oral, dental_caries, gingivitis_periodontal_disease, ".
-				"debris, calculus, abnormal_growth, cleft_lip_palate, others, healthy_gums) ".
-				"VALUES($loc_patient_id, $loc_consult_id, '$loc_date_of_oral', '$loc_dental_caries', ".
-				"'$loc_gingivitis_periodontal_disease', '$loc_debris', '$loc_calculus', ".
-				"'$loc_abnormal_growth', '$loc_cleft_lip_palate', '$loc_others', '$loc_healthy_gums')";
+				"debris, calculus, abnormal_growth, cleft_lip_palate, others, healthy_gums, ".
+				"dento_facial_anomaly) VALUES($loc_patient_id, $loc_consult_id, '$loc_date_of_oral', ".
+				"'$loc_dental_caries', '$loc_gingivitis_periodontal_disease', '$loc_debris', ".
+				"'$loc_calculus', '$loc_abnormal_growth', '$loc_cleft_lip_palate', '$loc_others', ".
+				"'$loc_healthy_gums', '$loc_dento_facial_anomaly')";
       }
 		
       $result = mysql_query($query)
@@ -1160,6 +1168,25 @@
             $ctr++;
           }
         echo "</tr>";
+			
+		 
+			echo "<tr>";
+				echo "<td>Dento-Facial Anomaly that Limits Normal Function</td>";
+				echo "<td align='center'><input type='checkbox' name='cb_dento_facial_anomaly' ".
+					"value='YES'></input></td>";
+          
+				$query = "SELECT dento_facial_anomaly FROM m_dental_patient_ohc_table_a ".
+					"WHERE patient_id = $p_id ORDER BY consult_id DESC";
+				$result = mysql_query($query)
+					or die("Couldn't execute query. ".mysql_error());
+            
+				$ctr = 1;
+				while(($row = mysql_fetch_array($result)) && ($ctr <=5)) {
+					extract($row);
+					echo"<td align='center'>$dento_facial_anomaly</td>";
+					$ctr++;
+				}
+			echo "</tr>";
         
         
         echo "<tr>";
@@ -1936,7 +1963,7 @@
 	
 	
 	// Comment date: Dec 01, 2009, JVTolentino 
-	// Prototype code for FHSIS Indicator #1.
+	// Prototype code for FHSIS Indicator #1. See FHSIS Manual Data Dictionary.
 	// Indicator:
 	//		Orally Fit Children (12-71 months old) (disaggregated by sex).
 	//	Definition:
@@ -1951,7 +1978,7 @@
 	//				4. no dento-facial anomaly that limits normal functions.
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function fhsis_indicator_1($consult_id, $patient_id, $date_of_consultation, $age, $gender) {
-		//criteria:
+		// CRITERIA:
 		//		orally fit = 1, not orally fit = 0.
 		$query = "SELECT * FROM m_dental_patient_ohc_table_a ".
 			"WHERE consult_id = $consult_id AND (dental_caries = 'YES' OR ".
