@@ -1,93 +1,93 @@
 <?
   class dental extends module {
     
-    // Author: Herman Tolentino MD
-    // CHITS Project 2004
+   // Author: Herman Tolentino MD
+   // CHITS Project 2004
 	
-    // DENTAL HEALTH CARE PROGRAM MODULE
-    
+   // DENTAL HEALTH CARE PROGRAM MODULE
+   
 	// Feel free to add additional comments anywhere.
-    // Just add comment dates before the actual comment.
+   // Just add comment dates before the actual comment.
 	
-    // COMMENT DATE: Sep 25, '09
-    // THESE ARE THE REQUIRED APIs/FUNCTIONS FOR EVERY MODULE
-    // 1. init_deps()
-    // 2. init_lang()
-    // 3. init_stats()
-    // 4. init_help()
-    // 5. init_menu()
-    // 6. init_sql()
-    // 7. CONSTRUCTOR FUNCTION
-    // 8. drop_tables()
+   // COMMENT DATE: Sep 25, '09
+   // THESE ARE THE REQUIRED APIs/FUNCTIONS FOR EVERY MODULE
+   // 1. init_deps()
+   // 2. init_lang()
+   // 3. init_stats()
+   // 4. init_help()
+   // 5. init_menu()
+   // 6. init_sql()
+   // 7. CONSTRUCTOR FUNCTION
+   // 8. drop_tables()
 
 	
-    // Comment date: Sep 25, '09
-    // The constructor function starts here
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    function dental() {
-      $this->author = "Jeffrey V. Tolentino";
-      $this->version = "0.1-".date("Y-m-d");
-      $this->module = "dental";
-      $this->description = "CHITS Module - Dental Health Care Program";  
-    }
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+   // Comment date: Sep 25, '09
+   // The constructor function starts here
+   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   function dental() {
+		$this->author = "Jeffrey V. Tolentino";
+		$this->version = "0.1-".date("Y-m-d");
+		$this->module = "dental";
+		$this->description = "CHITS Module - Dental Health Care Program";  
+   }
+   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
 	
 	
-    // Comment date: Oct 21, '09, JVTolentino
-    // This function is somehow needed by the healthcenter class, the reason 
-    //    is unknown.
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    function _details_dental() {
-    }
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    
-    
+   // Comment date: Oct 21, '09, JVTolentino
+   // This function is somehow needed by the healthcenter class, the reason 
+   //    is unknown.
+   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   function _details_dental() {
+   }
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
  
  
-    function init_deps() {
-       module::set_dep($this->module, "module");
-       module::set_dep($this->module, "healthcenter");
-       module::set_dep($this->module, "patient");                               
-    }
+	function init_deps() {
+		module::set_dep($this->module, "module");
+		module::set_dep($this->module, "healthcenter");
+		module::set_dep($this->module, "patient");                               
+   }
 	
 	
 	
 	
 	
-    function init_lang() {
-    }	
-    
-    
-	
-    
-	
-    function init_stats() {
-    }
-    
-    
-    
+	function init_lang() {
+   }	
 	
 	
-    function init_help() {
-    }
 	
-    
-    
-    
 	
-    // Comment date: Sep 25, '09
-    // The init_menu() function starts here
-    // This function is used to include a link to the menu pane,
-    // to the pane at the bottom of the menu pane, and so on...
-    // (The menu pane is located at the left side of the site)
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	
+   function init_stats() {
+   }
+	
+	
+	
+	
+	
+   function init_help() {
+   }
+	
+	
+	
+	
+	
+   // Comment date: Sep 25, '09
+   // The init_menu() function starts here
+   // This function is used to include a link to the menu pane,
+   // to the pane at the bottom of the menu pane, and so on...
+   // (The menu pane is located at the left side of the site)
+   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function init_menu() {
-      if (func_num_args()>0) {
-        $arg_list = func_get_args();
-      }
+		if (func_num_args()>0) {
+			$arg_list = func_get_args();
+		}
       
       //print_r($arg_list);
 		
@@ -97,8 +97,8 @@
       // set_detail parameters
       // set_detail([module description], [module version], [module author], [module name/id]
       module::set_detail($this->description, $this->version, $this->author, $this->module);
-    }
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+   }
+   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     
     
@@ -117,6 +117,10 @@
 	// 	3. no oral debris, and
 	// 	4. no dento-facial anomaly that limits normal function.
 	// Thus, an additional field was added in m_dental_patient_ohc_table_a: healthy_gums.
+	//
+	// Comment date: Dec 03, 2009, JVTolentino
+	// To satisfy Indicator #2 in the Dental Program on FHSIS another table was added to the db:
+	// 	m_dental_other_services. Please refer to FHSIS manual.
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function init_sql() {
       if (func_num_args()>0) {
@@ -229,10 +233,11 @@
 			"`cleft_lip_palate` char(3) collate swe7_bin NOT NULL,".
 			"`others` char(3) collate swe7_bin NOT NULL,".
 			"`healthy_gums` char(3) COLLATE swe7_bin NOT NULL,".
+			"`dento_facial_anomaly` char(3) COLLATE swe7_bin NOT NULL,".
 			"PRIMARY KEY  (`ohc_table_id`)".
 			") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
 			
-		
+			
 		// Comment date: Dec 01, 2009, JVTolentino
 		// The following codes will be used to create m_dental_fhsis.
 		// This table is experimental at this moment, I will continue to ponder about this one.
@@ -245,6 +250,28 @@
 			"`date_of_consultation` date NOT NULL,".
 			"`age` float NOT NULL,".
 			"`gender` char(1) COLLATE swe7_bin NOT NULL,".
+			"PRIMARY KEY (`record_number`)".
+			") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
+			
+			
+		// Comment date: Dec 03, 2009, JVTolentino
+		// The following codes will be used to create m_dental_other_services.
+		module::execsql("CREATE TABLE IF NOT EXISTS `m_dental_other_services` (".
+			"`record_number` float NOT NULL AUTO_INCREMENT,".
+			"`consult_id` float NOT NULL,".
+			"`patient_id` float NOT NULL,".
+			"`date_of_service` date NOT NULL,".
+			"`dentist` float NOT NULL,".
+			"`supervised_tooth_brushing` char(3) COLLATE swe7_bin NOT NULL,".
+			"`altraumatic_restorative_treatment` char(3) COLLATE swe7_bin NOT NULL,".
+			"`out_removal_of_unsavable_teeth` char(3) COLLATE swe7_bin NOT NULL ".
+			"COMMENT 'Oral Urgent Treatment (OUT)',".
+			"`out_referral_of_complicates_cases` char(3) COLLATE swe7_bin NOT NULL ".
+			"COMMENT 'Oral Urgent Treatment (OUT)',".
+			"`out_treatment_of_post_extraction_complications` char(3) COLLATE swe7_bin NOT NULL ".
+			"COMMENT 'Oral Urgent Treatment (OUT)',".
+			"`out_drainage_of_localized_oral_abscess` char(3) COLLATE swe7_bin NOT NULL ".
+			"COMMENT 'Oral Urgent Treatment (OUT)',".
 			"PRIMARY KEY (`record_number`)".
 			") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
      
@@ -268,6 +295,7 @@
 		module::execsql("DROP TABLE `m_lib_dental_services`");
 		module::execsql("DROP TABLE `m_dental_services`");
 		module::execsql("DROP TABLE `m_dental_fhsis`"); //experiment...delete this if needed.
+		module::execsql("DROP TABLE `m_dental_other_services`");
 	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -646,9 +674,14 @@
     
     
     
-    // Comment date: Oct 22, '09, JVTolentino
-    // Initial codes for inserting records in m_dental_patient_ohc_table_a
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	// Comment date: Oct 22, '09, JVTolentino
+	// Initial codes for inserting records in m_dental_patient_ohc_table_a
+	//
+	// Comment date: Dec 2, 2009, JVTolentino
+	// Added 'Dento-Facial Anomaly that Limits Normal Function' to the table to satisfy
+	// 	the third criteria in FHSIS indicator 1. Please consult FHSIS Manual (Data Dictionary).
+	// TODO: Modularize this function.
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function new_ohc_table_a_record() {
 		$loc_patient_id = $_POST['h_patient_id'];
 		$loc_consult_id = $_POST['h_consult_id'];
@@ -741,7 +774,7 @@
       $result = mysql_query($query)
         or die("Couldn't execute query. ".mysql_error());
 	}
-	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
 	
@@ -851,7 +884,7 @@
 			$this->new_ohc_table_a_record();
 		} 
 		
-		// The following codes will be used to add, modify, or delete a record in
+		// The following codes will be used to add or modify a record in
 		//    m_dental_services.
 		// 
 		// Comment date: Dec 01, '09, JVTolentino
@@ -904,6 +937,69 @@
 					
 				$result = mysql_query($query)
 					or die ("Couldn't execute query. ".mysql_error());
+			}
+		}
+		
+		// The following codes will be used to add or modify a record in
+		//    m_dental_other_services.
+		elseif (@$_POST['submit_button'] == "Save Other Dental Services")  {
+			$query = "SELECT * FROM m_dental_other_services WHERE ".
+				"patient_id = $loc_patient_id AND consult_id = $loc_consult_id ";
+			$result = mysql_query($query);
+			
+			if($_POST['cb_supervised_tooth_brushing'] == "YES") {
+				$loc_supervised_tooth_brushing = $_POST['cb_supervised_tooth_brushing'];
+			} else {
+				$loc_supervised_tooth_brushing = "NO";
+			}
+			
+			if($_POST['cb_altraumatic_restorative_treatment'] == "YES") {
+				$loc_altraumatic_restorative_treatment = 
+					$_POST['cb_altraumatic_restorative_treatment'];
+			} else {
+				$loc_altraumatic_restorative_treatment = "NO";
+			}
+			
+			if($_POST['cb_out_removal_of_unsavable_teeth'] == "YES") {
+				$loc_out_removal_of_unsavable_teeth = $_POST['cb_out_removal_of_unsavable_teeth'];
+			} else {
+				$loc_out_removal_of_unsavable_teeth = "NO";
+			}
+			
+			if($_POST['cb_out_referral_of_complicates_cases'] == "YES") {
+				$loc_out_referral_of_complicates_cases = 
+					$_POST['cb_out_referral_of_complicates_cases'];
+			} else {
+				$loc_out_referral_of_complicates_cases = "NO";
+			}
+			
+			if($_POST['cb_out_treatment_of_post_extraction_complications'] == "YES") {
+				$loc_out_treatment_of_post_extraction_complications =
+					$_POST['cb_out_treatment_of_post_extraction_complications'];
+			} else {
+				$loc_out_treatment_of_post_extraction_complications = "NO";
+			}
+			
+			if($_POST['cb_out_drainage_of_localized_oral_abscess'] == "YES") {
+				$loc_out_drainage_of_localized_oral_abscess = 
+					$_POST['cb_out_drainage_of_localized_oral_abscess'];
+			} else {
+				$loc_out_drainage_of_localized_oral_abscess = "NO";
+			}
+			
+			if(mysql_num_rows($result)) {
+				$this->update_dental_other_service($loc_patient_id, $loc_consult_id, $loc_date_of_oral, 
+					$loc_dentist, $loc_supervised_tooth_brushing, $loc_altraumatic_restorative_treatment, 
+					$loc_out_removal_of_unsavable_teeth, $loc_out_referral_of_complicates_cases, 
+					$loc_out_treatment_of_post_extraction_complications, 
+					$loc_out_drainage_of_localized_oral_abscess);
+			}
+			else {
+				$this->new_dental_other_service($loc_patient_id, $loc_consult_id, $loc_date_of_oral, 
+					$loc_dentist, $loc_supervised_tooth_brushing, $loc_altraumatic_restorative_treatment, 
+					$loc_out_removal_of_unsavable_teeth, $loc_out_referral_of_complicates_cases, 
+					$loc_out_treatment_of_post_extraction_complications, 
+					$loc_out_drainage_of_localized_oral_abscess);
 			}
 		}
 		
@@ -1524,10 +1620,10 @@
 	
 	
 	
-    // Comment date: Nov 10, '09, JVTolentino
-    // This function is used for the Services Monitoring Chart
+	// Comment date: Nov 10, '09, JVTolentino
+   // This function is used for the Services Monitoring Chart
 	// Further comments will be added soon.
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function show_services_monitoring_chart($p_id) {
 		print "<table border=3 bordercolor='red' align='center'>";
 			print "<tr>";
@@ -1637,7 +1733,178 @@
 			print "</td>";
 		print "</table>";
 	}
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Dec 03, 2009, JVTolentino
+	// This function is used for showing the table 'Other Services' in the dental page.
+	// This function was added after reviewing the FHSIS Manual (Data Dictionary, Indicator 2),
+	// 	and decided to add another table on chits database (m_dental_other_services)
+	// 	to satisfy Indicator #2.
+	// I need to set up a meeting with Dr. Domingo later to get his suggestions. I will add 
+	// 	additional comments after I talked with him (if no comments were added, again,
+	// 	I may have forgotten ^^)
+   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function show_other_dental_services($patient_id) {
+		print "<table border=3 bordercolor='red' align='center'>";
+			print "<tr>";
+				print "<th align='left' bgcolor='CC9900' colspan=7>Other Dental Services</th>";
+			print "</tr>";
+			
+			print "<tr>";
+				print "<td colspan=7>Check the box if service was provided to the patient.</td>";
+			print "</tr>";
+			
+			
+			print "<tr>";
+				print "<td>Date of Oral Examination</td>";
+				$query = "SELECT date_of_service FROM m_dental_other_services ".
+					"WHERE patient_id = $patient_id ORDER BY consult_id DESC ";
+				$result = mysql_query($query)
+					or die("Couldn't execute qeury. ".mysql_error());
+					
+				print "<td>&nbsp;</td>";
+				
+				$ctr = 1;
+				while(($row = mysql_fetch_array($result)) && ($ctr <=5)) {
+					extract($row);
+					print "<td align='center'>$date_of_service</td>";
+					$ctr++;
+				}
+			print "</tr>";
+			
+			
+			print "<tr>";
+				print "<td>80% Attendance to Supervised Tooth Brushing</td>";
+				print "<td align='center'><input type='checkbox' ".
+					"name='cb_supervised_tooth_brushing' value='YES'></input></td>";
+					
+				$query = "SELECT supervised_tooth_brushing FROM m_dental_other_services ".
+					"WHERE patient_id = $patient_id ORDER BY consult_id DESC";
+				$result = mysql_query($query)
+					or die("Couldn't execute query. ".mysql_error());
+					
+				$ctr = 1;
+				while(($row=mysql_fetch_array($result)) && ($ctr <= 5)){
+					extract($row);
+					print "<td align='center'>$supervised_tooth_brushing</td>";
+					$ctr++;
+				}
+			print "</tr>";
+			
+			
+			print "<tr>";
+				print "<td>Altraumatic Restorative Treatment</td>";
+				print "<td align='center'><input type='checkbox' ".
+					"name='cb_altraumatic_restorative_treatment' value='YES'></input></td>";
+					
+				$query = "SELECT altraumatic_restorative_treatment FROM m_dental_other_services ".
+					"WHERE patient_id = $patient_id ORDER BY consult_id DESC";
+				$result = mysql_query($query)
+					or die("Couldn't execute query. ".mysql_error());
+					
+				$ctr = 1;
+				while(($row=mysql_fetch_array($result)) && ($ctr <= 5)){
+					extract($row);
+					print "<td align='center'>$altraumatic_restorative_treatment</td>";
+					$ctr++;
+				}
+			print "</tr>";
+			
+			
+			print "<tr>";
+				print "<td colspan=7>Oral Urgent Treatment</td>";
+			print "</tr>";
+			
+			
+			print "<tr>";
+				print "<td>&nbsp;&nbsp;&nbsp;- Removal of Unsavable Teeth</td>";
+				print "<td align='center'><input type='checkbox' ".
+					"name='cb_out_removal_of_unsavable_teeth' value='YES'></input></td>";
+					
+				$query = "SELECT out_removal_of_unsavable_teeth FROM m_dental_other_services ".
+					"WHERE patient_id = $patient_id ORDER BY consult_id DESC";
+				$result = mysql_query($query)
+					or die("Couldn't execute query. ".mysql_error());
+					
+				$ctr = 1;
+				while(($row=mysql_fetch_array($result)) && ($ctr <= 5)){
+					extract($row);
+					print "<td align='center'>$out_removal_of_unsavable_teeth</td>";
+					$ctr++;
+				}
+			print "</tr>";
+				
+				
+			print "<tr>";
+				print "<td>&nbsp;&nbsp;&nbsp;- Referral of Complicates Cases</td>";
+				print "<td align='center'><input type='checkbox' ".
+					"name='cb_out_referral_of_complicates_cases' value='YES'></input></td>";
+					
+				$query = "SELECT out_referral_of_complicates_cases FROM m_dental_other_services ".
+					"WHERE patient_id = $patient_id ORDER BY consult_id DESC";
+				$result = mysql_query($query)
+					or die("Couldn't execute query. ".mysql_error());
+					
+				$ctr = 1;
+				while(($row=mysql_fetch_array($result)) && ($ctr <= 5)){
+					extract($row);
+					print "<td align='center'>$out_referral_of_complicates_cases</td>";
+					$ctr++;
+				}
+			print "</tr>"; 
+			
+			
+			print "<tr>";
+				print "<td>&nbsp;&nbsp;&nbsp;- Treatment of Post-Extraction Complications</td>";
+				print "<td align='center'><input type='checkbox' ".
+					"name='cb_out_treatment_of_post_extraction_complications' value='YES'></input></td>";
+					
+				$query = "SELECT out_treatment_of_post_extraction_complications ".
+					"FROM m_dental_other_services ".
+					"WHERE patient_id = $patient_id ORDER BY consult_id DESC";
+				$result = mysql_query($query)
+					or die("Couldn't execute query. ".mysql_error());
+				
+				$ctr = 1;
+				while(($row=mysql_fetch_array($result)) && ($ctr <= 5)){
+					extract($row);
+					print "<td align='center'>$out_treatment_of_post_extraction_complications</td>";
+					$ctr++;
+				}
+			print "</tr>"; 
+			
+			
+			print "<tr>";
+				print "<td>&nbsp;&nbsp;&nbsp;- Drainage of Localized Oral Abscess</td>";
+				print "<td align='center'><input type='checkbox' ".
+					"name='cb_out_drainage_of_localized_oral_abscess' value='YES'></input></td>";
+				
+				$query = "SELECT out_drainage_of_localized_oral_abscess ".
+					"FROM m_dental_other_services ".
+					"WHERE patient_id = $patient_id ORDER BY consult_id DESC";
+				$result = mysql_query($query)
+					or die("Couldn't execute query. ".mysql_error());
+				
+				$ctr = 1;
+				while(($row=mysql_fetch_array($result)) && ($ctr <= 5)){
+					extract($row);
+					print "<td align='center'>$out_drainage_of_localized_oral_abscess</td>";
+					$ctr++;
+				}
+			print "</tr>"; 
+			
+			
+			print "<tr>";
+				print "<td align='center' colspan=7><input type='submit' name='submit_button' ".
+					"value='Save Other Dental Services'></input></td>";
+			print "</tr>";
+		print "</table>";
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
 	
@@ -1665,7 +1932,7 @@
 	
 	// Comment date: Nov 13, '09, JVTolentino
 	// This function is used to modify a record in [m_dental_services].
-   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function update_dental_service($patient_id, $consult_id, $tooth_number, 
 		$service_provided, $date_of_service, $dentist) {
 		$query = "UPDATE m_dental_services SET ".
@@ -1680,7 +1947,7 @@
 		$result = mysql_query($query)
 			or die("Couldn't add new dental service to the database.");
 	}
-	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
 	
@@ -1688,7 +1955,7 @@
 	
 	// Comment date: Nov 13, '09, JVTolentino
 	// This function is used to delete a record in [m_dental_services].
-   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function delete_dental_service($consult_id, $tooth_number) {
 		$query = "DELETE FROM m_dental_services WHERE ".
 			"consult_id = $consult_id AND ".
@@ -1696,7 +1963,65 @@
 		$result = mysql_query($query)
 			or die("Couldnt' delete record.");
 	}
-	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Dec 03, 2009, JVTolentino
+	// This function is used to insert a record in [m_dental_other_services].
+   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function new_dental_other_service($patient_id, $consult_id, $date_of_service,
+		$dentist, $supervised_tooth_brushing, $altraumatic_restorative_treatment,
+		$out_removal_of_unsavable_teeth, $out_referral_of_complicates_cases,
+		$out_treatment_of_post_extraction_complications, 
+		$out_drainage_of_localized_oral_abscess) {
+			
+		$query = "INSERT INTO m_dental_other_services (patient_id, consult_id, ".
+			"date_of_service, dentist, supervised_tooth_brushing, ".
+			"altraumatic_restorative_treatment, out_removal_of_unsavable_teeth, ".
+			"out_referral_of_complicates_cases, out_treatment_of_post_extraction_complications, ".
+			"out_drainage_of_localized_oral_abscess) VALUES".
+			"($patient_id, $consult_id, '$date_of_service', $dentist, '$out_supervised_tooth_brushing', ".
+			"'$altraumatic_restorative_treatment', '$out_removal_of_unsavable_teeth', ".
+			"'$out_referral_of_complicates_cases', '$out_treatment_of_post_extraction_complications', ".
+			"'$out_drainage_of_localized_oral_abscess')";
+			
+		$result = mysql_query($query)
+			or die("Couldn't add new dental service to the database.".mysql_error());
+	}
+   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Dec 07, 2009, JVTolentino
+	// This function is used to modify a record in [m_dental_other_services].
+   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function update_dental_other_service($patient_id, $consult_id, $date_of_service,
+		$dentist, $supervised_tooth_brushing, $altraumatic_restorative_treatment,
+		$out_removal_of_unsavable_teeth, $out_referral_of_complicates_cases,
+		$out_treatment_of_post_extraction_complications, 
+		$out_drainage_of_localized_oral_abscess) {
+		$query = "UPDATE m_dental_other_services SET ".
+			"date_of_service = '$date_of_service', ".
+			"dentist = $dentist, ".
+			"supervised_tooth_brushing = '$supervised_tooth_brushing', ".
+			"altraumatic_restorative_treatment = '$altraumatic_restorative_treatment', ".
+			"out_removal_of_unsavable_teeth = '$out_removal_of_unsavable_teeth', ".
+			"out_referral_of_complicates_cases = '$out_referral_of_complicates_cases', ".
+			"out_treatment_of_post_extraction_complications = ".
+			"'$out_treatment_of_post_extraction_complications', ".
+			"out_drainage_of_localized_oral_abscess = '$out_drainage_of_localized_oral_abscess' ".
+			"WHERE patient_id = $patient_id AND ".
+			"consult_id = $consult_id ";
+			
+		$result = mysql_query($query)
+			or die("Couldn't add new record to the database. ".mysql_error());
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
 	
@@ -1943,8 +2268,8 @@
 	
 	
 	// Comment date: Nov 12, '09, JVTolentino
-    // This function will check if the patient is pregnant and show a message if the patient is.
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	// This function will check if the patient is pregnant and show a message if the patient is.
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function show_message_if_patient_is_pregnant($p_id, $consultation_date) {
 		if(mc::check_if_pregnant($p_id, $consultation_date) == 'Y') {
 			print "<table border=3 bordercolor='red' align='center'>";
@@ -1956,7 +2281,7 @@
 			print "</table>";
 		} 
 	}
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
 	
@@ -1982,15 +2307,15 @@
 		//		orally fit = 1, not orally fit = 0.
 		$query = "SELECT * FROM m_dental_patient_ohc_table_a ".
 			"WHERE consult_id = $consult_id AND (dental_caries = 'YES' OR ".
-			"debris = 'YES' OR healthy_gums = 'NO')";
+			"debris = 'YES' OR healthy_gums = 'NO' OR dento_facial_anomaly = 'YES')";
 			
 		$result = mysql_query($query)
 			or die("Couldn't execute query. ".mysql_error());
 			
 		if(mysql_num_rows($result)) {
-			$criteria1a23 = 0;
+			$criteria1a234 = 0;
 		} else {
-			$criteria1a23 = 1;
+			$criteria1a234 = 1;
 		}
 		
 		$query = "SELECT * FROM m_dental_patient_ohc ".
@@ -2006,7 +2331,7 @@
 		}
 		
 		$indicator = 1;
-		if (($criteria1a23 == 1) && ($criteria1b == 1)) {
+		if (($criteria1a234 == 1) && ($criteria1b == 1)) {
 			$indicator_qualified = "YES";
 		} else {
 			$indicator_qualified = "NO";
@@ -2038,10 +2363,36 @@
 	
 	
 	
+	// Comment date: Dec 03, 2009, JVTolentino
+	// Indicator:
+	// Children 12-71 months old provided with Basic Oral Health Care (BOHC)
+	// 	(disaggregated by sex)
+	// Definition:
+	// 	Proportion of children whose ages ranges from 12 to 71 months old and 
+	// 	were provided with Basic Oral Health Care (BOHC).
+	// Definition of Terms:
+	// Basic Oral Health Care provided to children 12-71 months old - refers to one or
+	// 	or more of the following services:
+	// 	1. Oral Examination
+	//		2. 80% Attendance to Supervised Tooth Brushing
+	// 	3. Altraumatic Restorative Treatment (ART)
+	// 	4. Oral Urgent Treatment (OUT)
+	// 		4a. removal of unsavable teeth, or
+	//			4b. referral of complicates cases, or 
+	//			4c. treatment of post-extraction complications,
+	// 		4d. drainage of localized oral abscess.
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function fhsis_indicator_2() {
+		
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
 	// Comment date: Dec 02, 2009, JVTolentino
 	// This function will query m_patient and get the patient's gender based on the patient's
 	// 	id.
-	
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function get_patient_gender($patient_id) {
 		$query = "SELECT patient_gender FROM m_patient WHERE patient_id = $patient_id ";
@@ -2080,17 +2431,17 @@
       if (@$_POST['h_save_flag'] == 'GO') {
         $dental->new_dental_record();
 		
-		print "&nbsp;";
-		$dental->show_message_if_patient_is_pregnant($dental->patient_id, date("Y-m-d"));
+			print "&nbsp;";
+			$dental->show_message_if_patient_is_pregnant($dental->patient_id, date("Y-m-d"));
         
         echo "&nbsp;";
         $dental->show_date_of_oral();
-      
+			
         $dental->get_teeth_conditions($dental->patient_age);
-      
+			
         echo "&nbsp;";
         $dental->select_tooth_and_condition($dental->patient_age);
-
+			
         echo "&nbsp;";
         $dental->show_teeth_conditions($dental->patient_age);
         
@@ -2099,44 +2450,49 @@
         
         echo "&nbsp;";
         $dental->show_ohc_table_b($dental->patient_id);
-		
-		echo "&nbsp;";
-		$dental->show_services_monitoring_chart($dental->patient_id);
+			
+			echo "&nbsp;";
+			$dental->show_services_monitoring_chart($dental->patient_id);
+			
+			print "&nbsp;";
+			$dental->show_other_dental_services($dental->patient_id);
         
-        echo "&nbsp;";
-        $dental->show_tooth_legends($dental->patient_age);
-      } else {
-		print "&nbsp;";  
-		$dental->show_message_if_patient_is_pregnant($dental->patient_id, date("Y-m-d"));
-		
-        echo "&nbsp;";
-        $dental->show_date_of_oral();
-      
-        $dental->get_teeth_conditions($dental->patient_age);
-      
-        echo "&nbsp;";
-        $dental->select_tooth_and_condition($dental->patient_age);
-
-        echo "&nbsp;";
-        $dental->show_teeth_conditions($dental->patient_age);
+			echo "&nbsp;";
+			$dental->show_tooth_legends($dental->patient_age);
+      } 
+		else {
+			print "&nbsp;";  
+			$dental->show_message_if_patient_is_pregnant($dental->patient_id, date("Y-m-d"));
+			
+			echo "&nbsp;";
+			$dental->show_date_of_oral();
+			
+			$dental->get_teeth_conditions($dental->patient_age);
+			
+			echo "&nbsp;";
+			$dental->select_tooth_and_condition($dental->patient_age);
+			
+			echo "&nbsp;";
+			$dental->show_teeth_conditions($dental->patient_age);
         
-        echo "&nbsp;";
-        $dental->show_ohc_table_a($dental->patient_id);
+			echo "&nbsp;";
+			$dental->show_ohc_table_a($dental->patient_id);
         
-        echo "&nbsp;";
-        $dental->show_ohc_table_b($dental->patient_id);
-		
-		echo "&nbsp;";
-		$dental->show_services_monitoring_chart($dental->patient_id);
+			echo "&nbsp;";
+			$dental->show_ohc_table_b($dental->patient_id);
+			
+			echo "&nbsp;";
+			$dental->show_services_monitoring_chart($dental->patient_id);
+			
+			print "&nbsp;";
+			$dental->show_other_dental_services($dental->patient_id);
         
-        echo "&nbsp;";
-        $dental->show_tooth_legends($dental->patient_age);
+			echo "&nbsp;";
+			$dental->show_tooth_legends($dental->patient_age);
       }
       
-      echo "<input type='hidden' name='h_save_flag' value='GO'></input>";
-       
-       
-      echo "</form>";
+		echo "<input type='hidden' name='h_save_flag' value='GO'></input>";
+		echo "</form>";
     
     }
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
