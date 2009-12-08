@@ -103,7 +103,7 @@
     
     
     
-	
+		
 	// Comment date: Oct 7, 2009, JVTolentino
 	// The init_sql() function starts here.
 	// This function will initialize the tables for the Dental Module in CHITS DB.
@@ -264,16 +264,17 @@
 			"`dentist` float NOT NULL,".
 			"`supervised_tooth_brushing` char(3) COLLATE swe7_bin NOT NULL,".
 			"`altraumatic_restorative_treatment` char(3) COLLATE swe7_bin NOT NULL,".
-			"`out_removal_of_unsavable_teeth` char(3) COLLATE swe7_bin NOT NULL ".
-			"COMMENT 'Oral Urgent Treatment (OUT)',".
-			"`out_referral_of_complicates_cases` char(3) COLLATE swe7_bin NOT NULL ".
-			"COMMENT 'Oral Urgent Treatment (OUT)',".
-			"`out_treatment_of_post_extraction_complications` char(3) COLLATE swe7_bin NOT NULL ".
-			"COMMENT 'Oral Urgent Treatment (OUT)',".
-			"`out_drainage_of_localized_oral_abscess` char(3) COLLATE swe7_bin NOT NULL ".
-			"COMMENT 'Oral Urgent Treatment (OUT)',".
+			"`out_removal_of_unsavable_teeth` char(3) COLLATE swe7_bin ".
+			"NOT NULL COMMENT 'Oral Urgent Treatment (OUT)',".
+			"`out_referral_of_complicates_cases` char(3) COLLATE swe7_bin ".
+			"NOT NULL COMMENT 'Oral Urgent Treatment (OUT)',".
+			"`out_treatment_of_post_extraction_complications` char(3) COLLATE swe7_bin ".
+			"NOT NULL COMMENT 'Oral Urgent Treatment (OUT)',".
+			"`out_drainage_of_localized_oral_abscess` char(3) COLLATE swe7_bin ".
+			"NOT NULL COMMENT 'Oral Urgent Treatment (OUT)',".
+			"`education_and_counselling` char(3) COLLATE swe7_bin NOT NULL,".
 			"PRIMARY KEY (`record_number`)".
-			") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
+			") ENGINE=InnoDB  DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
      
 	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -791,7 +792,7 @@
 			"VALUES($patient_id, $consult_id, '$is_patient_pregnant', ".
 			"$tooth_number, '$tooth_condition', '$date_of_oral', $dentist)"; 
 		$result = mysql_query($query)
-			or die("Couldn't add new dental condition to the database.");
+			or die("Couldn't add new dental condition to the database.".mysql_error());
 	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
@@ -987,19 +988,26 @@
 				$loc_out_drainage_of_localized_oral_abscess = "NO";
 			}
 			
+			if($_POST['cb_education_and_counselling'] == "YES") {
+				$loc_education_and_counselling = $_POST['cb_education_and_counselling'];
+			} else {
+				$loc_education_and_counselling = "NO";
+			}
+			
+			
 			if(mysql_num_rows($result)) {
 				$this->update_dental_other_service($loc_patient_id, $loc_consult_id, $loc_date_of_oral, 
 					$loc_dentist, $loc_supervised_tooth_brushing, $loc_altraumatic_restorative_treatment, 
 					$loc_out_removal_of_unsavable_teeth, $loc_out_referral_of_complicates_cases, 
 					$loc_out_treatment_of_post_extraction_complications, 
-					$loc_out_drainage_of_localized_oral_abscess);
+					$loc_out_drainage_of_localized_oral_abscess, $loc_education_and_counselling);
 			}
 			else {
 				$this->new_dental_other_service($loc_patient_id, $loc_consult_id, $loc_date_of_oral, 
 					$loc_dentist, $loc_supervised_tooth_brushing, $loc_altraumatic_restorative_treatment, 
 					$loc_out_removal_of_unsavable_teeth, $loc_out_referral_of_complicates_cases, 
 					$loc_out_treatment_of_post_extraction_complications, 
-					$loc_out_drainage_of_localized_oral_abscess);
+					$loc_out_drainage_of_localized_oral_abscess, $loc_education_and_counselling);
 			}
 		}
 		
@@ -1009,6 +1017,8 @@
 		// Refer to FHSIS Manual for Dental Indicator 1
 		if ((($loc_patient_age * 12) >= 12) &&  (($loc_patient_age * 12) <=71)) {
 			$this->fhsis_indicator_1($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
+				$loc_patient_age, $loc_patient_gender);
+			$this->fhsis_indicator_2($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
 				$loc_patient_age, $loc_patient_gender);
 		}
     }
@@ -1899,6 +1909,27 @@
 			
 			
 			print "<tr>";
+				print "<td>Education and Counselling on health effects<br>".
+					"&nbsp;&nbsp;&nbsp;of tobacco/smoking, diet, and oral hygiene</td>";
+				print "<td align='center'><input type='checkbox' ".
+					"name='cb_education_and_counselling' value='YES'></input></td>";
+				
+				$query = "SELECT education_and_counselling ".
+					"FROM m_dental_other_services ".
+					"WHERE patient_id = $patient_id ORDER BY consult_id DESC";
+				$result = mysql_query($query)
+					or die("Couldn't execute query. ".mysql_error());
+				
+				$ctr = 1;
+				while(($row=mysql_fetch_array($result)) && ($ctr <= 5)){
+					extract($row);
+					print "<td align='center'>$education_and_counselling</td>";
+					$ctr++;
+				}
+			print "</tr>"; 
+			
+			
+			print "<tr>";
 				print "<td align='center' colspan=7><input type='submit' name='submit_button' ".
 					"value='Save Other Dental Services'></input></td>";
 			print "</tr>";
@@ -1976,17 +2007,17 @@
 		$dentist, $supervised_tooth_brushing, $altraumatic_restorative_treatment,
 		$out_removal_of_unsavable_teeth, $out_referral_of_complicates_cases,
 		$out_treatment_of_post_extraction_complications, 
-		$out_drainage_of_localized_oral_abscess) {
+		$out_drainage_of_localized_oral_abscess, $education_and_counselling) {
 			
 		$query = "INSERT INTO m_dental_other_services (patient_id, consult_id, ".
 			"date_of_service, dentist, supervised_tooth_brushing, ".
 			"altraumatic_restorative_treatment, out_removal_of_unsavable_teeth, ".
 			"out_referral_of_complicates_cases, out_treatment_of_post_extraction_complications, ".
-			"out_drainage_of_localized_oral_abscess) VALUES".
+			"out_drainage_of_localized_oral_abscess, education_and_counselling) VALUES".
 			"($patient_id, $consult_id, '$date_of_service', $dentist, '$out_supervised_tooth_brushing', ".
 			"'$altraumatic_restorative_treatment', '$out_removal_of_unsavable_teeth', ".
 			"'$out_referral_of_complicates_cases', '$out_treatment_of_post_extraction_complications', ".
-			"'$out_drainage_of_localized_oral_abscess')";
+			"'$out_drainage_of_localized_oral_abscess', '$education_and_counselling')";
 			
 		$result = mysql_query($query)
 			or die("Couldn't add new dental service to the database.".mysql_error());
@@ -2004,7 +2035,7 @@
 		$dentist, $supervised_tooth_brushing, $altraumatic_restorative_treatment,
 		$out_removal_of_unsavable_teeth, $out_referral_of_complicates_cases,
 		$out_treatment_of_post_extraction_complications, 
-		$out_drainage_of_localized_oral_abscess) {
+		$out_drainage_of_localized_oral_abscess, $education_and_counselling) {
 		$query = "UPDATE m_dental_other_services SET ".
 			"date_of_service = '$date_of_service', ".
 			"dentist = $dentist, ".
@@ -2014,7 +2045,8 @@
 			"out_referral_of_complicates_cases = '$out_referral_of_complicates_cases', ".
 			"out_treatment_of_post_extraction_complications = ".
 			"'$out_treatment_of_post_extraction_complications', ".
-			"out_drainage_of_localized_oral_abscess = '$out_drainage_of_localized_oral_abscess' ".
+			"out_drainage_of_localized_oral_abscess = '$out_drainage_of_localized_oral_abscess', ".
+			"education_and_counselling = '$education_and_counselling' ".
 			"WHERE patient_id = $patient_id AND ".
 			"consult_id = $consult_id ";
 			
@@ -2287,6 +2319,45 @@
 	
 	
 	
+	// Comment date: Dec 07, 2009, JVTolentino
+	// This function will add a new record to [m_dental_fhsis].
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
+		$date_of_consultation, $age, $gender) {
+		$query = "INSERT INTO m_dental_fhsis (consult_id, patient_id, indicator, ".
+			"indicator_qualified, date_of_consultation, age, gender) VALUES ".
+			"($consult_id, $patient_id, $indicator, '$indicator_qualified', ".
+			"'$date_of_consultation', $age, '$gender')";
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Dec 07, 2009, JVTolentino
+	// This function will modify a record to [m_dental_fhsis] based on the fields 
+	// consult_id and indicator.
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
+		$date_of_consultation, $age) {
+		$query = "UPDATE m_dental_fhsis SET ".
+			"indicator_qualified = '$indicator_qualified', ".
+			"date_of_consultation = '$date_of_consultation', ".
+			"age = $age ".
+			"WHERE consult_id = $consult_id AND ".
+			"indicator = $indicator ";
+		$result = mysql_query($query) 
+			or die("Couldn't update record. ".mysql_error());
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
 	// Comment date: Dec 01, 2009, JVTolentino 
 	// Prototype code for FHSIS Indicator #1. See FHSIS Manual Data Dictionary.
 	// Indicator:
@@ -2337,25 +2408,20 @@
 			$indicator_qualified = "NO";
 		}
 		
-		$query = "SELECT * FROM m_dental_fhsis WHERE consult_id = $consult_id ";
+		$query = "SELECT * FROM m_dental_fhsis WHERE ".
+			"consult_id = $consult_id AND indicator = $indicator";
 		$result = mysql_query($query)
 			or die("Couldn't execute query. ".mysql_error());
 		
 		if(mysql_num_rows($result)) {
 			//update based on criteria
-			$query = "UPDATE m_dental_fhsis SET ".
-				"indicator_qualified = '$indicator_qualified', ".
-				"date_of_consultation = '$date_of_consultation' ".
-				"WHERE consult_id = $consult_id ";
+			$this->update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
+				$date_of_consultation, $age);
 		} else {
 			// insert record
-			$query = "INSERT INTO m_dental_fhsis (consult_id, patient_id, indicator, ".
-				"indicator_qualified, date_of_consultation, age, gender) VALUES ".
-				"($consult_id, $patient_id, $indicator, '$indicator_qualified', ".
-				"'$date_of_consultation', $age, '$gender')";
+			$this->new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
+				$date_of_consultation, $age, $gender);
 		}
-		$result = mysql_query($query)
-			or die("Couldn't execute query. ".mysql_error());
 	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
@@ -2365,7 +2431,7 @@
 	
 	// Comment date: Dec 03, 2009, JVTolentino
 	// Indicator:
-	// Children 12-71 months old provided with Basic Oral Health Care (BOHC)
+	// 	Children 12-71 months old provided with Basic Oral Health Care (BOHC)
 	// 	(disaggregated by sex)
 	// Definition:
 	// 	Proportion of children whose ages ranges from 12 to 71 months old and 
@@ -2382,10 +2448,111 @@
 	//			4c. treatment of post-extraction complications,
 	// 		4d. drainage of localized oral abscess.
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	function fhsis_indicator_2() {
+	function fhsis_indicator_2($consult_id, $patient_id, $date_of_consultation, $age, $gender) {
+		// CRITERIA:
+		//		provided BOHC = 1, not provided BOHC = 0
+		
+		//criteria 2,3, and 4.
+		$query = "SELECT * FROM m_dental_other_services ".
+			"WHERE consult_id = $consult_id AND ".
+			"(supervised_tooth_brushing = 'YES' OR ".
+			"altraumatic_restorative_treatment = 'YES' OR ".
+			"out_removal_of_unsavable_teeth = 'YES' OR ".
+			"out_referral_of_complicates_cases = 'YES' OR ".
+			"out_treatment_of_post_extraction_complications = 'YES' OR ".
+			"out_drainage_of_localized_oral_abscess = 'YES')";
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+			
+		if(mysql_num_rows($result)) {
+			$criteria234 = 1;
+		} else {
+			$criteria234 = 0;
+		}
+		
+		$indicator = 2;
+		if($criteria234 == 1) {
+			$indicator_qualified = "YES";
+		} else {
+			$indicator_qualified = "NO";
+		}
+		
+		$query = "SELECT * FROM m_dental_fhsis WHERE ".
+			"consult_id = $consult_id AND indicator = $indicator ";
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+		
+		if(mysql_num_rows($result)) {
+			//update based on criteria
+			$this->update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
+				$date_of_consultation, $age);
+		} else {
+			// insert record
+			$this->new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
+				$date_of_consultation, $age, $gender);
+		}
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Dec 08, 2009, JVTolentino
+	// Indicator:
+	// 	Adolescent and Youth (10-24 years old) provided with Basic Oral Health Care (BOHC)
+	//		(disaggregated by sex).
+	// Definition:
+	// 	Proportion of adolescents and youth whose ages ranges from 10 to 24 years old
+	// 	and were provided with Basic Oral Health Care (BOHC).
+	// Definition of Terms:
+	// 	Basic Oral Health Care (BOHC) provided to Adolescents and Youth (10-24 years old) -
+	//		refers to one or more of the following services:
+	// 	1. Oral Examination
+	//		2. Education and counselling on health effects of tobacco/smoking, diet, and
+	//			oral hygiene.
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function fhsis_indicator_3($consult_id, $patient_id, $date_of_consultation, $age, $gender) {
+		// CRITERIA:
+		//		provided BOHC = 1, not provided BOHC = 0
+		//criteria 2
+		$query = "SELECT * FROM m_dental_other_services ".
+			"WHERE consult_id = $consult_id AND ".
+			"education_and_counselling = 'YES' ";
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+			
+		if(mysql_num_rows($result)) {
+			$criteria2 = 1;
+		} else {
+			$criteria2 = 0;
+		}
+		
+		$indicator = 3;
+		if($criteria2 == 1) {
+			$indicator_qualified = "YES";
+		} else {
+			$indicator_qualified = "NO";
+		}
+		
+		$query = "SELECT * FROM m_dental_fhsis WHERE ".
+			"consult_id = $consult_id AND indicator = $indicator ";
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+		
+		if(mysql_num_rows($result)) {
+			//update based on criteria
+			$this->update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
+				$date_of_consultation, $age);
+		} else {
+			// insert record
+			$this->new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
+				$date_of_consultation, $age, $gender);
+		}
 		
 	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
 	
 	
 	
