@@ -1021,6 +1021,10 @@
 			$this->fhsis_indicator_2($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
 				$loc_patient_age, $loc_patient_gender);
 		}
+		elseif(($loc_patient_age >= 10.00) && ($loc_patient_age <= 24.99)) {
+			$this->fhsis_indicator_3($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
+				$loc_patient_age, $loc_patient_gender);
+		}
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -2014,7 +2018,7 @@
 			"altraumatic_restorative_treatment, out_removal_of_unsavable_teeth, ".
 			"out_referral_of_complicates_cases, out_treatment_of_post_extraction_complications, ".
 			"out_drainage_of_localized_oral_abscess, education_and_counselling) VALUES".
-			"($patient_id, $consult_id, '$date_of_service', $dentist, '$out_supervised_tooth_brushing', ".
+			"($patient_id, $consult_id, '$date_of_service', $dentist, '$supervised_tooth_brushing', ".
 			"'$altraumatic_restorative_treatment', '$out_removal_of_unsavable_teeth', ".
 			"'$out_referral_of_complicates_cases', '$out_treatment_of_post_extraction_complications', ".
 			"'$out_drainage_of_localized_oral_abscess', '$education_and_counselling')";
