@@ -229,6 +229,7 @@ su -c "autossh -f -N -R *:${PORT_MIDDLEMAN_WILL_LISTEN_ON}:localhost:22 ${MIDDLE
   cat "\n#{PORT_NUMBER}" >> $PUBLIC_KEY_FILENAME
   curl -F "file=@${PUBLIC_KEY_FILENAME}" lakota.vdomck.org:4567/upload
 
+  echo "To setup replication, put all clients and server on the network and ready, run: 'sudo /var/www/chits/install/mysql_replication'"
 }
 
 client_and_server () {
@@ -239,7 +240,6 @@ client_and_server () {
   server
 }
 
-#TODO!!
 client_with_mysql_replication () {
   if [ ! "$MYSQL_ROOT_PASSWORD" ]; then 
     set_mysql_root_password; 
@@ -249,27 +249,17 @@ client_with_mysql_replication () {
   echo "Replication needs to be completed by logging onto the master computer and running the mysql_replication.sh script"
 }
 
-
-#TODO!!
-server_with_mysql_replication () {
-  server
-  wget http://github.com/mikeymckay/chits/raw/master/install/mysql_replication.sh
-  chmod +x mysql_replication.sh
-  echo "Once your all clients are on the network and ready, run: 'sudo ./mysql_replication'"
-}
-
 while : # Loop forever
 do
 cat << !
 
 ${PROGRAMS_TO_INSTALL}
 
-1. Client
-2. Server
-3. Client & Server
-6. Client with mysql replication
-7. Server with mysql replication
-8. Exit
+1. Client with mysql replication (recommended)
+2. Server with Client (recommended)
+3. Client lite
+4. Server lite
+5. Exit
 
 !
 
@@ -277,12 +267,11 @@ echo -n " Your choice? : "
 read choice
 
 case $choice in
-1) client; exit ;;
-2) server; exit ;;
-3) client_and_server; exit ;;
-6) client_with_mysql_replication; exit ;;
-7) server_with_mysql_replication; exit ;;
-8) exit ;;
+1) client_with_mysql_replication; exit ;;
+2) client_and_server; exit ;;
+3) client; exit ;;
+4) server; exit ;;
+5) exit ;;
 *) echo "\"$choice\" is not valid "; sleep 2 ;;
 esac
 done

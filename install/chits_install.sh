@@ -24,7 +24,7 @@ fi
 apt-get --assume-yes install apache2 mysql-server php5 php5-mysql openssh-server git-core wget ruby libxml2-dev libxslt1-dev ruby1.8-dev rdoc1.8 irb1.8 libopenssl-ruby1.8 build-essential php5-gd php5-xmlrpc php-xajax rsnapshot
 
 # Comment out the bind address so mysql accepts non-local connections
-sed -i 's/^bind-address.*127.0.0.1/#&/' /etc/mysql/my.cnf
+sed -i 's/^\(bind-address.*127.0.0.1\)/#\1&/' /etc/mysql/my.cnf
 /etc/init.d/mysql restart
 
 chmod 777 /var/www
@@ -63,13 +63,16 @@ interval\tweekly\t4
 interval\tmonthly\t6
 
 backup_script\t/var/www/chits/scripts/dump_database.sh\t/var/www/chits/database_dumps
-"
->> /etc/rsnapshot.conf
+" >> /etc/rsnapshot.conf
 
+PATH_TO_DUMP_SCRIPT="/var/www/chits/scripts/dump_database.sh"
 echo "#!/bin/bash
 mysqldump -u chits_live -p${CHITS_LIVE_PASSWORD} chits_live > chits_live.sql
-" >> /var/www/chits/scripts/dump_database.sh
-chmod +x /var/www/chits/scripts/dump_database.sh
+" >> ${PATH_TO_DUMP_SCRIPT}
+chmod +x ${PATH_TO_DUMP_SCRIPT}
+chmod -r ${PATH_TO_DUMP_SCRIPT}
+
+sed -i 's/^\# \(\d\)/\1/' /etc/rsnapshot.conf
 
 #Setup cucumber
 wget --output-document=rubygems-1.3.5.tgz http://rubyforge.org/frs/download.php/60718/rubygems-1.3.5.tgz
@@ -79,6 +82,5 @@ ln -s /usr/bin/gem1.8 /usr/bin/gem
 gem sources -a http://gems.github.com
 echo "Installing testing tools"
 gem install cucumber mechanize rspec webrat --no-ri
-
 
 cucumber /var/www/chits/features
