@@ -4,13 +4,27 @@ function check_delete(){
 	}
 }
 
+function delete_fp_service(){
+	if(window.confirm('You are about to delete this record. Do you really wanted to delete this record?')){
+		form_fp_chart.confirm_del.value = 1;
+		form_fp_chart.submit();
+	}
+}
+
+function confirm_dropout(){
+		var form = window.document.forms["form_methods"];
+		alert(form.elements.length);
+		for(var i=0;i<form.elements.length;i++){
+			window.alert(form.elements[i].value);
+		}
+}
+
 
 function show_bfeed_date(){
 	if(form_mc_postpartum.breastfeeding_flag.checked){
 		var str  = form_mc_postpartum.date_breastfed.value;
 		if(window.confirm(str.length)){
-			form_mc_postpartum.submit();
-		
+			form_mc_postpartum.submit();		
 		}
 	}
 }
