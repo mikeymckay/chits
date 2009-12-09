@@ -250,6 +250,7 @@
 			"`date_of_consultation` date NOT NULL,".
 			"`age` float NOT NULL,".
 			"`gender` char(1) COLLATE swe7_bin NOT NULL,".
+			"`pregnant` char(3) COLLATE swe7_bin NOT NULL,".
 			"PRIMARY KEY (`record_number`)".
 			") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
 			
@@ -273,6 +274,8 @@
 			"`out_drainage_of_localized_oral_abscess` char(3) COLLATE swe7_bin ".
 			"NOT NULL COMMENT 'Oral Urgent Treatment (OUT)',".
 			"`education_and_counselling` char(3) COLLATE swe7_bin NOT NULL,".
+			"`scaling` char(3) COLLATE swe7_bin NOT NULL,".
+			"`gum_treatment` char(3) COLLATE swe7_bin NOT NULL,".
 			"PRIMARY KEY (`record_number`)".
 			") ENGINE=InnoDB  DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
      
@@ -994,36 +997,58 @@
 				$loc_education_and_counselling = "NO";
 			}
 			
+			if($_POST['cb_scaling'] == "YES") {
+				$loc_scaling = $_POST['cb_scaling'];
+			} else {
+				$loc_scaling = "NO";
+			}
+			
+			if($_POST['cb_gum_treatment'] == "YES") {
+				$loc_gum_treatment = $_POST['cb_gum_treatment'];
+			} else {
+				$loc_gum_treatment = "NO";
+			}
+			
 			
 			if(mysql_num_rows($result)) {
 				$this->update_dental_other_service($loc_patient_id, $loc_consult_id, $loc_date_of_oral, 
 					$loc_dentist, $loc_supervised_tooth_brushing, $loc_altraumatic_restorative_treatment, 
 					$loc_out_removal_of_unsavable_teeth, $loc_out_referral_of_complicates_cases, 
 					$loc_out_treatment_of_post_extraction_complications, 
-					$loc_out_drainage_of_localized_oral_abscess, $loc_education_and_counselling);
+					$loc_out_drainage_of_localized_oral_abscess, $loc_education_and_counselling, 
+					$loc_scaling, $loc_gum_treatment);
 			}
 			else {
 				$this->new_dental_other_service($loc_patient_id, $loc_consult_id, $loc_date_of_oral, 
 					$loc_dentist, $loc_supervised_tooth_brushing, $loc_altraumatic_restorative_treatment, 
 					$loc_out_removal_of_unsavable_teeth, $loc_out_referral_of_complicates_cases, 
 					$loc_out_treatment_of_post_extraction_complications, 
-					$loc_out_drainage_of_localized_oral_abscess, $loc_education_and_counselling);
+					$loc_out_drainage_of_localized_oral_abscess, $loc_education_and_counselling, 
+					$loc_scaling, $loc_gum_treatment);
 			}
 		}
 		
 		$loc_patient_age = healthcenter::get_patient_age($_GET['consult_id']);
 		$loc_patient_gender = $this->get_patient_gender($loc_patient_id);
+		$loc_patient_pregnant = mc::check_if_pregnant($loc_patient_id, $loc_date_of_oral);
+			//mc::check_if_pregnant($p_id, $consultation_date) == 'Y'
 		
 		// Refer to FHSIS Manual for Dental Indicator 1
-		if ((($loc_patient_age * 12) >= 12) &&  (($loc_patient_age * 12) <=71)) {
+		if ((($loc_patient_age * 12) >= 12.00) &&  (($loc_patient_age * 12) <=71.99)) {
 			$this->fhsis_indicator_1($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
-				$loc_patient_age, $loc_patient_gender);
+				$loc_patient_age, $loc_patient_gender, $loc_patient_pregnant);
 			$this->fhsis_indicator_2($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
-				$loc_patient_age, $loc_patient_gender);
+				$loc_patient_age, $loc_patient_gender, $loc_patient_pregnant);
 		}
-		elseif(($loc_patient_age >= 10.00) && ($loc_patient_age <= 24.99)) {
+		
+		if(($loc_patient_age >= 10.00) && ($loc_patient_age <= 24.99)) {
 			$this->fhsis_indicator_3($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
-				$loc_patient_age, $loc_patient_gender);
+				$loc_patient_age, $loc_patient_gender, $loc_patient_pregnant);
+		}
+		
+		if($loc_patient_pregnant == 'Y') {
+			$this->fhsis_indicator_4($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
+				$loc_patient_age, $loc_patient_gender, $loc_patient_pregnant);
 		}
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1934,6 +1959,44 @@
 			
 			
 			print "<tr>";
+				print "<td>Scaling</td>";
+				print "<td align='center'><input type='checkbox' ".
+					"name='cb_scaling' value='YES'></input></td>";
+				
+				$query = "SELECT scaling FROM m_dental_other_services ".
+					"WHERE patient_id = $patient_id ORDER BY consult_id DESC";
+				$result = mysql_query($query)
+					or die("Couldn't execute query. ".mysql_error());
+				
+				$ctr = 1;
+				while(($row=mysql_fetch_array($result)) && ($ctr <= 5)){
+					extract($row);
+					print "<td align='center'>$scaling</td>";
+					$ctr++;
+				}
+			print "</tr>"; 
+			
+			
+			print "<tr>";
+				print "<td>Gum Treatment</td>";
+				print "<td align='center'><input type='checkbox' ".
+					"name='cb_gum_treatment' value='YES'></input></td>";
+				
+				$query = "SELECT gum_treatment FROM m_dental_other_services ".
+					"WHERE patient_id = $patient_id ORDER BY consult_id DESC";
+				$result = mysql_query($query)
+					or die("Couldn't execute query. ".mysql_error());
+				
+				$ctr = 1;
+				while(($row=mysql_fetch_array($result)) && ($ctr <= 5)){
+					extract($row);
+					print "<td align='center'>$gum_treatment</td>";
+					$ctr++;
+				}
+			print "</tr>"; 
+			
+			
+			print "<tr>";
 				print "<td align='center' colspan=7><input type='submit' name='submit_button' ".
 					"value='Save Other Dental Services'></input></td>";
 			print "</tr>";
@@ -2011,17 +2074,20 @@
 		$dentist, $supervised_tooth_brushing, $altraumatic_restorative_treatment,
 		$out_removal_of_unsavable_teeth, $out_referral_of_complicates_cases,
 		$out_treatment_of_post_extraction_complications, 
-		$out_drainage_of_localized_oral_abscess, $education_and_counselling) {
+		$out_drainage_of_localized_oral_abscess, $education_and_counselling, 
+		$scaling, $gum_treatment) {
 			
 		$query = "INSERT INTO m_dental_other_services (patient_id, consult_id, ".
 			"date_of_service, dentist, supervised_tooth_brushing, ".
 			"altraumatic_restorative_treatment, out_removal_of_unsavable_teeth, ".
 			"out_referral_of_complicates_cases, out_treatment_of_post_extraction_complications, ".
-			"out_drainage_of_localized_oral_abscess, education_and_counselling) VALUES".
+			"out_drainage_of_localized_oral_abscess, education_and_counselling, scaling, ".
+			"gum_treatment) VALUES".
 			"($patient_id, $consult_id, '$date_of_service', $dentist, '$supervised_tooth_brushing', ".
 			"'$altraumatic_restorative_treatment', '$out_removal_of_unsavable_teeth', ".
 			"'$out_referral_of_complicates_cases', '$out_treatment_of_post_extraction_complications', ".
-			"'$out_drainage_of_localized_oral_abscess', '$education_and_counselling')";
+			"'$out_drainage_of_localized_oral_abscess', '$education_and_counselling', ".
+			"'$scaling', '$gum_treatment')";
 			
 		$result = mysql_query($query)
 			or die("Couldn't add new dental service to the database.".mysql_error());
@@ -2039,7 +2105,8 @@
 		$dentist, $supervised_tooth_brushing, $altraumatic_restorative_treatment,
 		$out_removal_of_unsavable_teeth, $out_referral_of_complicates_cases,
 		$out_treatment_of_post_extraction_complications, 
-		$out_drainage_of_localized_oral_abscess, $education_and_counselling) {
+		$out_drainage_of_localized_oral_abscess, $education_and_counselling,
+		$scaling, $gum_treatment) {
 		$query = "UPDATE m_dental_other_services SET ".
 			"date_of_service = '$date_of_service', ".
 			"dentist = $dentist, ".
@@ -2050,7 +2117,9 @@
 			"out_treatment_of_post_extraction_complications = ".
 			"'$out_treatment_of_post_extraction_complications', ".
 			"out_drainage_of_localized_oral_abscess = '$out_drainage_of_localized_oral_abscess', ".
-			"education_and_counselling = '$education_and_counselling' ".
+			"education_and_counselling = '$education_and_counselling', ".
+			"scaling = '$scaling', ".
+			"gum_treatment = '$gum_treatment' ".
 			"WHERE patient_id = $patient_id AND ".
 			"consult_id = $consult_id ";
 			
@@ -2327,11 +2396,11 @@
 	// This function will add a new record to [m_dental_fhsis].
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
-		$date_of_consultation, $age, $gender) {
+		$date_of_consultation, $age, $gender, $pregnant) {
 		$query = "INSERT INTO m_dental_fhsis (consult_id, patient_id, indicator, ".
-			"indicator_qualified, date_of_consultation, age, gender) VALUES ".
+			"indicator_qualified, date_of_consultation, age, gender, pregnant) VALUES ".
 			"($consult_id, $patient_id, $indicator, '$indicator_qualified', ".
-			"'$date_of_consultation', $age, '$gender')";
+			"'$date_of_consultation', $age, '$gender', '$pregnant')";
 		$result = mysql_query($query)
 			or die("Couldn't execute query. ".mysql_error());
 	}
@@ -2346,11 +2415,12 @@
 	// consult_id and indicator.
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
-		$date_of_consultation, $age) {
+		$date_of_consultation, $age, $pregnant) {
 		$query = "UPDATE m_dental_fhsis SET ".
 			"indicator_qualified = '$indicator_qualified', ".
 			"date_of_consultation = '$date_of_consultation', ".
-			"age = $age ".
+			"age = $age, ".
+			"pregnant = '$pregnant' ".
 			"WHERE consult_id = $consult_id AND ".
 			"indicator = $indicator ";
 		$result = mysql_query($query) 
@@ -2377,7 +2447,8 @@
 	//				3. no oral debris, and 
 	//				4. no dento-facial anomaly that limits normal functions.
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	function fhsis_indicator_1($consult_id, $patient_id, $date_of_consultation, $age, $gender) {
+	function fhsis_indicator_1($consult_id, $patient_id, $date_of_consultation, $age, 
+		$gender, $pregnant) {
 		// CRITERIA:
 		//		orally fit = 1, not orally fit = 0.
 		$query = "SELECT * FROM m_dental_patient_ohc_table_a ".
@@ -2420,11 +2491,11 @@
 		if(mysql_num_rows($result)) {
 			//update based on criteria
 			$this->update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age);
+				$date_of_consultation, $age, $pregnant);
 		} else {
 			// insert record
 			$this->new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age, $gender);
+				$date_of_consultation, $age, $gender, $pregnant);
 		}
 	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -2452,7 +2523,8 @@
 	//			4c. treatment of post-extraction complications,
 	// 		4d. drainage of localized oral abscess.
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	function fhsis_indicator_2($consult_id, $patient_id, $date_of_consultation, $age, $gender) {
+	function fhsis_indicator_2($consult_id, $patient_id, $date_of_consultation, $age, 
+		$gender, $pregnant) {
 		// CRITERIA:
 		//		provided BOHC = 1, not provided BOHC = 0
 		
@@ -2489,11 +2561,11 @@
 		if(mysql_num_rows($result)) {
 			//update based on criteria
 			$this->update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age);
+				$date_of_consultation, $age, $pregnant);
 		} else {
 			// insert record
 			$this->new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age, $gender);
+				$date_of_consultation, $age, $gender, $pregnant);
 		}
 	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -2516,7 +2588,8 @@
 	//		2. Education and counselling on health effects of tobacco/smoking, diet, and
 	//			oral hygiene.
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	function fhsis_indicator_3($consult_id, $patient_id, $date_of_consultation, $age, $gender) {
+	function fhsis_indicator_3($consult_id, $patient_id, $date_of_consultation, $age, 
+		$gender, $pregnant) {
 		// CRITERIA:
 		//		provided BOHC = 1, not provided BOHC = 0
 		//criteria 2
@@ -2547,13 +2620,84 @@
 		if(mysql_num_rows($result)) {
 			//update based on criteria
 			$this->update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age);
+				$date_of_consultation, $age, $pregnant);
 		} else {
 			// insert record
 			$this->new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age, $gender);
+				$date_of_consultation, $age, $gender, $pregnant);
 		}
 		
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Dec 09, 2009, JVTolentino
+	// Indicator:
+	// 	Pregnant Women provided with Basic Oral Health Care (BOHC)
+	// Definition:
+	// 	Proportion of pregnant women who were provided with Basic Oral Health Care (BOHC)
+	// Definition of Terms:
+	// 	Basic Oral Health Care (BOHC) provided to Pregnant Women - refers to one or more
+	// 		of the following services:
+	// 	1. Oral Examination
+	//		2. Scaling
+	// 	3. Permanent Filling
+	// 	4. Gum Treatment
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function fhsis_indicator_4($consult_id, $patient_id, $date_of_consultation, $age, 
+		$gender, $pregnant) {
+		// CRITERIA:
+		//		provided BOHC = 1, not provided BOHC = 0
+		
+		// criteria 2 and 4
+		$query = "SELECT * FROM m_dental_other_services ".
+			"WHERE consult_id = $consult_id AND ".
+			"(scaling = 'YES' OR gum_treatment = 'YES')";
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+			
+		if(mysql_num_rows($result)) {
+			$criteria24 = 1;
+		} else {
+			$criteria24 = 0;
+		}
+		
+		// criteria 3
+		$query = "SELECT * FROM m_dental_services ".
+			"WHERE consult_id = $consult_id AND service_provided = 'PF'";
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+			
+		if(mysql_num_rows($result)) {
+			$criteria3 = 1;
+		} else {
+			$criteria3 = 0;
+		}
+		
+		$indicator = 4;
+		if(($criteria24 == 1) OR ($criteria3 == 1)) {
+			$indicator_qualified = "YES";
+		} else {
+			$indicator_qualified = "NO";
+		}
+		
+		$query = "SELECT * FROM m_dental_fhsis WHERE ".
+			"consult_id = $consult_id AND indicator = $indicator ";
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+		
+		if(mysql_num_rows($result)) {
+			//update based on criteria
+			$this->update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
+				$date_of_consultation, $age, $pregnant);
+		} else {
+			// insert record
+			$this->new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
+				$date_of_consultation, $age, $gender, $pregnant);
+		}
 	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
