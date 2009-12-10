@@ -250,7 +250,6 @@
 			"`date_of_consultation` date NOT NULL,".
 			"`age` float NOT NULL,".
 			"`gender` char(1) COLLATE swe7_bin NOT NULL,".
-			"`pregnant` char(3) COLLATE swe7_bin NOT NULL,".
 			"PRIMARY KEY (`record_number`)".
 			") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
 			
@@ -1030,30 +1029,28 @@
 		
 		$loc_patient_age = healthcenter::get_patient_age($_GET['consult_id']);
 		$loc_patient_gender = $this->get_patient_gender($loc_patient_id);
-		$loc_patient_pregnant = mc::check_if_pregnant($loc_patient_id, $loc_date_of_oral);
-			//mc::check_if_pregnant($p_id, $consultation_date) == 'Y'
 		
-		// Refer to FHSIS Manual for Dental Indicator 1
+		// Refer to FHSIS Manual for Dental Indicators
 		if ((($loc_patient_age * 12) >= 12.00) &&  (($loc_patient_age * 12) <=71.99)) {
 			$this->fhsis_indicator_1($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
-				$loc_patient_age, $loc_patient_gender, $loc_patient_pregnant);
+				$loc_patient_age, $loc_patient_gender);
 			$this->fhsis_indicator_2($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
-				$loc_patient_age, $loc_patient_gender, $loc_patient_pregnant);
+				$loc_patient_age, $loc_patient_gender);
 		}
 		
 		if(($loc_patient_age >= 10.00) && ($loc_patient_age <= 24.99)) {
 			$this->fhsis_indicator_3($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
-				$loc_patient_age, $loc_patient_gender, $loc_patient_pregnant);
+				$loc_patient_age, $loc_patient_gender);
 		}
 		
 		if($loc_patient_pregnant == 'Y') {
 			$this->fhsis_indicator_4($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
-				$loc_patient_age, $loc_patient_gender, $loc_patient_pregnant);
+				$loc_patient_age, $loc_patient_gender);
 		}
 		
 		if (($loc_patient_age) >= 60.00) {
 			$this->fhsis_indicator_5($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
-				$loc_patient_age, $loc_patient_gender, $loc_patient_pregnant);
+				$loc_patient_age, $loc_patient_gender);
 		}
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -2401,11 +2398,11 @@
 	// This function will add a new record to [m_dental_fhsis].
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
-		$date_of_consultation, $age, $gender, $pregnant) {
+		$date_of_consultation, $age, $gender) {
 		$query = "INSERT INTO m_dental_fhsis (consult_id, patient_id, indicator, ".
-			"indicator_qualified, date_of_consultation, age, gender, pregnant) VALUES ".
+			"indicator_qualified, date_of_consultation, age, gender) VALUES ".
 			"($consult_id, $patient_id, $indicator, '$indicator_qualified', ".
-			"'$date_of_consultation', $age, '$gender', '$pregnant')";
+			"'$date_of_consultation', $age, '$gender')";
 		$result = mysql_query($query)
 			or die("Couldn't execute query. ".mysql_error());
 	}
@@ -2420,12 +2417,11 @@
 	// consult_id and indicator.
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
-		$date_of_consultation, $age, $pregnant) {
+		$date_of_consultation, $age) {
 		$query = "UPDATE m_dental_fhsis SET ".
 			"indicator_qualified = '$indicator_qualified', ".
 			"date_of_consultation = '$date_of_consultation', ".
 			"age = $age, ".
-			"pregnant = '$pregnant' ".
 			"WHERE consult_id = $consult_id AND ".
 			"indicator = $indicator ";
 		$result = mysql_query($query) 
@@ -2453,7 +2449,7 @@
 	//				4. no dento-facial anomaly that limits normal functions.
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function fhsis_indicator_1($consult_id, $patient_id, $date_of_consultation, $age, 
-		$gender, $pregnant) {
+		$gender) {
 		// CRITERIA:
 		//		orally fit = 1, not orally fit = 0.
 		$query = "SELECT * FROM m_dental_patient_ohc_table_a ".
@@ -2496,11 +2492,11 @@
 		if(mysql_num_rows($result)) {
 			//update based on criteria
 			$this->update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age, $pregnant);
+				$date_of_consultation, $age);
 		} else {
 			// insert record
 			$this->new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age, $gender, $pregnant);
+				$date_of_consultation, $age, $gender);
 		}
 	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -2529,7 +2525,7 @@
 	// 		4d. drainage of localized oral abscess.
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function fhsis_indicator_2($consult_id, $patient_id, $date_of_consultation, $age, 
-		$gender, $pregnant) {
+		$gender) {
 		// CRITERIA:
 		//		provided BOHC = 1, not provided BOHC = 0
 		
@@ -2566,11 +2562,11 @@
 		if(mysql_num_rows($result)) {
 			//update based on criteria
 			$this->update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age, $pregnant);
+				$date_of_consultation, $age);
 		} else {
 			// insert record
 			$this->new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age, $gender, $pregnant);
+				$date_of_consultation, $age, $gender);
 		}
 	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -2593,8 +2589,7 @@
 	//		2. Education and counselling on health effects of tobacco/smoking, diet, and
 	//			oral hygiene.
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	function fhsis_indicator_3($consult_id, $patient_id, $date_of_consultation, $age, 
-		$gender, $pregnant) {
+	function fhsis_indicator_3($consult_id, $patient_id, $date_of_consultation, $age, $gender) {
 		// CRITERIA:
 		//		provided BOHC = 1, not provided BOHC = 0
 		//criteria 2
@@ -2625,11 +2620,11 @@
 		if(mysql_num_rows($result)) {
 			//update based on criteria
 			$this->update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age, $pregnant);
+				$date_of_consultation, $age);
 		} else {
 			// insert record
 			$this->new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age, $gender, $pregnant);
+				$date_of_consultation, $age, $gender);
 		}
 		
 	}
@@ -2652,8 +2647,7 @@
 	// 	3. Permanent Filling
 	// 	4. Gum Treatment
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	function fhsis_indicator_4($consult_id, $patient_id, $date_of_consultation, $age, 
-		$gender, $pregnant) {
+	function fhsis_indicator_4($consult_id, $patient_id, $date_of_consultation, $age, $gender) {
 		// CRITERIA:
 		//		provided BOHC = 1, not provided BOHC = 0
 		
@@ -2697,11 +2691,11 @@
 		if(mysql_num_rows($result)) {
 			//update based on criteria
 			$this->update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age, $pregnant);
+				$date_of_consultation, $age);
 		} else {
 			// insert record
 			$this->new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age, $gender, $pregnant);
+				$date_of_consultation, $age, $gender);
 		}
 	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -2724,8 +2718,7 @@
 	//		2. Extraction
 	//		3. Gum Treatment
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	function fhsis_indicator_5($consult_id, $patient_id, $date_of_consultation, $age, 
-		$gender, $pregnant) {
+	function fhsis_indicator_5($consult_id, $patient_id, $date_of_consultation, $age, $gender) {
 		// CRITERIA:
 		//		provided BOHC = 1, not provided BOHC = 0
 		
@@ -2768,11 +2761,11 @@
 		if(mysql_num_rows($result)) {
 			//update based on criteria
 			$this->update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age, $pregnant);
+				$date_of_consultation, $age);
 		} else {
 			// insert record
 			$this->new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
-				$date_of_consultation, $age, $gender, $pregnant);
+				$date_of_consultation, $age, $gender);
 		}
 	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
