@@ -1050,6 +1050,11 @@
 			$this->fhsis_indicator_4($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
 				$loc_patient_age, $loc_patient_gender, $loc_patient_pregnant);
 		}
+		
+		if (($loc_patient_age) >= 60.00) {
+			$this->fhsis_indicator_5($loc_consult_id, $loc_patient_id, $loc_date_of_oral, 
+				$loc_patient_age, $loc_patient_gender, $loc_patient_pregnant);
+		}
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -2679,6 +2684,77 @@
 		
 		$indicator = 4;
 		if(($criteria24 == 1) OR ($criteria3 == 1)) {
+			$indicator_qualified = "YES";
+		} else {
+			$indicator_qualified = "NO";
+		}
+		
+		$query = "SELECT * FROM m_dental_fhsis WHERE ".
+			"consult_id = $consult_id AND indicator = $indicator ";
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+		
+		if(mysql_num_rows($result)) {
+			//update based on criteria
+			$this->update_fhsis_record($consult_id, $indicator, $indicator_qualified, 
+				$date_of_consultation, $age, $pregnant);
+		} else {
+			// insert record
+			$this->new_fhsis_record($consult_id, $patient_id, $indicator, $indicator_qualified, 
+				$date_of_consultation, $age, $gender, $pregnant);
+		}
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	
+	
+	
+	
+	
+	// Comment date: Dec 10, 2009, JVTolentino
+	// Indicator:
+	// 	Older Persons 60 years old and above provided with Basic Oral Health Care (BOHC)
+	//		(disaggregated by sex)
+	// Definition:
+	// 	Proportion of Older Persons 60 years old and above who were provided with 
+	//		Basic Oral Health Care (BOHC)
+	// Definition of Terms:
+	// 	Basic Oral Health Care (BOHC) provided to Older Persons - refers to one or more
+	// 		of the following services:
+	// 	1. Oral Examination
+	//		2. Extraction
+	//		3. Gum Treatment
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function fhsis_indicator_5($consult_id, $patient_id, $date_of_consultation, $age, 
+		$gender, $pregnant) {
+		// CRITERIA:
+		//		provided BOHC = 1, not provided BOHC = 0
+		
+		// criteria 2
+		$query = "SELECT * FROM m_dental_services ".
+			"WHERE consult_id = $consult_id AND service_provided = 'X'";
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+			
+		if(mysql_num_rows($result)) {
+			$criteria2 = 1;
+		} else {
+			$criteria2 = 0;
+		}
+		
+		// criteria 3
+		$query = "SELECT * FROM m_dental_other_services ".
+			"WHERE consult_id = $consult_id AND gum_treatment = 'YES'";
+		$result = mysql_query($query)
+			or die("Couldn't execute query. ".mysql_error());
+			
+		if(mysql_num_rows($result)) {
+			$criteria3 = 1;
+		} else {
+			$criteria3 = 0;
+		}
+		
+		$indicator = 5;
+		if(($criteria2 == 1) OR ($criteria3 == 1)) {
 			$indicator_qualified = "YES";
 		} else {
 			$indicator_qualified = "NO";
