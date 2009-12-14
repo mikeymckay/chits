@@ -163,7 +163,7 @@ server () {
   SERVER_GATEWAY=192.168.2.1
   echo "Setting static IP for server to: ${SERVER_IP_ADDRESS} and gateway to ${SERVER_GATEWAY}"
 
-  echo"
+  echo "
 auto lo
 iface lo inet loopback
 
@@ -223,11 +223,11 @@ su -c "autossh -f -N -R *:${PORT_MIDDLEMAN_WILL_LISTEN_ON}:localhost:22 ${MIDDLE
 
   chmod +x /etc/network/if-up.d/reverse_ssh_tunnel
 
-  echo "Uploading public key to lakota.vdomck.org"
-  PUBLIC_KEY_FILENAME=/tmp/`hostname`.public_key
-  cp /home/$SUDO_USER/.ssh/id_rsa.pub $PUBLIC_KEY_FILENAME
-  cat "\n#{PORT_NUMBER}" >> $PUBLIC_KEY_FILENAME
-  curl -F "file=@${PUBLIC_KEY_FILENAME}" lakota.vdomck.org:4567/upload
+#  echo "Uploading public key to lakota.vdomck.org"
+#  PUBLIC_KEY_FILENAME=/tmp/`hostname`.public_key
+#  cp /home/$SUDO_USER/.ssh/id_rsa.pub $PUBLIC_KEY_FILENAME
+#  cat "\n#{PORT_NUMBER}" >> $PUBLIC_KEY_FILENAME
+#  curl -F "file=@${PUBLIC_KEY_FILENAME}" lakota.vdomck.org:4567/upload
 
   echo "To setup replication, put all clients and server on the network and ready, run: 'sudo /var/www/chits/install/mysql_replication'"
 }
