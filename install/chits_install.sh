@@ -53,26 +53,54 @@ create_database "chits_live" "chits_live" "${CHITS_LIVE_PASSWORD}"
 # TODO use a core DB without users
 create_database "chits_testing" "chits_tester" "useless_password"
 
-sed -i 's/^snapshot_root.*/snapshot_root\t\/var\/www\/chits\/backups\//' /etc/rsnapshot.conf
+## START OF DATABASE BACKUP CONFIGURATION
+echo "Setting up automated database backups"
+PATH_TO_BACKUP_DIR="/var/www/chits/backups"
+
+mkdir --parents ${PATH_TO_BACKUP_DIR}
+
 # Comment out all interval and backup lines
 sed -i 's/^\(interval.*\)/#\1/' /etc/rsnapshot.conf
 sed -i 's/^\(backup.*\)/#/' /etc/rsnapshot.conf
-echo "
-interval\tdaily\t7
-interval\tweekly\t4
-interval\tmonthly\t6
 
-backup_script\t/var/www/chits/scripts/dump_database.sh\t/var/www/chits/database_dumps
+echo "Setting up backup directory as: ${PATH_TO_BACKUP_DIR}"
+sed -i 's/^snapshot_root.*/snapshot_root\t\/var\/www\/chits\/backups\//' /etc/rsnapshot.conf
+echo "
+# ------------------------------
+# Added by chits_install script
+# ------------------------------
+# Note all spaces below are TABS not normal spaces
+
+interval	hourly	3
+interval	daily	7
+interval	weekly	4
+interval	monthly	6
+
+# option      command       name_of_backup
+backup_script	/var/www/chits/scripts/dump_database.sh	chits_live
 " >> /etc/rsnapshot.conf
 
 PATH_TO_DUMP_SCRIPT="/var/www/chits/scripts/dump_database.sh"
 echo "#!/bin/bash
+# Note that the chits_live.sql should not have a path specified, rsnapshot takes care of things
 mysqldump -u chits_live -p${CHITS_LIVE_PASSWORD} chits_live > chits_live.sql
-" >> ${PATH_TO_DUMP_SCRIPT}
+" > ${PATH_TO_DUMP_SCRIPT}
 chmod +x ${PATH_TO_DUMP_SCRIPT}
 chmod -r ${PATH_TO_DUMP_SCRIPT}
 
-sed -i 's/^\# \(\d\)/\1/' /etc/rsnapshot.conf
+echo "
+# The values used correspond to /etc/rsnapshot.conf.
+# There you can also set the backup points and many other things.
+
+0 */4		* * *		root	/usr/bin/rsnapshot hourly
+30 16  	* * *		root	/usr/bin/rsnapshot daily
+0  16  	* * 1		root	/usr/bin/rsnapshot weekly
+45 16  	1 * *		root	/usr/bin/rsnapshot monthly
+
+" > /etc/cron.d/rsnapshot
+
+#sed -i 's/^\# \(\d\)/\1/' /etc/rsnapshot.conf
+## END OF DATABASE BACKUP CONFIGURATION
 
 #Setup cucumber
 wget --output-document=rubygems-1.3.5.tgz http://rubyforge.org/frs/download.php/60718/rubygems-1.3.5.tgz
