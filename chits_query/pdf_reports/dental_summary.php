@@ -437,49 +437,7 @@
 		}
 		
 		
-/*		
-		function disp_arr_indicator(){
-			if(func_num_args()>0):
-				$arg_list = func_get_args();
-				$crit = $arg_list[0];
-				$sub_crit = $arg_list[1];
-			endif;
-
-	switch($crit){
-		case 0:
-			$r_label = array('BCG','DPT1','DPT2','DPT3','OPV1','OPV2','OPV3','Hepa B1 w/in 24 hrs','Hepa B1 > 24 hrs','Hepatitis B2','Hepatitis B3','Measles'); 
-			return $r_label[$sub_crit];
-			break;
-
-		case 7:
-			$r_label = array('No. of Diarreha Cases','No. of Diarrhea Cases Given ORT','No. of Diarrhea Cases Given ORS','No. of Diarrhea Cases Given ORS w/ zinc');
-			
-			return $r_label[$sub_crit];
-			break;
-		case 8:
-			$r_label = array('No. of Pneumonia Cases','Given Treatment');
-			return $r_label[$sub_crit];
-
-			break;
-		case 9:
-			$r_label = array('6-11 mos','12-59 mos','60-71 mos');
-			return $r_label[$sub_crit];
-			break;
-
-		case 10:
-			$r_label = array('6-11 mos','12-59 mos','60-71 mos');	
-			return $r_label[$sub_crit];
-			break;
-		default:
-
-			break;
-	}
-
-}
-*/
-
-
-
+		
 		function get_brgy_pop() {
 			list($taon,$buwan,$araw) = explode('-',$_SESSION[edate2]);
 			if(in_array('all',$_SESSION[brgy])):
