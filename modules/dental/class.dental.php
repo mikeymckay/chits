@@ -2421,7 +2421,7 @@
 		$query = "UPDATE m_dental_fhsis SET ".
 			"indicator_qualified = '$indicator_qualified', ".
 			"date_of_consultation = '$date_of_consultation', ".
-			"age = $age, ".
+			"age = $age ".
 			"WHERE consult_id = $consult_id AND ".
 			"indicator = $indicator ";
 		$result = mysql_query($query) 
@@ -2792,10 +2792,11 @@
 	
 	
 	
-    // Comment date: Nov 04, '09, JVTolentino
-    // This is the main function for the dental module.
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    function _consult_dental() {
+	
+   // Comment date: Nov 04, '09, JVTolentino
+   // This is the main function for the dental module.
+   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   function _consult_dental() {
       echo "<form name='form_dental' action='$_POST[PHP_SELF]' method='POST'>";
       
       $dental = new dental;
@@ -2878,8 +2879,8 @@
 		echo "<input type='hidden' name='h_save_flag' value='GO'></input>";
 		echo "</form>";
     
-    }
-	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+   }
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   } // class ends here
   
 ?>
