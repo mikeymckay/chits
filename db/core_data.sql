@@ -17302,6 +17302,7 @@ INSERT INTO `terms` (`termid`, `languageid`, `langtext`, `remarks`, `translation
 
 -- tables for report generation: childcare_indicators, crit_class, maternal_indicators, question, ques_cat
 
+DROP TABLE IF EXISTS `childcare_indicators`;
 CREATE TABLE IF NOT EXISTS `childcare_indicators` (
   `ind_id` int(2) NOT NULL auto_increment,
   `childcare_label` text NOT NULL,
@@ -17357,6 +17358,7 @@ CREATE TABLE IF NOT EXISTS `crit_class` (
 -- Table structure for table `maternal_indicators`
 --
 
+DROP TABLE IF EXISTS `maternal_indicators`;
 CREATE TABLE IF NOT EXISTS `maternal_indicators` (
   `mat_id` int(11) NOT NULL auto_increment,
   `mat_label` text NOT NULL,
@@ -17391,6 +17393,7 @@ INSERT INTO `maternal_indicators` (`mat_id`, `mat_label`, `ques_id`, `seq_id`) V
 -- Table structure for table `question`
 --
 
+DROP TABLE IF EXISTS `question`;
 CREATE TABLE IF NOT EXISTS `question` (
   `ques_id` int(3) NOT NULL AUTO_INCREMENT,
   `ques_label` varchar(200) NOT NULL,
@@ -17460,6 +17463,7 @@ INSERT INTO `question` (`ques_id`, `ques_label`, `cat_id`, `sql_code`, `report_t
 -- Table structure for table `ques_cat`
 --
 
+DROP TABLE IF EXISTS `ques_cat`;
 CREATE TABLE IF NOT EXISTS `ques_cat` (
   `cat_id` int(2) NOT NULL auto_increment,
   `cat_label` varchar(200) NOT NULL,
@@ -17485,6 +17489,7 @@ INSERT INTO `ques_cat` (`cat_id`, `cat_label`) VALUES
 (12, 'Dental Health Care');
 
 
+DROP TABLE IF EXISTS `m_lib_mc_delivery_location`;
 CREATE TABLE IF NOT EXISTS `m_lib_mc_delivery_location` (
   `delivery_id` varchar(10) NOT NULL,
   `delivery_name` text NOT NULL,
@@ -17509,6 +17514,7 @@ INSERT INTO `m_lib_mc_delivery_location` (`delivery_id`, `delivery_name`) VALUES
 -- Table structure for table `user_logs`
 --
 
+DROP TABLE IF EXISTS `user_logs`;
 CREATE TABLE IF NOT EXISTS `user_logs` (
   `log_id` bigint(20) NOT NULL AUTO_INCREMENT,
   `userid` int(5) NOT NULL,
