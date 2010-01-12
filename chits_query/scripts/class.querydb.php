@@ -774,7 +774,7 @@ class querydb{
 	}
 	
 	function process_dhc_quarterly(){
-		echo "<a href='./pdf_reports/dental_quarterly.php'></a>";
+		echo "<a href='./pdf_reports/dental_quarterly.php'>Show Dental Quarterly Table</a>";
 	}
 	
 	function process_dhc_summary(){
