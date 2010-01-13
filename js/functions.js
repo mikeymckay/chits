@@ -94,3 +94,14 @@ function confirm_delete_fp(){
 	form_methods.submit();
 }
 
+function search_patient(){
+	sList = window.open("../site/search_patient.php","searchpx","width=300,height=300");
+}
+
+function pick(pxid,pxfirst,pxlast){
+  if (window.opener && !window.opener.closed){
+      window.opener.document.form_visit1.spouse_name.value = pxfirst+' '+pxlast;
+      window.opener.document.form_visit1.spouse_id.value = pxid;
+  }  
+  window.close();        
+}

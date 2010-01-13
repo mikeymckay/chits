@@ -118,21 +118,27 @@ class notes extends module {
             ") TYPE=InnoDB; ");
 
         // stores free text entries for notes
-        module::execsql("CREATE TABLE `m_consult_notes` (".
-            "`notes_id` float NOT NULL auto_increment,".
-            "`consult_id` float NOT NULL default '0',".
-            "`patient_id` float NOT NULL default '0',".
-            "`notes_history` text NOT NULL,".
-            "`notes_physicalexam` text NOT NULL,".
-            "`notes_plan` text NOT NULL,".
-            "`user_id` float NOT NULL default '0',".
-            "`notes_timestamp` timestamp(14) NOT NULL,".
-            "PRIMARY KEY  (`notes_id`),".
-            "KEY `key_consult` (`consult_id`), ".
-            "KEY `key_patient` (`patient_id`), ".
-            "FOREIGN KEY (`consult_id`) REFERENCES `m_consult`(`consult_id`) ON DELETE CASCADE,".
-            "FOREIGN KEY (`patient_id`) REFERENCES `m_patient`(`patient_id`) ON DELETE CASCADE".
-            ") TYPE=InnoDB; ");
+        module::execsql("CREATE TABLE IF NOT EXISTS `m_consult_notes` (
+	  `notes_id` float NOT NULL AUTO_INCREMENT,
+	  `consult_id` float NOT NULL DEFAULT '0',
+	  `patient_id` float NOT NULL DEFAULT '0',
+	  `notes_complaint` text NOT NULL,
+	  `notes_history` text NOT NULL,
+	  `notes_physicalexam` text NOT NULL,
+	  `notes_plan` text NOT NULL,
+	  `user_id` float NOT NULL DEFAULT '0',
+	  `notes_timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	  `vita_date` date NOT NULL DEFAULT '0000-00-00',
+	  `anemia_start_date` date NOT NULL DEFAULT '0000-00-00',
+	  `anemia_completed_date` date NOT NULL DEFAULT '0000-00-00',
+	  `diarrhea_ort` date NOT NULL DEFAULT '0000-00-00',
+	  `diarrhea_ors` date NOT NULL DEFAULT '0000-00-00',
+	  `diarrhea_orswz` date NOT NULL DEFAULT '0000-00-00',
+	  `pneumonia_date_given` date NOT NULL DEFAULT '0000-00-00',
+	  PRIMARY KEY (`notes_id`),
+	  KEY `key_consult` (`consult_id`),
+	  KEY `key_patient` (`patient_id`)
+	) ENGINE=InnoDB  DEFAULT CHARSET=latin1;");
 
         // stores diagnosis class in notes
         module::execsql("CREATE TABLE `m_consult_notes_dxclass` (".
@@ -291,10 +297,12 @@ class notes extends module {
                     $sql = "insert into m_consult_notes_complaint (notes_id, consult_id, patient_id, complaint_id, complaint_date, user_id, complaint_timestamp) ".
                            "values ('".$get_vars["notes_id"]."', '".$get_vars["consult_id"]."', '$patient_id', '$value', '$consult_date', '".$_SESSION["userid"]."', sysdate())";
                     $result = mysql_query($sql);
-                }
-                header("location: ".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=NOTES&module=notes&notes=CC&notes_id=".$get_vars["notes_id"]);
+                }                                                
             }
+                $update_complaint_note = mysql_query("UPDATE m_consult_notes SET notes_complaint='$post_vars[complaint_notes]' WHERE consult_id='$get_vars[consult_id]'") or die("Cannot query: 302 ".mysql_error());                                        
+                header("location: ".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=NOTES&module=notes&notes=CC&notes_id=".$get_vars["notes_id"]);                
             break;
+            
         case "Save History":
             if ($post_vars["history_text"]) {
                 $sql = "update m_consult_notes set ".
@@ -405,7 +413,15 @@ class notes extends module {
         print "<span class='boxtitle'>".LBL_NOTES_ID."</span><br/>";
         print "<font color='red'>".module::pad_zero($get_vars["notes_id"],7)."</font><br/>";
         print "<br/></td></tr>";
-        print "<tr><td>";
+        
+        print "<tr><td class='boxtitle'>COMPLAINT NOTES<br>";
+        
+        echo "<textarea name='complaint_notes' rows='4' cols='32'>";
+        echo $this->get_consult_note($get_vars["consult_id"]);           
+        echo "</textarea></td></tr>";    
+                        
+        
+        print "<tr><td>";        
         print "<span class='boxtitle'>".LBL_COMPLAINT."</span><br/>";
         print complaint::checkbox_complaintcat();
         print "<br/></td></tr>";
@@ -777,9 +793,13 @@ class notes extends module {
                 print "<b>NOTES ID:</b> <font color='red'>".module::pad_zero($notes["notes_id"],7)."</font><br/>";
                 print "<b>DATE/TIME:</b> ".$notes["ts"]."<br/>";					
                 print "<b>TAKEN BY:</b> ".user::get_username($notes["user_id"])."<br/>";
+                print "<b>VITAL SIGNS:</b>".$this->get_vitals($_GET["consult_id"])."<br/>";
                 print "<hr size='1'/>";
                 print "<b>COMPLAINTS:</b><br/>";
                 notes::show_complaints($menu_id, $post_vars, $get_vars);
+                print "<hr size='1'/>";
+                print "<b>COMPLAINT NOTES:</b><br/>";
+                print $this->get_consult_note($get_vars["consult_id"]);
                 print "<hr size='1'/>";
                 print "<b>HISTORY:</b><br/>";
                 if (strlen($notes["notes_history"])>0) {
@@ -1684,6 +1704,38 @@ class notes extends module {
         }
         print "</table><br>";
     }
+    
+    
+    function get_vitals(){
+        if(func_num_args()>0):
+            $arg_list = func_get_args();
+            $consult_id = $arg_list[0];
+        endif;
+        
+        $q_vitals = mysql_query("SELECT vitals_weight,vitals_temp,vitals_systolic,vitals_diastolic,vitals_heartrate,vitals_resprate,vitals_height,vitals_pulse FROM m_consult_vitals WHERE consult_id='$consult_id'") or die("Cannot query: 1696 ".mysql_error());
+        
+        if(mysql_num_rows($q_vitals)!=0):
+            list($wt,$temp,$systolic,$diastolic,$heart,$resprate,$ht,$pulse) = mysql_fetch_array($q_vitals);
+            $str_vitals = " <b>WT:</b> ".$wt." kg, <b>TEMP:</b> ".$temp.", <b>BP:</b> ".$systolic."/".$diastolic.", <b>HR:</b> ".$heart.", <b>RR:</b> ".$resprate.", <b>PR:</b> ".$pulse.", <b>HT:</b> ".$ht." cm";
+            
+        else:
+            $str_vitals = "<font color='red'>No vitals signs recorded.</font>";
+        endif;
+        
+        return $str_vitals;
+    }
+    
+    function get_consult_note(){
+        if(func_num_args()>0):
+            $arg_list = func_get_args();
+            $consult_id = $arg_list[0];
+        endif;
+        
+        $q_consult_notes = mysql_query("SELECT notes_complaint FROM m_consult_notes WHERE consult_id='$consult_id'") or die("Cannot query 1732 ".mysql_error());
+        list($notes_complaint) = mysql_fetch_array($q_consult_notes);
+        return $notes_complaint;        
+    }
+    
 
     function process_dxclass() {
         if (func_num_args()>0) {
