@@ -147,14 +147,8 @@
 			$this->Cell(340,10,'Dental Health Care',1,1,C);
 			
 			$this->SetFont('Arial','B','12');
-			//original value of $w from fp_quarterly
-			//$w = array(75,28,28,26,28,28,28,47,52);
-			//modified $w, to fit only 8 cols
 			$w = array(76,28,28,26,28,28,63,63);
 			$this->SetWidths($w);
-			//original value of $label from fp_quarterly
-			//$label = array('Indicators','Current User (Begin Qtr)','New Acceptors','Others','Dropout','Current User (End Qtr)','CPR'."\n".'(CU/TP) x 14.5% x 85%','Interpretation','Recommendation/Action Taken');
-			//modified value of $label
 			$label = array('Indicators', 
 				'Elig. Pop.', 
 				'Number (Male)', 
@@ -178,54 +172,26 @@
 		
 		
 		function show_dental_quarterly(){
-			// original value of $arr_method
-			//$arr_method = array('a'=>'FSTRBTL','b'=>'MSV','c'=>'PILLS','d'=>'IUD','e'=>'DMPA','f'=>'NFPCM','g'=>'NFPBBT','h'=>'NFPLAM','i'=>'NFPSDM','j'=>'NFPSTM','k'=>'CONDOM');
-			//new var $arr_indicator
+			/*
 			$arr_indicator = array('a' => 'Orally Fit Children 12-71 monthds old',
 				'b' => 'Children 12-71 months old provided with BOHC?', 
 				'c' => 'Adolescent & Youth (10-24 years) given BOHC?',
 				'd' => 'Pregnant women provided with BOHC?',
 				'e' => 'Older Person 60 years old & above provided with BOHC?');
-			//$w = array(75,28,28,28,26,28,28,47,52);
+			*/
 			$w = array(76,28,28,26,28,28,63,63);
 			$str_brgy = $this->get_brgy();    
 			
-			//echo $_SESSION[sdate2].'/'.$_SESSION[edate2];
-			
-			/*
-			foreach($arr_method as $col_code=>$method_code) {
-				$q_fp = mysql_query("SELECT method_name FROM m_lib_fp_methods WHERE method_id='$method_code'") 
-					or die("Cannot query: 151".mysql_error());    
-				list($method_name) = mysql_fetch_array($q_fp);
-				
-				$cu_prev = $this->get_current_users($_SESSION[sdate2],$_SESSION[edate2],$method_code,$str_brgy,2);
-				$na_pres = $this->get_current_users($_SESSION[sdate2],$_SESSION[edate2],$method_code,$str_brgy,3);
-				$other_pres = $this->get_current_users($_SESSION[sdate2],$_SESSION[edate2],$method_code,$str_brgy,4);
-				$dropout_pres = $this->get_current_users($_SESSION[sdate2],$_SESSION[edate2],$method_code,$str_brgy,5 );
-				$cu_pres = ($cu_prev + $na_pres + $other_pres) - $dropout_pres;
-				$cpr = $this->get_cpr($cu_pres);
-				
-				$fp_contents = array($col_code.'. '.$method_name,$cu_prev,$na_pres,$other_pres,$dropout_pres,$cu_pres,$cpr,'','');
-				
-				
-				for($x=0;$x<count($fp_contents);$x++){
-					$this->Cell($w[$x],6,$fp_contents[$x],'1',0,'L');
-				}
-				
-				$this->Ln();                
-				//        $this->Row($fp_contents);
-			}
-			*/
 			for($indicator_ctr = 1; $indicator_ctr <= 5; $indicator_ctr++) {
-				//$col2;
+				//$col2; need to find a way to get the elig. pop. data
 				$col3 = $this->get_data($_SESSION[sdate2], $_SESSION[edate2], 
 					$indicator_ctr, $str_brgy, 3);
 				$col4 = $this->get_data($_SESSION[sdate2], $_SESSION[edate2], 
 					$indicator_ctr, $str_brgy, 4);
 				$col5 = $col3 + $col4;
-				//$col6;
-				//$col7;
-				//$col8;
+				//$col6; need to find a way to get the % data
+				//$col7; this column is empty
+				//$col8; this column is empty
 				
 				switch($indicator_ctr) {
 					case 1:
@@ -250,16 +216,6 @@
 				}
 				$dental_contents = array($indicator,
 					'n/a', $col3, $col4, $col5, 'n/a', '', '');
-				
-				/*
-				//ORIGINAL CODE FOR OUTPUTTING THE CONTENTS OF $dental_contents
-				for($x = 0; $x < count($dental_contents); $x++){
-					$this->Cell($w[$x], 6, $dental_contents[$x], '1', 0, 'L');
-				}
-				$this->Ln();
-				*/
-				
-				// REVISED CODE FOR OUTPUTTING THE CONTENTS OF $dental_contents
 				$this->Row($dental_contents);
 			}
 		}
@@ -392,7 +348,5 @@
 
 	$pdf->show_dental_quarterly();
 
-	//$pdf->AddPage();
-	//$pdf->show_fp_summary();
 	$pdf->Output();
 ?>
