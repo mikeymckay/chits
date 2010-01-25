@@ -181,6 +181,13 @@ iface wlan0 inet static
   chmod +x chits_install.sh mysql_replication.sh setup_reverse_ssh_tunnel
   ./chits_install.sh
 
+
+  PATH_TO_DBSELECT="/var/www/chits/modules/_dbselect.php"
+  echo "Editing ${PATH_TO_DBSELECT} so that chits uses the mysql database chits_live"
+  sed -i 's/chits_development/chits_live/' $PATH_TO_DBSELECT
+  sed -i 's/chits_developer/chits_live/' $PATH_TO_DBSELECT
+  sed -i "s/\"password\"/\"${CHITS_LIVE_PASSWORD}\"/" $PATH_TO_DBSELECT
+
   echo "Creating ssh keys so we can reverse ssh into the server"
   su $SUDO_USER -c "mkdir /home/$SUDO_USER/.ssh"
   su $SUDO_USER -c "ssh-keygen -N \"\" -f /home/$SUDO_USER/.ssh/id_rsa"
