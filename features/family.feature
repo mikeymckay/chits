@@ -22,7 +22,7 @@ Feature: Family Folders
    Scenario: Update Family Folder Details
     Given I am logged in as "user" with password "user"
     And I click "FAMILY FOLDERS"
-    When I fill in "family_number" with "37"
+    When I fill in "family_number" with "1"
     And I press "Search"
     And I should see "SELECTED FAMILY"
     And I click "edit"
@@ -32,7 +32,7 @@ Feature: Family Folders
     Then I should see "6789 XYZ Street"
     And I should see "Brgy 2"
 
-
+@reset_families
    Scenario: Delete Family Folder
     Given I am logged in as "admin" with password "admin"
     And I click "PATIENTS"
@@ -41,4 +41,4 @@ Feature: Family Folders
     And I should see "1"
     And I click "delete"
     And I press "Yes"
-    Then I should not see "1"
+    Then I should see "No family records"
