@@ -1,9 +1,7 @@
 <?
 // BEGIN SERVER CODE: DO NOT EDIT
 // Server generated code
-
-// Generated 2009-10-13 16:28:46
-
+// Generated 2010-01-26 15:03:03
 // Module: _module.php
 // Author: Herman Tolentino MD
 //
@@ -161,6 +159,17 @@ if (file_exists('../modules/family/class.family.php')) {
 		$family->init_help();
 	}
 }
+if (file_exists('../modules/family_planning/class.family_planning.php')) {
+	include '../modules/family_planning/class.family_planning.php';
+	$family_planning = new family_planning;
+	if (!$module->activated('family_planning') && $initmod) {
+		$family_planning->init_sql();
+		$family_planning->init_menu();
+		$family_planning->init_deps();
+		$family_planning->init_lang();
+		$family_planning->init_help();
+	}
+}
 if (file_exists('../modules/graph/class.graph.php')) {
 	include '../modules/graph/class.graph.php';
 	$graph = new graph;
@@ -247,6 +256,17 @@ if (file_exists('../modules/language/class.language.php')) {
 		$language->init_deps();
 		$language->init_lang();
 		$language->init_help();
+	}
+}
+if (file_exists('../modules/leprosy/class.leprosy.php')) {
+	include '../modules/leprosy/class.leprosy.php';
+	$leprosy = new leprosy;
+	if (!$module->activated('leprosy') && $initmod) {
+		$leprosy->init_sql();
+		$leprosy->init_menu();
+		$leprosy->init_deps();
+		$leprosy->init_lang();
+		$leprosy->init_help();
 	}
 }
 if (file_exists('../modules/mc/class.mc.php')) {
