@@ -480,7 +480,7 @@
 					print "<tr>";
 						extract($row);
 						print "<td align='center'><font color='red'>$treatment_received</font></td>";
-						print "<td><font color='red'>$duration_of_treatment</font></td>";
+						print "<td align='center'><font color='red'>$duration_of_treatment</font></td>";
 					print "</tr>";
 				}
 				
@@ -546,38 +546,38 @@
 				print "<tr>";
 					print "<td colspan=2>";
 						if($loc_tb == 'Y') {
-							print "<input type='checkbox' name='TB' ".
-								"value='TB' checked><font color='red'>TB</font></input>&nbsp;";
+							print "<input type='checkbox' name='tb' ".
+								"value='Y' checked><font color='red'>TB</font></input>&nbsp;";
 						}
 						else {
-							print "<input type='checkbox' name='tb' value='TB'>TB</input>&nbsp;";
+							print "<input type='checkbox' name='tb' value='Y'>TB</input>&nbsp;";
 						}
 						
 						if($loc_severe_jaundice == 'Y') {
 							print "<input type='checkbox' name='severe_jaundice' ".
-								"value='Severe Jaundice' checked><font color='red'>Severe Jaundice</font></input>&nbsp;";
+								"value='Y' checked><font color='red'>Severe Jaundice</font></input>&nbsp;";
 						}
 						else {
 							print "<input type='checkbox' name='severe_jaundice' ".
-								"value='Severe Jaundice'>Severe Jaundice</input>&nbsp;";
+								"value='Y'>Severe Jaundice</input>&nbsp;";
 						}
 						
 						if($loc_peptic_ulcer == 'Y') {
 							print "<input type='checkbox' name='peptic_ulcer' ".
-								"value='Peptic Ulcer' checked><font color='red'>Peptic Ulcer</font></input>&nbsp;";
+								"value='Y' checked><font color='red'>Peptic Ulcer</font></input>&nbsp;";
 						}
 						else {
 							print "<input type='checkbox' name='peptic_ulcer' ".
-								"value='Peptic Ulcer'>Peptic Ulcer</input>&nbsp;";
+								"value='Y'>Peptic Ulcer</input>&nbsp;";
 						}
 						
 						if($loc_kidney_disease == 'Y') {
 							print "<input type='checkbox' name='kidney_disease' ".
-								"value='Kidney Disease' checked><font color='red'>Kidney Disease</font></input>&nbsp;";
+								"value='Y' checked><font color='red'>Kidney Disease</font></input>&nbsp;";
 						}
 						else {
 							print "<input type='checkbox' name='kidney_disease' ".
-								"value='Kidney Disease'>Kidney Disease</input>&nbsp;";
+								"value='Y'>Kidney Disease</input>&nbsp;";
 						}
 						
 						print "<br>Input other illnesses on the box provided below:<br>".
@@ -645,6 +645,66 @@
 		
 		
 		
+		// no comments yet
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function other_illness_record() {
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			if($_POST['tb'] == 'Y') {
+				$loc_tb = 'Y';
+			} else {
+				$loc_tb = 'N';
+			}
+			if($_POST['severe_jaundice'] == 'Y') {
+				$loc_severe_jaundice = 'Y';
+			} else {
+				$loc_severe_jaundice = 'N';
+			}
+			if($_POST['peptic_ulcer'] == 'Y') {
+				$loc_peptic_ulcer = 'Y';
+			} else {
+				$loc_peptic_ulcer = 'N';
+			}
+			if($_POST['kidney_disease'] == 'Y') {
+				$loc_kidney_disease = 'Y';
+			} else {
+				$loc_kidney_disease = 'N';
+			}
+			$loc_other_illness = $_POST['other_illness'];
+			list($month, $day, $year) = explode("/", date("m/d/Y"));
+			$loc_current_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+			$loc_userid = $_POST['h_userid'];
+			
+			$query = "SELECT * FROM m_leprosy_other_illness WHERE ".
+				"patient_id = $loc_patient_id ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+					
+			if(mysql_num_rows($result)) {
+				$query = "UPDATE m_leprosy_other_illness SET ".
+					"tb = '$loc_tb', ".
+					"severe_jaundice = '$loc_severe_jaundice', ".
+					"peptic_ulcer = '$loc_peptic_ulcer', ".
+					"kidney_disease = '$loc_kidney_disease', ".
+					"other_illness = '$loc_other_illness', ".
+					"date_last_updated = '$loc_current_date', ".
+					"user_id = $loc_userid ".
+					"WHERE patient_id = $loc_patient_id ";
+			} else {
+				$query = "INSERT INTO m_leprosy_other_illness ".
+					"(patient_id, tb, severe_jaundice, peptic_ulcer, kidney_disease, ".
+					"other_illness, date_last_updated, user_id) ".
+					"VALUES($loc_patient_id, '$loc_tb', '$loc_severe_jaundice', ".
+					"'$loc_peptic_ulcer', '$kidney_disease', '$loc_other_illness', ".
+					"'$loc_current_date', $loc_userid)";
+			}
+			
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
 		// Comment date: Jan 27, 2010, JVTolentino
 		// This function will be used to add records to 'Leprosy Module Tables' in CHITS DB.
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -659,6 +719,9 @@
 					break;
 				case 'Delete Last Added Treatment Record':
 					$this->delete_treatment_record();
+					break;
+				case 'Save Other Illnesses':
+					$this->other_illness_record();
 					break;
 			}
 		}
