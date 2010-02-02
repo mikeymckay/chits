@@ -137,6 +137,26 @@
 				"`user_id` float NOT NULL,".
 				"PRIMARY KEY (`record_number`)".
 				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
+			
+			
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_leprosy_contact_examination` (".
+				"`record_number` float NOT NULL AUTO_INCREMENT,".
+				"`consult_id` float NOT NULL,".
+				"`patient_id` float NOT NULL,".
+				"`contact_patient_id` float NOT NULL,".
+				"`relationship` char(50) COLLATE swe7_bin NOT NULL,".
+				"`year_of_birth` char(4) COLLATE swe7_bin NOT NULL,".
+				"`sex` char(1) COLLATE swe7_bin NOT NULL,".
+				"`examination_done` char(1) COLLATE swe7_bin NOT NULL,".
+				"`results` char(1) COLLATE swe7_bin NOT NULL,".
+				"`date_examined` date NOT NULL,".
+				"`date_last_updated` date NOT NULL,".
+				"`user_id` float NOT NULL,".
+				"PRIMARY KEY (`record_number`)".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
+			
+			
+			
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -152,6 +172,7 @@
 			module::execsql("DROP TABLE `m_leprosy_diagnosis`");
 			module::execsql("DROP TABLE `m_leprosy_past_treatment`");
 			module::execsql("DROP TABLE `m_leprosy_other_illness`");
+			module::execsql("DROP TABLE `m_leprosy_contact_examination`");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -185,8 +206,8 @@
 			$this->create_history_table();
 			print "<br>";
 			
-			
-			
+			$this->create_contact_examination_table();
+			print "<br>";
 			
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -645,10 +666,12 @@
 		
 		
 		
-		// no comments yet
+		// Comment date: Jan 29, 2010, JVTolentino
+		// This function will add/modify a record in [m_leprosy_other_illness].
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function other_illness_record() {
 			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			
 			if($_POST['tb'] == 'Y') {
 				$loc_tb = 'Y';
 			} else {
@@ -688,7 +711,7 @@
 					"other_illness = '$loc_other_illness', ".
 					"date_last_updated = '$loc_current_date', ".
 					"user_id = $loc_userid ".
-					"WHERE patient_id = $loc_patient_id ";
+					"WHERE consult_id = $loc_consult_id ";
 			} else {
 				$query = "INSERT INTO m_leprosy_other_illness ".
 					"(patient_id, tb, severe_jaundice, peptic_ulcer, kidney_disease, ".
@@ -700,6 +723,198 @@
 			
 			$result = mysql_query($query)
 				or die("Couldn't execute query. ".mysql_error());
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
+		// Comment date: Jan 29, 2010, JVTolentino
+		// This function will printout on the page a table of the patient's contact examination.
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function create_contact_examination_table() {
+			$this->populate_contact_examination();
+			
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			$loc_family_id = $this->get_family_id();
+			
+			print "<table border=3 bordercolor='black' align='center' width=600>";
+				print "<tr>";
+					print "<th colspan = 8 align='left' bgcolor=#CC9900#>Contact Examination</th>";
+				print "</tr>";
+				
+				print "<tr>";
+					print "<td align='center'><b>Patient<br>ID</b></td>";
+					print "<td align='center'><b>Name of Household</b></td>";
+					print "<td align='center'><b>Relationship</b></td>";
+					print "<td align='center'><b>Year<br>of<br>Birth</b></td>";
+					print "<td align='center'><b>Sex</b></td>";
+					print "<td align='center'><b>Examination<br>Done<br>(Y / N)</b></td>";
+					print "<td align='center'><b>Results<br>(+ / -)</b></td>";
+					print "<td align='center'><b>Date<br>Examined</b></td>";
+				print "</tr>";
+				
+				$query = "SELECT m_leprosy_contact_examination.*, ".
+					"m_patient.patient_lastname, m_patient.patient_firstname, m_patient.patient_middle ".
+					"FROM m_leprosy_contact_examination INNER JOIN ".
+					"m_patient ON m_leprosy_contact_examination.contact_patient_id = ".
+					"m_patient.patient_id WHERE ".
+					"m_leprosy_contact_examination.consult_id = $loc_consult_id ";
+				$result = mysql_query($query) 
+					or die("Couldn't execute query. ".mysql_error());
+				
+				while($row = mysql_fetch_array($result)) {
+					extract($row);
+					print "<tr>";
+						print "<td align='center'>$contact_patient_id</td>";
+						print "<td align='center'>$patient_lastname, $patient_firstname $patient_middle</td>";
+						print "<td align='center'>$relationship</td>";
+						print "<td align='center'>$year_of_birth</td>";
+						print "<td align='center'>$sex</td>";
+						print "<td align='center'>$examination_done</td>";
+						print "<td align='center'>$results</td>";
+						print "<td align='center'>$date_examined</td>";
+					print "</tr>";
+				}
+				
+				$query = "SELECT * FROM m_leprosy_contact_examination WHERE ".
+					"consult_id = $loc_consult_id ";
+				$result = mysql_query($query) 
+					or die("Couldn't execute query. ".mysql_error());
+				
+				print "<tr>";
+					print "<td colspan=8><b>Update Contact Examination</b></td>";
+				print "</tr>";
+				
+				print "<tr>";
+					print "<td align='center' colspan=2>Patient ID<br>";
+						print "<select name='contact_patient_id'>";
+							while($row = mysql_fetch_array($result)) {
+								extract($row);
+								print "<option value='$contact_patient_id'>$contact_patient_id</option>";
+							}
+						print "</select>";
+					print "</td>";
+					
+					print "<td align='center' colspan=4>Relationship<br>".
+						"<input type='text' name='relationship'></input></td>";
+					
+					print "<td align='center' colspan=2>Examination Done?<br>";
+						print "<select name='examination_done'>";
+							print "<option value='N'>N</option>";
+							print "<option value='Y'>Y</option>";
+						print "</select>";
+					print "</td>";
+				print "</tr>";
+				
+				print "<tr>";
+					print "<td align='center' colspan=2>Results<br>";
+						print "<select name='examination_done'>";
+							print "<option value='-'>-</option>";
+							print "<option value='+'>+</option>";
+						print "</select>";
+					print "</td>";
+					
+					list($year, $month, $day) = explode("/", date("Y/d/m"));
+					$loc_current_date = str_pad($month, 2, "0", STR_PAD_LEFT)."/".str_pad($day, 2, "0", STR_PAD_LEFT)."/".$year;
+					
+					print "<td align='center' colspan=2>Date Examined<br>";
+						if($_POST['examination_date'] == '') {
+							print "<input type='text' name='examination_date' ".
+								"readonly='true' size=10 value='$loc_current_date'".
+								"<a href=\"javascript:show_calendar4('document.form_leprosy.examination_date', ".
+								"document.form_leprosy.examination_date.value);\">".
+								"<img src='../images/cal.gif' width='16' height='16' border='0' ".
+								"alt='Click Here to Pick up the Date'></a></input>";
+						} 
+						else {
+							print "<input type='text' name='examination_date' ".
+								"readonly='true' size=10 value='".$_POST['examination_date'].
+								"'> <a href=\"javascript:show_calendar4('document.form_leprosy.examination_date', ".
+								"document.form_leprosy.examination_date.value);\">".
+								"<img src='../images/cal.gif' width='16' height='16' border='0' ".
+								"alt='Click Here to Pick up the Date'></a></input>";
+						}
+					print "</td>";
+				//print "</tr>";
+				
+				//print "<tr>";
+					print "<td colspan=4 align='center'><input type='submit' name='submit_button' ".
+						"value='Save Contact Examination'></input></td>";
+				print "</tr>";
+			print "</table>";
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
+		// Comment date: Jan 29, 2010, JVTolentino
+		// This function will be used to retrieve the family_id of a patient using his/her patient_id.
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function get_family_id() {
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			
+			$query = "SELECT family_id FROM m_family_members WHERE ".
+				"patient_id = $loc_patient_id ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if($row = mysql_fetch_assoc($result)) {
+				return $row['family_id'];
+			} else {
+				return '';
+			}
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
+		// Comment date: Feb 2, 2010, JVTolentino
+		// This function will be used to populate m_leprosy_contact_examination with the patient's
+		//		household members, based on his/her family folder.
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function populate_contact_examination() {
+			$loc_family_id = $this->get_family_id();
+			
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			list($month, $day, $year) = explode("/", date("m/d/Y"));
+			$loc_current_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+			$loc_userid = $_SESSION['userid'];
+			
+			$query_family = "SELECT m_family_members.patient_id, m_patient.patient_dob, ".
+				"m_patient.patient_gender FROM m_family_members INNER JOIN m_patient ".
+				"ON m_family_members.patient_id = m_patient.patient_id WHERE ".
+				"m_family_members.family_id = $loc_family_id AND ".
+				"m_family_members.patient_id <> $loc_patient_id ";
+			$result_family = mysql_query($query_family)
+				or die("Couldn't query family execute query. ".mysql_error());
+				
+			while($row = mysql_fetch_array($result_family)) {
+				extract($row);
+				$loc_contact_patient_id = $row['patient_id'];
+				list($year, $month, $day) = explode("-", $row['patient_dob']);
+				$loc_sex = $row['patient_gender'];
+				
+				$query = "SELECT * FROM m_leprosy_contact_examination WHERE ".
+					"patient_id = $loc_patient_id AND ".
+					"consult_id = $loc_consult_id AND ".
+					"contact_patient_id = $loc_contact_patient_id ";
+				$result = mysql_query($query)
+					or die("Couldn't execute query. ".mysql_error());
+				
+				if(mysql_num_rows($result)) {
+					//insert update statement here
+				} else {
+					$query = "INSERT INTO m_leprosy_contact_examination ".
+						"(consult_id, patient_id, contact_patient_id, relationship, year_of_birth, sex, ".
+						"examination_done, results, date_examined, date_last_updated, user_id) ".
+						"VALUES($loc_consult_id, $loc_patient_id, $loc_contact_patient_id, 'n/a', '$year', ".
+						"'$loc_sex', 'N', '-', '0000-00-00', '$loc_current_date', $loc_userid)";
+					$result = mysql_query($query) 
+						or die("Couldn't execute query. ".mysql_error());
+				}
+			}
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		
