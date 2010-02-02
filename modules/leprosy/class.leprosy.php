@@ -809,7 +809,7 @@
 				
 				print "<tr>";
 					print "<td align='center' colspan=2>Results<br>";
-						print "<select name='examination_done'>";
+						print "<select name='results'>";
 							print "<option value='-'>-</option>";
 							print "<option value='+'>+</option>";
 						print "</select>";
@@ -819,26 +819,24 @@
 					$loc_current_date = str_pad($month, 2, "0", STR_PAD_LEFT)."/".str_pad($day, 2, "0", STR_PAD_LEFT)."/".$year;
 					
 					print "<td align='center' colspan=2>Date Examined<br>";
-						if($_POST['examination_date'] == '') {
-							print "<input type='text' name='examination_date' ".
+						if($_POST['date_examined'] == '') {
+							print "<input type='text' name='date_examined' ".
 								"readonly='true' size=10 value='$loc_current_date'".
-								"<a href=\"javascript:show_calendar4('document.form_leprosy.examination_date', ".
-								"document.form_leprosy.examination_date.value);\">".
+								"<a href=\"javascript:show_calendar4('document.form_leprosy.date_examined', ".
+								"document.form_leprosy.date_examined.value);\">".
 								"<img src='../images/cal.gif' width='16' height='16' border='0' ".
 								"alt='Click Here to Pick up the Date'></a></input>";
 						} 
 						else {
-							print "<input type='text' name='examination_date' ".
-								"readonly='true' size=10 value='".$_POST['examination_date'].
-								"'> <a href=\"javascript:show_calendar4('document.form_leprosy.examination_date', ".
-								"document.form_leprosy.examination_date.value);\">".
+							print "<input type='text' name='date_examined' ".
+								"readonly='true' size=10 value='".$_POST['date_examined'].
+								"'> <a href=\"javascript:show_calendar4('document.form_leprosy.date_examined', ".
+								"document.form_leprosy.date_examined.value);\">".
 								"<img src='../images/cal.gif' width='16' height='16' border='0' ".
 								"alt='Click Here to Pick up the Date'></a></input>";
 						}
 					print "</td>";
-				//print "</tr>";
-				
-				//print "<tr>";
+					
 					print "<td colspan=4 align='center'><input type='submit' name='submit_button' ".
 						"value='Save Contact Examination'></input></td>";
 				print "</tr>";
@@ -847,6 +845,39 @@
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		
 		
+		
+		// Comment date: Feb 02, 2010, JVTolentino
+		// This function will be used to update a record in m_leprosy_contact_examination.
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function contact_examination_record() {
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_contact_patient_id = $_POST['contact_patient_id'];
+			
+			$loc_relationship = $_POST['relationship'];
+			$loc_examination_done = $_POST['examination_done'];
+			$loc_results = $_POST['results'];
+			
+			list($month, $day, $year) = explode("/", $_POST['date_examined']);
+			$loc_date_examined = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+			
+			list($month, $day, $year) = explode("/", date("m/d/Y"));
+			$loc_current_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+			
+			$loc_userid = $_SESSION['userid'];
+			
+			$query = "UPDATE m_leprosy_contact_examination SET ".
+				"relationship = '$loc_relationship', ".
+				"examination_done = '$loc_examination_done', ".
+				"results = '$loc_results', ".
+				"date_examined = '$loc_date_examined', ".
+				"date_last_updated = '$loc_current_date', ".
+				"user_id = $loc_userid ".
+				"WHERE consult_id = $loc_consult_id AND ".
+				"contact_patient_id = $loc_contact_patient_id ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		
 		// Comment date: Jan 29, 2010, JVTolentino
 		// This function will be used to retrieve the family_id of a patient using his/her patient_id.
@@ -937,6 +968,9 @@
 					break;
 				case 'Save Other Illnesses':
 					$this->other_illness_record();
+					break;
+				case 'Save Contact Examination':
+					$this->contact_examination_record();
 					break;
 			}
 		}
