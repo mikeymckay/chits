@@ -168,6 +168,37 @@
 				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
 			
 			
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_leprosy_drug_collection_chart` (".
+				"`record_number` float NOT NULL AUTO_INCREMENT,".
+				"`consult_id` float NOT NULL,".
+				"`patient_id` float NOT NULL,".
+				"`date_for_the_supervised_dose` date NOT NULL,".
+				"`treatment` char(3) COLLATE swe7_bin NOT NULL,".
+				"`given_by` char(5) COLLATE swe7_bin NOT NULL,".
+				"`remarks` char(25) COLLATE swe7_bin NOT NULL,".
+				"`date_last_updated` date NOT NULL,".
+				"`user_id` float NOT NULL,".
+				"PRIMARY KEY (`record_number`)".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
+			
+			
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_leprosy_voluntary_muscle_testing` (".
+				"`record_number` float NOT NULL AUTO_INCREMENT,".
+				"`consult_id` float NOT NULL,".
+				"`patient_id` float NOT NULL,".
+				"`key_movement` char(25) COLLATE swe7_bin NOT NULL,".
+				"`upon_dx_date` date NOT NULL,".
+				"`upon_dx_left` char(1) COLLATE swe7_bin NOT NULL,".
+				"`upon_dx_right` char(1) COLLATE swe7_bin NOT NULL,".
+				"`upon_tc_date` date NOT NULL,".
+				"`upon_tc_left` char(1) COLLATE swe7_bin NOT NULL,".
+				"`upon_tc_right` char(1) COLLATE swe7_bin NOT NULL,".
+				"`date_last_updated` date NOT NULL,".
+				"`user_id` float NOT NULL,".
+				"PRIMARY KEY (`record_number`)".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
+			
+			
 			
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -186,6 +217,8 @@
 			module::execsql("DROP TABLE `m_leprosy_other_illness`");
 			module::execsql("DROP TABLE `m_leprosy_contact_examination`");
 			module::execsql("DROP TABLE `m_leprosy_skin_smear`");
+			module::execsql("DROP TABLE `m_leprosy_drug_collection_chart`");
+			module::execsql("DROP TABLE `m_leprosy_voluntary_muscle_testing`");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -225,6 +258,11 @@
 			$this->create_skin_smear_table();
 			print "<br>";
 			
+			$this->create_drug_collection_chart_table();
+			print "<br>";
+			
+			$this->create_voluntary_muscle_testing_table();
+			print "<br>";
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		
@@ -958,7 +996,7 @@
 					or die("Couldn't execute query. ".mysql_error());
 				
 				if(mysql_num_rows($result)) {
-					//insert update statement here
+					// no need to update
 				} else {
 					$query = "INSERT INTO m_leprosy_contact_examination ".
 						"(consult_id, patient_id, contact_patient_id, relationship, year_of_birth, sex, ".
@@ -1101,6 +1139,430 @@
 		
 		
 		
+		// Comment date: Feb 04, 2010, JVTolentino
+		// This function will create the drug collection chart on the page.
+		function create_drug_collection_chart_table() {
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			
+			$query = "SELECT * FROM m_leprosy_drug_collection_chart WHERE ".
+				"consult_id = $loc_consult_id ";
+			$result = mysql_query($query)
+				or die ("Couldn't execute query. ".mysql_error());
+			
+			if($row = mysql_fetch_assoc($result)) {
+				list($year, $month, $day) = explode("-", $row['date_last_updated']);
+				$loc_date_last_updated = str_pad($month, 2, "0", STR_PAD_LEFT)."/".str_pad($day, 2, "0", STR_PAD_LEFT)."/".$year;
+				
+				$loc_date_for_the_supervised_dose = $row['date_for_the_supervised_dose'];
+				$loc_treatment = $row['treatment'];
+				$loc_given_by = $row['given_by'];
+				$loc_remarks = $row['remarks'];
+				
+				$loc_updated = 'Y';
+			}
+			else {
+				$loc_date_for_the_supervised_dose = '';
+				$loc_treatment = '';
+				$loc_given_by = '';
+				$loc_remarks = '';
+				$loc_updated = 'N';
+			}
+			
+			print "<table border=3 bordercolor='black' align='center' width=600>";
+				print "<tr>";
+					if($loc_updated == 'Y') {
+						print "<th align='left' bgcolor=#CC9900# colspan=2>Drug Collection Chart</th>";
+						print "<th align='left' bgcolor=#CC9900# colspan=3>".
+							"<font color='red'>This section has been updated last $loc_date_last_updated. ".
+							"</font></th>";
+					}
+					else {
+						print "<th align='left' bgcolor=#CC9900# colspan=2>Drug Collection Chart</th>";
+						print "<th align='left' bgcolor=#CC9900# colspan=3>".
+							"<font color='red'>This section has never been updated before.</font></th>";
+					}
+				print "</tr>";
+				
+				print "<tr>";
+					print "<td align='center'><b>#</b></td>";
+					print "<td align='center'><b>Date for the Supervised Dose<b></td>";
+					print "<td align='center'><b>Treatment<b></td>";
+					print "<td align='center'><b>Given By<b></td>";
+					print "<td align='center'><b>Remarks<b></td>";
+				print "</tr>";
+				
+				$query = "SELECT * FROM m_leprosy_drug_collection_chart WHERE ".
+					"consult_id = $loc_consult_id ";
+				$result = mysql_query($query)
+					or die ("Couldn't execute query. ".mysql_error());
+				
+				$ctr = 1;
+				while($row = mysql_fetch_array($result)) {
+					extract($row);
+					print "<tr>";
+						print "<td align='center'>$ctr</td>";
+						list($year, $month, $day) = explode("-", $date_for_the_supervised_dose);
+						$date_for_the_supervised_dose = str_pad($month, 2, "0", STR_PAD_LEFT)."/".str_pad($day, 2, "0", STR_PAD_LEFT)."/".$year;
+						print "<td align='center'>$date_for_the_supervised_dose</td>";
+						print "<td align='center'>$treatment</td>";
+						print "<td align='center'>$given_by</td>";
+						print "<td align='center'>$remarks</td>";
+						$ctr += 1;
+					print "</tr>";
+				}
+				
+				print "<tr>";
+					print "<td colspan=5><b>Update Drug Collection Chart:</b></td>";
+				print "</tr>";
+				
+				print "</tr>";
+					print "<td align='center'>$ctr</td>";
+					
+					list($month, $day, $year) = explode("/", date("m/d/Y"));
+					$loc_current_date = str_pad($month, 2, "0", STR_PAD_LEFT)."/".str_pad($day, 2, "0", STR_PAD_LEFT)."/".$year;
+					
+					print "<td align='center'>";
+						if($_POST['date_for_the_supervised_dose'] == '') {
+							print "<input type='text' name='date_for_the_supervised_dose' ".
+								"readonly='true' size=10 value='$loc_current_date'".
+								"<a href=\"javascript:show_calendar4('document.form_leprosy.date_for_the_supervised_dose', ".
+								"document.form_leprosy.date_for_the_supervised_dose.value);\">".
+								"<img src='../images/cal.gif' width='16' height='16' border='0' ".
+								"alt='Click Here to Pick up the Date'></a></input>";
+						} 
+						else {
+							print "<input type='text' name='date_for_the_supervised_dose' ".
+								"readonly='true' size=10 value='".$_POST['date_for_the_supervised_dose'].
+								"'> <a href=\"javascript:show_calendar4('document.form_leprosy.date_for_the_supervised_dose', ".
+								"document.form_leprosy.date_for_the_supervised_dose.value);\">".
+								"<img src='../images/cal.gif' width='16' height='16' border='0' ".
+								"alt='Click Here to Pick up the Date'></a></input>";
+						}
+					print "</td>";
+					
+					print "<td align='center'>".
+						"<select name='treatment'>".
+							"<option value='ROM'>ROM</option>".
+							"<option value='PB'>PB</option>".
+							"<option value='MB'>MB</option>".
+						"</select></td>";
+					
+					print "<td align='center'>".
+						"<input type='text' name='given_by' size=5></input>".
+						"</td>";
+					
+					print "<td align='center'>".
+						"<input type='text' name='remarks' size=25></input>".
+						"</td>";
+				print "</tr>";
+				
+				print "<tr>";
+					print "<td colspan=5 align='center'><input type='submit' name='submit_button' ".
+						"value='Add To Drug Collection Chart'></input></td>";
+				print "</tr>";
+				
+				print "<tr>";
+					print "<td colspan=5 align='center'>".
+						"This button will DELETE from the records the last added data.<br>".
+						"<input type='submit' name='submit_button' ".
+						"value='Delete Last Record From Drug Collection Chart'></input></td>";
+				print "</tr>";
+			
+			print "</table>";
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
+		// Comment date: Feb 04, JVTolentino
+		// This function will a record in [m_leprosy_drug_collection-chart]
+		function drug_collection_chart_record() {
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			list($month, $day, $year) = explode("/", $_POST['date_for_the_supervised_dose']);
+			$loc_date_for_the_supervised_dose = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+			$loc_treatment = $_POST['treatment'];
+			$loc_given_by = $_POST['given_by'];
+			$loc_remarks = $_POST['remarks'];
+			list($month, $day, $year) = explode("/", date("m/d/Y"));
+			$loc_current_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+			$loc_userid = $_POST['h_userid'];
+			
+			$query = "INSERT INTO m_leprosy_drug_collection_chart ".
+				"(consult_id, patient_id, date_for_the_supervised_dose, treatment, given_by, remarks, ".
+				"date_last_updated, user_id) ".
+				"VALUES($loc_consult_id, $loc_patient_id, '$loc_date_for_the_supervised_dose', ".
+				"'$loc_treatment', '$loc_given_by', '$loc_remarks', '$loc_current_date', $loc_userid)";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
+		// Comment date: Feb 04, JVTolentino
+		// This function will delete the patient's last record in [m_leprosy_drug_collection-chart]
+		function delete_record_from_drug_collection_chart() {
+			$loc_consult_id = $_GET['consult_id'];
+			//uncomment the following line of code if needed.
+			//$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			
+			$query = "SELECT record_number FROM m_leprosy_drug_collection_chart WHERE ".
+				"consult_id = $loc_consult_id ORDER BY record_number DESC ";
+			$result = mysql_query($query)
+					or die("Couldn't execute query. ".mysql_error());
+			
+			if($row = mysql_fetch_assoc($result)) {
+				$loc_record_number = $row['record_number'];
+				
+				$query = "DELETE FROM m_leprosy_drug_collection_chart WHERE ".
+					"record_number = $loc_record_number ";
+				$result = mysql_query($query)
+					or die("Couldn't execute query. ".mysql_error());
+			}
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
+		// Comment date: Feb 04, 2010, JVTolentino
+		// This function will be used to create the 'Voluntary Muscle Testing' table.
+		function create_voluntary_muscle_testing_table() {
+			$this->populate_voluntary_muscle_testing();
+			
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			
+			print "<table border=3 bordercolor='black' align='center' width=600>";
+				print "<tr>";
+					print "<th align='left' bgcolor=#CC9900# colspan=5>Voluntary Muscle Testing</th>";
+				print "</tr>";
+				
+				print "<tr>";
+					print "<td align='center' colspan=2><b>Upon Dx</b></td>";
+					print "<td align='center'></td>";
+					print "<td align='center' colspan=2><b>Upon TC</b></td>";
+				print "<tr>";
+				
+				print "<tr>";
+					print "<td align='center'><b>Right</b></td>";
+					print "<td align='center'><b>Left</b></td>";
+					print "<td align='center' rowspan=2><b><i>Key Movements</i></b></td>";
+					print "<td align='center'><b>Right</b></td>";
+					print "<td align='center'><b>Left</b></td>";
+				print "<tr>";
+				
+				$query = "SELECT * FROM m_leprosy_voluntary_muscle_testing WHERE ".
+					"consult_id = $loc_consult_id ";
+				$result = mysql_query($query)	
+					or die("Couldn't execute query. ".mysql_error());
+				
+				while($row = mysql_fetch_array($result)) {
+					extract($row);
+					print "<tr>";
+						print "<td align='center'>$upon_dx_right</td>";
+						print "<td align='center'>$upon_dx_left</td>";
+						print "<td align='center'>$key_movement</td>";
+						print "<td align='center'>$upon_tc_right</td>";
+						print "<td align='center'>$upon_tc_left</td>";
+					print "<tr>";
+				}
+			//print "</table>";
+			
+			
+			//print "<table border=3 bordercolor='black' align='center' width=600>";
+				print "<tr>";
+					print "<td colspan=5><b>Update Voluntary Muscle Testing:</b></td>";
+				print "</tr>";
+				
+				print "<tr>";				
+					print "<td align='center' colspan=5>";
+						print "<select name='voluntary_muscle_testing_dx_tc'>";
+							print "<option value='dx_right'>Upon Dx - Right</option>";
+							print "<option value='dx_left'>Upon Dx - Left</option>";
+							print "<option value='tc_right'>Upon TC - Right</option>";
+							print "<option value='tc_left'>Upon TC - Left</option>";
+						print "</select>";
+						
+						print "&nbsp;";
+						
+						print "<select name='voluntary_muscle_testing_key_movement'>";
+							print "<option value='Tight Eye Closure'>Tight Eye Closure</option>";
+							print "<option value='Little Finger Out'>Little Finger Out</option>";
+							print "<option value='Thumb Up'>Thumb Up</option>";
+							print "<option value='Wrist Up'>Wrist Up</option>";
+							print "<option value='Foot Up'>Foot Up</option>";
+						print "</select>";
+						
+						print "&nbsp;";
+						
+						print "<select name='voluntary_muscle_testing_muscle_strength'>";
+							print "<option value='5'>5 - Full range of motion; full resistance</option>";
+							print "<option value='4'>4 - Full range of motion; some resistance</option>";
+							print "<option value='3'>3 - Full range of motion; no resistance</option>";
+							print "<option value='2'>2 - Decreased range of motion</option>";
+							print "<option value='1'>1 - Muscle flicker/palpable muscle contraction</option>";
+							print "<option value='0'>0 - Complete Paralysis</option>";
+						print "</select>";
+					print "</td>";
+				print "</tr>";
+				
+				print "<tr>";
+					print "<td colspan=5 align='center'><input type='submit' name='submit_button' ".
+						"value='Update Voluntary Muscle Testing'></input></td>";
+				print "</tr>";
+			print "</table>";
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
+		// Comment date: Feb 04, 2010, JVTolentino
+		// This function will populate [m_leprosy_voluntary_muscle_testing] with the patient's record.
+		function populate_voluntary_muscle_testing() {
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			list($month, $day, $year) = explode("/", date("m/d/Y"));
+			$loc_current_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+			$loc_userid = $_SESSION['userid'];
+			
+			// IF THERE IS A RECORD, NO NEED TO UPDATE
+			
+			$query = "SELECT * FROM m_leprosy_voluntary_muscle_testing ".
+				"WHERE consult_id = $loc_consult_id AND ".
+				"key_movement = 'Tight Eye Closure' ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if(!(mysql_num_rows($result))) {
+				$query = "INSERT INTO m_leprosy_voluntary_muscle_testing ".
+					"(consult_id, patient_id, key_movement, date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, 'Tight Eye Closure', '$loc_current_date', ".
+					"$loc_userid) ";
+				$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			}
+			
+			$query = "SELECT * FROM m_leprosy_voluntary_muscle_testing ".
+				"WHERE consult_id = $loc_consult_id AND ".
+				"key_movement = 'Little Finger Out' ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if(!(mysql_num_rows($result))) {
+				$query = "INSERT INTO m_leprosy_voluntary_muscle_testing ".
+					"(consult_id, patient_id, key_movement, date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, 'Little Finger Out', '$loc_current_date', ".
+					"$loc_userid) ";
+				$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			}
+			
+			$query = "SELECT * FROM m_leprosy_voluntary_muscle_testing ".
+				"WHERE consult_id = $loc_consult_id AND ".
+				"key_movement = 'Thumb Up' ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if(!(mysql_num_rows($result))) {
+				$query = "INSERT INTO m_leprosy_voluntary_muscle_testing ".
+					"(consult_id, patient_id, key_movement, date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, 'Thumb Up', '$loc_current_date', ".
+					"$loc_userid) ";
+				$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			}
+			
+			$query = "SELECT * FROM m_leprosy_voluntary_muscle_testing ".
+				"WHERE consult_id = $loc_consult_id AND ".
+				"key_movement = 'Wrist Up' ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if(!(mysql_num_rows($result))) {
+				$query = "INSERT INTO m_leprosy_voluntary_muscle_testing ".
+					"(consult_id, patient_id, key_movement, date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, 'Wrist Up', '$loc_current_date', ".
+					"$loc_userid) ";
+				$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			}
+			
+			$query = "SELECT * FROM m_leprosy_voluntary_muscle_testing ".
+				"WHERE consult_id = $loc_consult_id AND ".
+				"key_movement = 'Foot Up' ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if(!(mysql_num_rows($result))) {
+				$query = "INSERT INTO m_leprosy_voluntary_muscle_testing ".
+					"(consult_id, patient_id, key_movement, date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, 'Foot Up', '$loc_current_date', ".
+					"$loc_userid) ";
+				$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			}
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
+		// Comment date: Feb 04, 2010, JVTolentino
+		// This function will modify a record in [m_leprosy_voluntary_muscle_testing].
+		function voluntary_muscle_testing_record() {
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			list($month, $day, $year) = explode("/", date("m/d/Y"));
+			$loc_current_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+			$loc_userid = $_SESSION['userid'];
+			
+			$loc_key_movement = $_POST['voluntary_muscle_testing_key_movement'];
+			$loc_dx_or_tc = $_POST['voluntary_muscle_testing_dx_tc'];
+			$loc_muscle_strength = $_POST['voluntary_muscle_testing_muscle_strength'];
+			
+			switch($loc_dx_or_tc) {
+				case 'dx_right':
+					$query = "UPDATE m_leprosy_voluntary_muscle_testing SET ".
+						"upon_dx_right = '$loc_muscle_strength', ".
+						"date_last_updated = '$loc_current_date', ".
+						"user_id = $loc_userid ".
+						"WHERE consult_id = $loc_consult_id AND ".
+						"key_movement = '$loc_key_movement' ";
+					break;
+				case 'dx_left':
+					$query = "UPDATE m_leprosy_voluntary_muscle_testing SET ".
+						"upon_dx_left = '$loc_muscle_strength', ".
+						"date_last_updated = '$loc_current_date', ".
+						"user_id = $loc_userid ".
+						"WHERE consult_id = $loc_consult_id AND ".
+						"key_movement = '$loc_key_movement' ";
+					break;
+				case 'tc_right':
+					$query = "UPDATE m_leprosy_voluntary_muscle_testing SET ".
+						"upon_tc_right = '$loc_muscle_strength', ".
+						"date_last_updated = '$loc_current_date', ".
+						"user_id = $loc_userid ".
+						"WHERE consult_id = $loc_consult_id AND ".
+						"key_movement = '$loc_key_movement' ";
+					break;
+				case 'tc_left':
+					$query = "UPDATE m_leprosy_voluntary_muscle_testing SET ".
+						"upon_tc_left = '$loc_muscle_strength', ".
+						"date_last_updated = '$loc_current_date', ".
+						"user_id = $loc_userid ".
+						"WHERE consult_id = $loc_consult_id AND ".
+						"key_movement = '$loc_key_movement' ";
+					break;
+				default:
+			}
+			$result = mysql_query($query)
+				or die("Couldnt execute query. ".mysql_error());
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
 		// Comment date: Jan 27, 2010, JVTolentino
 		// This function will be used to add records to 'Leprosy Module Tables' in CHITS DB.
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1124,6 +1586,15 @@
 					break;
 				case 'Save Skin Smear':
 					$this->skin_smear_record();
+					break;
+				case 'Add To Drug Collection Chart':
+					$this->drug_collection_chart_record();
+					break;
+				case 'Delete Last Record From Drug Collection Chart':
+					$this->delete_record_from_drug_collection_chart();
+					break;
+				case 'Update Voluntary Muscle Testing':
+					$this->voluntary_muscle_testing_record();
 					break;
 			}
 		}
