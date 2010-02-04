@@ -156,6 +156,18 @@
 				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
 			
 			
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_leprosy_skin_smear` (".
+				"`record_number` float NOT NULL AUTO_INCREMENT,".
+				"`consult_id` float NOT NULL,".
+				"`patient_id` float NOT NULL,".
+				"`skin_smear_done` char(1) COLLATE swe7_bin NOT NULL,".
+				"`bacillary_index_reading` char(25) COLLATE swe7_bin NOT NULL,".
+				"`date_last_updated` date NOT NULL,".
+				"`user_id` float NOT NULL,".	
+				"PRIMARY KEY (`record_number`)".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
+			
+			
 			
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -173,6 +185,7 @@
 			module::execsql("DROP TABLE `m_leprosy_past_treatment`");
 			module::execsql("DROP TABLE `m_leprosy_other_illness`");
 			module::execsql("DROP TABLE `m_leprosy_contact_examination`");
+			module::execsql("DROP TABLE `m_leprosy_skin_smear`");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -207,6 +220,9 @@
 			print "<br>";
 			
 			$this->create_contact_examination_table();
+			print "<br>";
+			
+			$this->create_skin_smear_table();
 			print "<br>";
 			
 		}
@@ -692,7 +708,12 @@
 			} else {
 				$loc_kidney_disease = 'N';
 			}
-			$loc_other_illness = $_POST['other_illness'];
+			if($_POST['other_illness'] == '') {
+				$loc_other_illness = ' ';
+			} else {
+				$loc_other_illness = $_POST['other_illness'];
+			}
+			
 			list($month, $day, $year) = explode("/", date("m/d/Y"));
 			$loc_current_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
 			$loc_userid = $_POST['h_userid'];
@@ -711,13 +732,13 @@
 					"other_illness = '$loc_other_illness', ".
 					"date_last_updated = '$loc_current_date', ".
 					"user_id = $loc_userid ".
-					"WHERE consult_id = $loc_consult_id ";
+					"WHERE patient_id = $loc_patient_id ";
 			} else {
 				$query = "INSERT INTO m_leprosy_other_illness ".
 					"(patient_id, tb, severe_jaundice, peptic_ulcer, kidney_disease, ".
 					"other_illness, date_last_updated, user_id) ".
 					"VALUES($loc_patient_id, '$loc_tb', '$loc_severe_jaundice', ".
-					"'$loc_peptic_ulcer', '$kidney_disease', '$loc_other_illness', ".
+					"'$loc_peptic_ulcer', '$loc_kidney_disease', '$loc_other_illness', ".
 					"'$loc_current_date', $loc_userid)";
 			}
 			
@@ -815,7 +836,7 @@
 						print "</select>";
 					print "</td>";
 					
-					list($year, $month, $day) = explode("/", date("Y/d/m"));
+					list($month, $day, $year) = explode("/", date("m/d/Y"));
 					$loc_current_date = str_pad($month, 2, "0", STR_PAD_LEFT)."/".str_pad($day, 2, "0", STR_PAD_LEFT)."/".$year;
 					
 					print "<td align='center' colspan=2>Date Examined<br>";
@@ -878,6 +899,8 @@
 				or die("Couldn't execute query. ".mysql_error());
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
 		
 		// Comment date: Jan 29, 2010, JVTolentino
 		// This function will be used to retrieve the family_id of a patient using his/her patient_id.
@@ -951,6 +974,133 @@
 		
 		
 		
+		// Comment date: Feb 03, 2010, JVTolentino
+		// This function will be used to create the 'Skin Smear' table.
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function create_skin_smear_table() {
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			
+			$query = "SELECT * FROM m_leprosy_skin_smear WHERE ".
+				"consult_id = $loc_consult_id ";
+			$result = mysql_query($query) 
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if($row = mysql_fetch_assoc($result)) {
+				$loc_skin_smear_done = $row['skin_smear_done'];
+				$loc_bacillary_index_reading = $row['bacillary_index_reading'];
+				list($year, $month, $day) = explode("-", $row['date_last_updated']);
+				$loc_date_last_updated = str_pad($month, 2, "0", STR_PAD_LEFT)."/".str_pad($day, 2, "0", STR_PAD_LEFT)."/".$year;
+				$loc_updated = 'Y';
+			}
+			else {
+				$loc_skin_smear_done = '';
+				$loc_bacillary_index_reading = '';
+				$loc_updated = 'N';
+			}
+			
+			print "<table border=3 bordercolor='black' align='center' width=600>";
+				print "<tr>";
+					if($loc_updated == 'Y') {
+						print "<th align='left' bgcolor=#CC9900#>Skin Smear</th>";
+						print "<th align='left' bgcolor=#CC9900#><font color='red'>".
+							"This section has been updated last $loc_date_last_updated.</font></th>";
+					}
+					else {
+						print "<th align='left' bgcolor=#CC9900#>Skin Smear</th>";
+						print "<th align='left' bgcolor=#CC9900#>".
+							"<font color='red'>This section has never been updated before.</font></th>";
+					}
+				print "</tr>";
+				
+				print "<tr>";
+					switch($loc_skin_smear_done) {
+						case 'Y':
+							print "<td>".
+								"<font color='red'>".
+								"<input type='radio' name='skin_smear_done' value='Y' checked>Done</input>".
+								"</font>".
+								"<input type='radio' name='skin_smear_done' value='N'>Not Done</input>".
+								"</td>";
+							break;
+						case 'N':
+							print "<td>".
+								"<input type='radio' name='skin_smear_done' value='Y'>Done</input>".
+								"<font color='red'>".
+								"<input type='radio' name='skin_smear_done' value='N' checked>Not Done</input>".
+								"</font></td>";
+							break;
+						default:
+							print "<td>".
+								"<input type='radio' name='skin_smear_done' value='Y' checked>Done</input>".
+								"<input type='radio' name='skin_smear_done' value='N'>Not Done</input>".
+								"</td>";
+					}
+					
+					if($loc_updated == 'Y') {
+						print "<td>Bacilliary Index (BI) Reading: ".
+							"<input type='text' name='bacillary_index_reading' ".
+							"value='$loc_bacillary_index_reading'></input></td>";
+					}
+					else {
+						print "<td>Bacilliary Index (BI) Reading: ".
+							"<input type='text' name='bacillary_index_reading'></input></td>";
+					}
+				print "</tr>";
+				
+				print "<tr>";
+					print "<td colspan=2 align='center'><input type='submit' name='submit_button' ".
+						"value='Save Skin Smear'></input></td>";
+				print "</tr>";
+				
+			print "</table>";
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
+		// Comment date: Feb 04, 2010, JVTolentino
+		// This function will add/update a record in [m_leprosy_skin_smear].
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function skin_smear_record() {
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			
+			$loc_skin_smear_done = $_POST['skin_smear_done'];
+			$loc_bacillary_index_reading = $_POST['bacillary_index_reading'];
+			
+			list($month, $day, $year) = explode("/", date("m/d/Y"));
+			$loc_current_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+			
+			$loc_userid =  $_SESSION['userid'];
+			
+			$query = "SELECT consult_id FROM m_leprosy_skin_smear WHERE ".
+				"consult_id = $loc_consult_id ";
+			$result = mysql_query($query) 
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if(mysql_num_rows($result)) {
+				$query = "UPDATE m_leprosy_skin_smear SET ".
+					"skin_smear_done = '$loc_skin_smear_done', ".
+					"bacillary_index_reading = '$loc_bacillary_index_reading', ".
+					"date_last_updated = '$loc_current_date', ".
+					"user_id = $loc_userid ".
+					"WHERE consult_id = $loc_consult_id ";
+			}
+			else {
+				$query = "INSERT INTO m_leprosy_skin_smear ".
+					"(consult_id, patient_id, skin_smear_done, bacillary_index_reading, ".
+					"date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, '$loc_skin_smear_done', ".
+					"'$loc_bacillary_index_reading', '$loc_date_last_updated', $loc_userid)";
+			}
+			$result = mysql_query($query) 
+				or die("Couldn't execute query. ".mysql_error());
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
 		// Comment date: Jan 27, 2010, JVTolentino
 		// This function will be used to add records to 'Leprosy Module Tables' in CHITS DB.
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -971,6 +1121,9 @@
 					break;
 				case 'Save Contact Examination':
 					$this->contact_examination_record();
+					break;
+				case 'Save Skin Smear':
+					$this->skin_smear_record();
 					break;
 			}
 		}
