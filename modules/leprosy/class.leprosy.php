@@ -187,10 +187,8 @@
 				"`consult_id` float NOT NULL,".
 				"`patient_id` float NOT NULL,".
 				"`key_movement` char(25) COLLATE swe7_bin NOT NULL,".
-				"`upon_dx_date` date NOT NULL,".
 				"`upon_dx_left` char(1) COLLATE swe7_bin NOT NULL,".
 				"`upon_dx_right` char(1) COLLATE swe7_bin NOT NULL,".
-				"`upon_tc_date` date NOT NULL,".
 				"`upon_tc_left` char(1) COLLATE swe7_bin NOT NULL,".
 				"`upon_tc_right` char(1) COLLATE swe7_bin NOT NULL,".
 				"`date_last_updated` date NOT NULL,".
@@ -199,7 +197,19 @@
 				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
 			
 			
-			
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_leprosy_eye_evaluation` (".
+				"`record_number` float NOT NULL AUTO_INCREMENT,".
+				"`consult_id` float NOT NULL,".
+				"`patient_id` float NOT NULL,".
+				"`indicator` char(30) COLLATE swe7_bin NOT NULL,".
+				"`upon_dx_right` char(10) COLLATE swe7_bin NOT NULL,".
+				"`upon_dx_left` char(10) COLLATE swe7_bin NOT NULL,".
+				"`upon_tc_right` char(10) COLLATE swe7_bin NOT NULL,".
+				"`upon_tc_left` char(10) COLLATE swe7_bin NOT NULL,".
+				"`date_last_updated` date NOT NULL,".
+				"`user_id` float NOT NULL,".
+				"PRIMARY KEY (`record_number`)".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -219,6 +229,7 @@
 			module::execsql("DROP TABLE `m_leprosy_skin_smear`");
 			module::execsql("DROP TABLE `m_leprosy_drug_collection_chart`");
 			module::execsql("DROP TABLE `m_leprosy_voluntary_muscle_testing`");
+			module::execsql("DROP TABLE `m_leprosy_eye_evaluation`");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -262,6 +273,9 @@
 			print "<br>";
 			
 			$this->create_voluntary_muscle_testing_table();
+			print "<br>";
+			
+			$this->create_eye_evaluation_table();
 			print "<br>";
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1563,6 +1577,234 @@
 		
 		
 		
+		// Comment date: Feb 05, 2010, JVTolentino
+		// This function will be used to create the 'Eye Evaluation' table.
+		function create_eye_evaluation_table() {
+			$this->populate_eye_evaluation();
+			
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			
+			print "<table border=3 bordercolor='black' align='center' width=600>";
+				print "<tr>";
+					print "<th align='left' bgcolor=#CC9900# colspan=5>Eye Evaluation</th>";
+				print "</tr>";
+				
+				print "<tr>";
+					print "<td align='center' colspan=2><b>Upon Dx</b></td>";
+					print "<td align='center'></td>";
+					print "<td align='center' colspan=2><b>Upon TC</b></td>";
+				print "<tr>";
+				
+				print "<tr>";
+					print "<td align='center'><b>Right</b></td>";
+					print "<td align='center'><b>Left</b></td>";
+					print "<td align='center' rowspan=2><b><i>Indicators</i></b></td>";
+					print "<td align='center'><b>Right</b></td>";
+					print "<td align='center'><b>Left</b></td>";
+				print "<tr>";
+				
+				$query = "SELECT * FROM m_leprosy_eye_evaluation WHERE ".
+					"consult_id = $loc_consult_id ";
+				$result = mysql_query($query)	
+					or die("Couldn't execute query. ".mysql_error());
+				
+				while($row = mysql_fetch_array($result)) {
+					extract($row);
+					print "<tr>";
+						print "<td align='center'>$upon_dx_right</td>";
+						print "<td align='center'>$upon_dx_left</td>";
+						print "<td align='center'>$indicator</td>";
+						print "<td align='center'>$upon_tc_right</td>";
+						print "<td align='center'>$upon_tc_left</td>";
+					print "<tr>";
+				}
+				
+				print "<tr>";
+					print "<td colspan=5><b>Update Eye Evaluation:</b></td>";
+				print "</tr>";
+				
+				print "<tr>";				
+					print "<td align='center' colspan=5>";
+						print "<select name='eye_evaluation_dx_tc'>";
+							print "<option value='dx_right'>Upon Dx - Right</option>";
+							print "<option value='dx_left'>Upon Dx - Left</option>";
+							print "<option value='tc_right'>Upon TC - Right</option>";
+							print "<option value='tc_left'>Upon TC - Left</option>";
+						print "</select>";
+						
+						print "&nbsp;";
+						
+						print "<select name='eye_evaluation_indicator'>";
+							print "<option value='Redness (Y/N)'>Redness (Y/N)</option>";
+							print "<option value='Decreased of No Blink (Y/N)'>Decreased of No Blink (Y/N)</option>";
+							print "<option value='Lid Gap w/ Light Closure (mm)'>Lid Gap w/ Light Closure (mm)</option>";
+							print "<option value='Visual Acuity (meters)'>Visual Acuity (meters)</option>";
+							print "<option value='Corneal Opacity (Y/N)'>Corneal Opacity (Y/N)</option>";
+						print "</select>";
+						
+						print "&nbsp;";
+						
+						print "<input type='text' name='eye_evaluation_indicator_value' size=10>".
+							"</input>";
+					print "</td>";
+				print "</tr>";
+				
+				print "<tr>";
+					print "<td colspan=5 align='center'><input type='submit' name='submit_button' ".
+						"value='Update Eye Evaluation'></input></td>";
+				print "</tr>";
+			print "</table>";
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
+		// Comment date: Feb 04, 2010, JVTolentino
+		// This function will populate [m_leprosy_voluntary_muscle_testing] with the patient's record.
+		function populate_eye_evaluation() {
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			list($month, $day, $year) = explode("/", date("m/d/Y"));
+			$loc_current_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+			$loc_userid = $_SESSION['userid'];
+			
+			// IF THERE IS A RECORD, NO NEED TO UPDATE
+			
+			$query = "SELECT * FROM m_leprosy_eye_evaluation ".
+				"WHERE consult_id = $loc_consult_id AND ".
+				"indicator = 'Redness (Y/N)' ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if(!(mysql_num_rows($result))) {
+				$query = "INSERT INTO m_leprosy_eye_evaluation ".
+					"(consult_id, patient_id, indicator, date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, 'Redness (Y/N)', '$loc_current_date', ".
+					"$loc_userid) ";
+				$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			}
+			
+			$query = "SELECT * FROM m_leprosy_eye_evaluation ".
+				"WHERE consult_id = $loc_consult_id AND ".
+				"indicator = 'Decreased of No Blink (Y/N)' ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if(!(mysql_num_rows($result))) {
+				$query = "INSERT INTO m_leprosy_eye_evaluation ".
+					"(consult_id, patient_id, indicator, date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, 'Decreased of No Blink (Y/N)', ".
+					"'$loc_current_date', $loc_userid) ";
+				$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			}
+			
+			$query = "SELECT * FROM m_leprosy_eye_evaluation ".
+				"WHERE consult_id = $loc_consult_id AND ".
+				"indicator = 'Lid Gap w/ Light Closure (mm)' ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if(!(mysql_num_rows($result))) {
+				$query = "INSERT INTO m_leprosy_eye_evaluation ".
+					"(consult_id, patient_id, indicator, date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, 'Lid Gap w/ Light Closure (mm)', ".
+					"'$loc_current_date', $loc_userid) ";
+				$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			}
+			
+			$query = "SELECT * FROM m_leprosy_eye_evaluation ".
+				"WHERE consult_id = $loc_consult_id AND ".
+				"indicator = 'Visual Acuity (meters)' ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if(!(mysql_num_rows($result))) {
+				$query = "INSERT INTO m_leprosy_eye_evaluation ".
+					"(consult_id, patient_id, indicator, date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, 'Visual Acuity (meters)', ".
+					"'$loc_current_date', $loc_userid) ";
+				$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			}
+			
+			$query = "SELECT * FROM m_leprosy_eye_evaluation ".
+				"WHERE consult_id = $loc_consult_id AND ".
+				"indicator = 'Corneal Opacity (Y/N)' ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if(!(mysql_num_rows($result))) {
+				$query = "INSERT INTO m_leprosy_eye_evaluation ".
+					"(consult_id, patient_id, indicator, date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, 'Corneal Opacity (Y/N)', ".
+					"'$loc_current_date', $loc_userid) ";
+				$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			}
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
+		// Comment date: Feb 05, 2010, JVTolentino
+		// This function will modify a record in [m_leprosy_eye_evaluation].
+		function eye_evaluation_record() {
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			list($month, $day, $year) = explode("/", date("m/d/Y"));
+			$loc_current_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+			$loc_userid = $_SESSION['userid'];
+			
+			$loc_indicator = $_POST['eye_evaluation_indicator'];
+			$loc_dx_or_tc = $_POST['eye_evaluation_dx_tc'];
+			$loc_eye_evaluation_indicator_value = $_POST['eye_evaluation_indicator_value'];
+			
+			switch($loc_dx_or_tc) {
+				case 'dx_right':
+					$query = "UPDATE m_leprosy_eye_evaluation SET ".
+						"upon_dx_right = '$loc_eye_evaluation_indicator_value', ".
+						"date_last_updated = '$loc_current_date', ".
+						"user_id = $loc_userid ".
+						"WHERE consult_id = $loc_consult_id AND ".
+						"indicator = '$loc_indicator' ";
+					break;
+				case 'dx_left':
+					$query = "UPDATE m_leprosy_eye_evaluation SET ".
+						"upon_dx_left = '$loc_eye_evaluation_indicator_value', ".
+						"date_last_updated = '$loc_current_date', ".
+						"user_id = $loc_userid ".
+						"WHERE consult_id = $loc_consult_id AND ".
+						"indicator = '$loc_indicator' ";
+					break;
+				case 'tc_right':
+					$query = "UPDATE m_leprosy_eye_evaluation SET ".
+						"upon_tc_right = '$loc_eye_evaluation_indicator_value', ".
+						"date_last_updated = '$loc_current_date', ".
+						"user_id = $loc_userid ".
+						"WHERE consult_id = $loc_consult_id AND ".
+						"indicator = '$loc_indicator' ";
+					break;
+				case 'tc_left':
+					$query = "UPDATE m_leprosy_eye_evaluation SET ".
+						"upon_tc_left = '$loc_eye_evaluation_indicator_value', ".
+						"date_last_updated = '$loc_current_date', ".
+						"user_id = $loc_userid ".
+						"WHERE consult_id = $loc_consult_id AND ".
+						"indicator = '$loc_indicator' ";
+					break;
+				default:
+			}
+			$result = mysql_query($query)
+				or die("Couldnt execute query. ".mysql_error());
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
 		// Comment date: Jan 27, 2010, JVTolentino
 		// This function will be used to add records to 'Leprosy Module Tables' in CHITS DB.
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1595,6 +1837,9 @@
 					break;
 				case 'Update Voluntary Muscle Testing':
 					$this->voluntary_muscle_testing_record();
+					break;
+				case 'Update Eye Evaluation':
+					$this->eye_evaluation_record();
 					break;
 			}
 		}
