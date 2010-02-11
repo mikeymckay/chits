@@ -104,6 +104,7 @@
 				"`record_number` float NOT NULL AUTO_INCREMENT,".
 				"`consult_id` float NOT NULL,".
 				"`patient_id` float NOT NULL,".
+				"`patient_age` float NOT NULL,".
 				"`date_of_diagnosis` date NOT NULL,".
 				"`patient_case` char(8) COLLATE swe7_bin NOT NULL,".
 				"`classification` char(4) COLLATE swe7_bin NOT NULL,".
@@ -156,7 +157,7 @@
 				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
 			
 			
-			module::execsql("CREATE TABLE IF NOT EXISTS `m_leprosy_skin_smear` (".
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_leprosy_kin_smear` (".
 				"`record_number` float NOT NULL AUTO_INCREMENT,".
 				"`consult_id` float NOT NULL,".
 				"`patient_id` float NOT NULL,".
@@ -210,6 +211,35 @@
 				"`user_id` float NOT NULL,".
 				"PRIMARY KEY (`record_number`)".
 				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
+			
+			
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_leprosy_who_disability_grade` (".
+				"`record_number` float NOT NULL AUTO_INCREMENT,".
+				"`consult_id` float NOT NULL,".
+				"`patient_id` float NOT NULL,".
+				"`who_disability` char(25) COLLATE swe7_bin NOT NULL,".
+				"`upon_dx_right` char(1) COLLATE swe7_bin NOT NULL,".
+				"`upon_dx_left` char(1) COLLATE swe7_bin NOT NULL,".
+				"`upon_tc_right` char(1) COLLATE swe7_bin NOT NULL,".
+				"`upon_tc_left` char(1) COLLATE swe7_bin NOT NULL,".
+				"`date_last_updated` date NOT NULL,".
+				"`user_id` float NOT NULL,".
+				"PRIMARY KEY (`record_number`)".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
+
+
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_leprosy_post_treatment` (".
+				"`record_number` float NOT NULL AUTO_INCREMENT,".
+  				"`consult_id` float NOT NULL,".
+  				"`patient_id` float NOT NULL,".
+				"`upon_dx_physician` char(30) COLLATE swe7_bin NOT NULL,".
+  				"`upon_tc_physician` char(30) COLLATE swe7_bin NOT NULL,".
+				"`upon_tc_date` date NOT NULL,".
+  				"`patient_cured` enum('Y','N') COLLATE swe7_bin NOT NULL,".
+  				"`date_last_updated` date NOT NULL,".
+  				"`user_id` float NOT NULL,".
+  				"PRIMARY KEY (`record_number`)".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -230,6 +260,8 @@
 			module::execsql("DROP TABLE `m_leprosy_drug_collection_chart`");
 			module::execsql("DROP TABLE `m_leprosy_voluntary_muscle_testing`");
 			module::execsql("DROP TABLE `m_leprosy_eye_evaluation`");
+			module::execsql("DROP TABLE `m_leprosy_who_disability_grade`");
+			module::execsql("DROP TABLE `m_leprosy_post_treatment`");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -276,6 +308,12 @@
 			print "<br>";
 			
 			$this->create_eye_evaluation_table();
+			print "<br>";
+			
+			$this->create_who_disability_grade_table();
+			print "<br>";
+
+			$this->create_post_treatment_table();
 			print "<br>";
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -338,7 +376,7 @@
 					print "<td align='center' width='150'>";
 						if($_POST['date_of_diagnosis'] == '') {
 							print "<input type='text' name='date_of_diagnosis' ".
-								"readonly='true' size=10 value='$loc_date_of_diagnosis'".
+								"readonly='true' size=10 value='$loc_date_of_diagnosis'>".
 								"<a href=\"javascript:show_calendar4('document.form_leprosy.date_of_diagnosis', ".
 								"document.form_leprosy.date_of_diagnosis.value);\">".
 								"<img src='../images/cal.gif' width='16' height='16' border='0' ".
@@ -356,69 +394,74 @@
 					print "<td> Click the image on the left to change the date of diagnosis.</td>";
 				print "</tr>";
 				
-				if($loc_patient_case == 'New Case') {
-					print "<tr>";
-						print "<td width='150'></td>";
+				print "<tr>";
+				print "<td width='150'></td>";
+				switch($loc_patient_case) {
+					case 'New Case':
 						print "<td>".
 							"<input type='radio' name='patient_case' value='New Case' checked>".
 							"<font color='red'>New Case <br></font>".
 							"<input type='radio' name='patient_case' value='Old Case'>".
 							"Old Case</td>";
-					print "</tr>";
-				}
-				else {
-					print "<tr>";
-						print "<td width='150'></td>";
+						break;
+					case 'Old Case':
 						print "<td>".
 							"<input type='radio' name='patient_case' value='New Case'>".
 							"New Case <br>".
 							"<input type='radio' name='patient_case' value='Old Case' checked>".
-							"<font color='red'>Old Case</font></td>";
-					print "</tr>";
+							"<font color='red'>Old Case</font></td>";	
+						break;
+					default:
+						print "<td>".
+							"<input type='radio' name='patient_case' value='New Case'>New Case <br>".
+							"<input type='radio' name='patient_case' value='Old Case'>Old Case</td>";	
+						break;
 				}
+				print "</tr>";
 				
-				if($loc_classification == 'SLPB') {
-					print "<tr>";
-					print "<td width='150' align='center'><i><b>CLASSIFICATION</i></b></td>";
-					print "<td>".
-						"<input type='radio' name='classification' value='SLPB' checked>".
-						"<font color='red'>SLPB</font><br>".
-						"<input type='radio' name='classification' value='PB'>".
-						"PB<br>".
-						"<input type='radio' name='classification' value='MB'>".
-						"MB</td>";
-					print "</tr>";
-					}
-				elseif($loc_classification == 'PB') {
-					print "<tr>";
-					print "<td width='150' align='center'><i><b>CLASSIFICATION</i></b></td>";
-					print "<td>".
-						"<input type='radio' name='classification' value='SLPB'>".
-						"SLPB <br>".
-						"<input type='radio' name='classification' value='PB' checked>".
-						"<font color='red'>PB</font><br>".
-						"<input type='radio' name='classification' value='MB'>".
-						"MB</td>";
-					print "</tr>";
+				print "<tr>";
+				print "<td width='150' align='center'><i><b>CLASSIFICATION</i></b></td>";
+				switch($loc_classification) {
+					case 'SLPB':
+						print "<td>".
+							"<input type='radio' name='classification' value='SLPB' checked>".
+							"<font color='red'>SLPB</font><br>".
+							"<input type='radio' name='classification' value='PB'>".
+							"PB<br>".
+							"<input type='radio' name='classification' value='MB'>".
+							"MB</td>";
+							break;
+					case 'PB':
+						print "<td>".
+							"<input type='radio' name='classification' value='SLPB'>".
+							"SLPB <br>".
+							"<input type='radio' name='classification' value='PB' checked>".
+							"<font color='red'>PB</font><br>".
+							"<input type='radio' name='classification' value='MB'>".
+							"MB</td>";
+							break;
+					case 'MB':
+						print "<td>".
+							"<input type='radio' name='classification' value='SLPB'>".
+							"SLPB<br>".
+							"<input type='radio' name='classification' value='PB'>".
+							"PB<br>".
+							"<input type='radio' name='classification' value='MB' checked>".
+							"<font color='red'>MB</font></td>";
+							break;
+					default:
+						print "<td>".
+							"<input type='radio' name='classification' value='SLPB'>SLPB<br>".
+							"<input type='radio' name='classification' value='PB'>PB<br>".
+							"<input type='radio' name='classification' value='MB'>MB</td>";
+						break;
 				}
-				else {
-					print "<tr>";
-					print "<td width='150' align='center'><i><b>CLASSIFICATION</i></b></td>";
-					print "<td>".
-						"<input type='radio' name='classification' value='SLPB'>".
-						"SLPB<br>".
-						"<input type='radio' name='classification' value='PB'>".
-						"PB<br>".
-						"<input type='radio' name='classification' value='MB' checked>".
-						"<font color='red'>MB</font></td>";
-					print "</tr>";
-				}
-				
-				if($loc_mode_of_detection == 'Voluntary') {
-					print "<tr>";
-						print "<td width='150' align='center'><i><b>MODE<br>".
-							"OF<br>".
-							"DETECTION</b></i></td>";
+				print "</tr>";
+
+				print "<tr>";
+				print "<td width='150' align='center'><i><b>MODE<br>OF<br>DETECTION</b></i></td>";
+				switch($loc_mode_of_detection) {
+					case 'Voluntary':
 						print "<td>".
 							"<input type='radio' name='mode_of_detection' value='Voluntary' checked>".
 							"<font color='red'>Voluntary</font><br>".
@@ -426,36 +469,33 @@
 							"Special Projects<br>".
 							"<input type='radio' name='mode_of_detection' value='Contact Examination'>".
 							"Contact Examination</td>";
-					print "</tr>";
-				}
-				elseif($loc_mode_of_detection == 'Special Projects') {
-					print "<tr>";
-						print "<td width='150' align='center'><i><b>MODE<br>".
-							"OF<br>".
-							"DETECTION</b></i></td>";
+						break;
+					case 'Special Projects':
 						print "<td>".
-							"<input type='radio' name='mode_of_detection' value='Voluntary'>".
-							"Voluntary<br>".
+						 	"<input type='radio' name='mode_of_detection' value='Voluntary'>Voluntary<br>".
 							"<input type='radio' name='mode_of_detection' value='Special Projects' checked>".
 							"<font color='red'>Special Projects</font><br>".
 							"<input type='radio' name='mode_of_detection' value='Contact Examination'>".
 							"Contact Examination</td>";
-					print "</tr>";
-				}
-				else {
-					print "<tr>";
-						print "<td width='150' align='center'><i><b>MODE<br>".
-							"OF<br>".
-							"DETECTION</b></i></td>";
+						break;
+					case 'Contact Examination':
 						print "<td>".
-							"<input type='radio' name='mode_of_detection' value='Voluntary'>".
-							"Voluntary<br>".
+							"<input type='radio' name='mode_of_detection' value='Voluntary'>Voluntary<br>".
 							"<input type='radio' name='mode_of_detection' value='Special Projects'>".
 							"Special Projects<br>".
 							"<input type='radio' name='mode_of_detection' value='Contact Examination' checked>".
 							"<font color='red'>Contact Examination</font></td>";
-					print "</tr>";
+						break;
+					default:
+						print "<td>".
+							"<input type='radio' name='mode_of_detection' value='Voluntary'>Voluntary<br>".
+							"<input type='radio' name='mode_of_detection' value='Special Projects'>".
+							"Special Projects<br>".
+							"<input type='radio' name='mode_of_detection' value='Contact Examination'>".
+							"Contact Examination</td>";
+						break;
 				}
+				print "</tr>";
 				
 				print "<tr>";
 					print "<td colspan=2 align='center'><input type='submit' name='submit_button' ".
@@ -473,8 +513,8 @@
 		function diagnosis_record() {
 			$loc_patient_id = $_POST['h_patient_id'];
 			$loc_consult_id = $_POST['h_consult_id'];
+			$loc_patient_age = healthcenter::get_patient_age($loc_consult_id);
 			$loc_userid = $_POST['h_userid'];
-			//$loc_date_of_diagnosis = $_POST['date_of_diagnosis'];
 			list($month, $day, $year) = explode("/", $_POST['date_of_diagnosis']);
 			$loc_date_of_diagnosis = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
 			$loc_patient_case = $_POST['patient_case'];
@@ -504,9 +544,9 @@
 			}
 			else {
 				$query = "INSERT INTO m_leprosy_diagnosis ".
-					"(consult_id, patient_id, date_of_diagnosis, patient_case, classification, ".
+					"(consult_id, patient_id, patient_age, date_of_diagnosis, patient_case, classification, ".
 					"mode_of_detection, date_last_updated, user_id) ".
-					"VALUES($loc_consult_id, $loc_patient_id, '$loc_date_of_diagnosis', '$loc_patient_case', ".
+					"VALUES($loc_consult_id, $loc_patient_id, $loc_patient_age, '$loc_date_of_diagnosis', '$loc_patient_case', ".
 					"'$loc_classification', '$loc_mode_of_detection', '$loc_current_date', $loc_userid) ";
 				$result = mysql_query($query)
 					or die("Couldn't execute query. ".mysql_error());
@@ -846,7 +886,9 @@
 						print "<td align='center'>$sex</td>";
 						print "<td align='center'>$examination_done</td>";
 						print "<td align='center'>$results</td>";
-						print "<td align='center'>$date_examined</td>";
+						list($year, $month, $day) = explode("-", $row['date_examined']);
+						$loc_date_examined = str_pad($month, 2, "0", STR_PAD_LEFT)."/".str_pad($day, 2, "0", STR_PAD_LEFT)."/".$year;
+						print "<td align='center'>$loc_date_examined</td>";
 					print "</tr>";
 				}
 				
@@ -1090,13 +1132,50 @@
 					}
 					
 					if($loc_updated == 'Y') {
-						print "<td>Bacilliary Index (BI) Reading: ".
-							"<input type='text' name='bacillary_index_reading' ".
-							"value='$loc_bacillary_index_reading'></input></td>";
+						print "<td>Bacillary Index (BI) Reading: ";
+						print "<select name='bacillary_index_reading'>";
+						switch($loc_bacillary_index_reading) {
+							case '+':
+								print "<option value='+' selected>+</option>";
+								print "<option value='++'>++</option";
+								print "<option value='+++'>+++</option>";
+								print "<option value='-'>-</option>";
+								break;
+							case '++':
+								print "<option value='+'>+</option>";
+								print "<option value='++' selected>++</option";
+								print "<option value='+++'>+++</option>";
+								print "<option value='-'>-</option>";
+								break;
+							case '+++':
+								print "<option value='+'>+</option>";
+								print "<option value='++'>++</option";
+								print "<option value='+++' selected>+++</option>";
+								print "<option value='-'>-</option>";
+								break;
+							case '-':
+								print "<option value='+'>+</option>";
+								print "<option value='++'>++</option";
+								print "<option value='+++'>+++</option>";
+								print "<option value='-' selected>-</option>";
+								break;
+							default:
+								print "<option value='+'>+</option>";
+								print "<option value='++'>++</option";
+								print "<option value='+++'>+++</option>";
+								print "<option value='-'>-</option>";
+								break;
+						}
+						print "</select>";
 					}
 					else {
 						print "<td>Bacilliary Index (BI) Reading: ".
-							"<input type='text' name='bacillary_index_reading'></input></td>";
+							"<select name='bacillary_index_reading'>".
+								"<option value='+'>+</option>".
+								"<option value='++'>++</option>".
+								"<option value='+++'>+++</option>".
+								"<option value='-'>-</option>".
+							"</select></td>";
 					}
 				print "</tr>";
 				
@@ -1290,7 +1369,7 @@
 		
 		
 		// Comment date: Feb 04, JVTolentino
-		// This function will a record in [m_leprosy_drug_collection-chart]
+		// This function will add a record in [m_leprosy_drug_collection-chart]
 		function drug_collection_chart_record() {
 			$loc_consult_id = $_GET['consult_id'];
 			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
@@ -1660,8 +1739,8 @@
 		
 		
 		
-		// Comment date: Feb 04, 2010, JVTolentino
-		// This function will populate [m_leprosy_voluntary_muscle_testing] with the patient's record.
+		// Comment date: Feb 05, 2010, JVTolentino
+		// This function will populate [m_leprosy_eye_evaluation] with the patient's record.
 		function populate_eye_evaluation() {
 			$loc_consult_id = $_GET['consult_id'];
 			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
@@ -1805,6 +1884,352 @@
 		
 		
 		
+		// Comment date: Feb 05, 2010, JVTolentino
+		// This function will be used to create the 'WHO Disability Grade' table.
+		function create_who_disability_grade_table() {
+			$this->populate_who_disability_grade();
+			
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			
+			print "<table border=3 bordercolor='black' align='center' width=600>";
+				print "<tr>";
+					print "<th align='left' bgcolor=#CC9900# colspan=5>WHO Disability Grade</th>";
+				print "</tr>";
+				
+				print "<tr>";
+					print "<td align='center' colspan=2><b>Upon Dx</b></td>";
+					print "<td align='center'></td>";
+					print "<td align='center' colspan=2><b>Upon TC</b></td>";
+				print "<tr>";
+				
+				print "<tr>";
+					print "<td align='center'><b>Right</b></td>";
+					print "<td align='center'><b>Left</b></td>";
+					print "<td align='center' rowspan=2><b><i>WHO Disability</i></b></td>";
+					print "<td align='center'><b>Right</b></td>";
+					print "<td align='center'><b>Left</b></td>";
+				print "<tr>";
+				
+				$query = "SELECT * FROM m_leprosy_who_disability_grade WHERE ".
+					"consult_id = $loc_consult_id ";
+				$result = mysql_query($query)	
+					or die("Couldn't execute query. ".mysql_error());
+				
+				while($row = mysql_fetch_array($result)) {
+					extract($row);
+					print "<tr>";
+						print "<td align='center'>$upon_dx_right</td>";
+						print "<td align='center'>$upon_dx_left</td>";
+						print "<td align='center'>$who_disability</td>";
+						print "<td align='center'>$upon_tc_right</td>";
+						print "<td align='center'>$upon_tc_left</td>";
+					print "<tr>";
+				}
+				
+				print "<tr>";
+					print "<td colspan=5><b>Update WHO Disability Grade:</b></td>";
+				print "</tr>";
+				
+				print "<tr>";				
+					print "<td align='center' colspan=5>";
+						print "<select name='who_disability_grade_dx_tc'>";
+							print "<option value='dx_right'>Upon Dx - Right</option>";
+							print "<option value='dx_left'>Upon Dx - Left</option>";
+							print "<option value='tc_right'>Upon TC - Right</option>";
+							print "<option value='tc_left'>Upon TC - Left</option>";
+						print "</select>";
+						
+						print "&nbsp;";
+						
+						print "<select name='who_disability'>";
+							print "<option value='Eyes'>Eyes</option>";
+							print "<option value='Hands'>Hands</option>";
+							print "<option value='Feet'>Feet</option>";
+							print "<option value='Maximum Grade'><i>Maximum Grade</i></option>";
+						print "</select>";
+						
+						print "&nbsp;";
+						
+						print "<select name='who_disability_grade'>";
+							print "<option value='2'>Grade 2: Visible Deformity</option>";
+							print "<option value='1'>Grade 1: Anesthesia</option>";
+							print "<option value='0'>Grade 0: Normal</option>";
+						print "</select>";
+				print "</tr>";
+				
+				print "<tr>";
+					print "<td colspan=5 align='center'><input type='submit' name='submit_button' ".
+						"value='Update WHO Disability Grade'></input></td>";
+				print "</tr>";
+			print "</table>";
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
+		// Comment date: Feb 05, 2010, JVTolentino
+		// This function will populate [m_leprosy_who_disability_grade] with the patient's record.
+		function populate_who_disability_grade() {
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			list($month, $day, $year) = explode("/", date("m/d/Y"));
+			$loc_current_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+			$loc_userid = $_SESSION['userid'];
+			
+			// IF THERE IS A RECORD, NO NEED TO UPDATE
+			
+			$query = "SELECT * FROM m_leprosy_who_disability_grade ".
+				"WHERE consult_id = $loc_consult_id AND ".
+				"who_disability = 'Eyes' ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if(!(mysql_num_rows($result))) {
+				$query = "INSERT INTO m_leprosy_who_disability_grade ".
+					"(consult_id, patient_id, who_disability, date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, 'Eyes', '$loc_current_date', ".
+					"$loc_userid) ";
+				$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			}
+			
+			$query = "SELECT * FROM m_leprosy_who_disability_grade ".
+				"WHERE consult_id = $loc_consult_id AND ".
+				"who_disability = 'Hands' ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if(!(mysql_num_rows($result))) {
+				$query = "INSERT INTO m_leprosy_who_disability_grade ".
+					"(consult_id, patient_id, who_disability, date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, 'Hands', '$loc_current_date', ".
+					"$loc_userid) ";
+				$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			}
+			
+			$query = "SELECT * FROM m_leprosy_who_disability_grade ".
+				"WHERE consult_id = $loc_consult_id AND ".
+				"who_disability = 'Feet' ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if(!(mysql_num_rows($result))) {
+				$query = "INSERT INTO m_leprosy_who_disability_grade ".
+					"(consult_id, patient_id, who_disability, date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, 'Feet', '$loc_current_date', ".
+					"$loc_userid) ";
+				$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			}
+			
+			$query = "SELECT * FROM m_leprosy_who_disability_grade ".
+				"WHERE consult_id = $loc_consult_id AND ".
+				"who_disability = 'Maximum Grade' ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			
+			if(!(mysql_num_rows($result))) {
+				$query = "INSERT INTO m_leprosy_who_disability_grade ".
+					"(consult_id, patient_id, who_disability, date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, 'Maximum Grade', '$loc_current_date', ".
+					"$loc_userid) ";
+				$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+			}
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		
+		
+		
+		// Comment date: Feb 05, 2010, JVTolentino
+		// This function will modify a record in [m_leprosy_who_disability_grade].
+		function who_disability_grade_record() {
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			list($month, $day, $year) = explode("/", date("m/d/Y"));
+			$loc_current_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+			$loc_userid = $_SESSION['userid'];
+			
+			$loc_who_disability = $_POST['who_disability'];
+			$loc_dx_or_tc = $_POST['who_disability_grade_dx_tc'];
+			$loc_who_disability_grade = $_POST['who_disability_grade'];
+			
+			switch($loc_dx_or_tc) {
+				case 'dx_right':
+					$query = "UPDATE m_leprosy_who_disability_grade SET ".
+						"upon_dx_right = '$loc_who_disability_grade', ".
+						"date_last_updated = '$loc_current_date', ".
+						"user_id = $loc_userid ".
+						"WHERE consult_id = $loc_consult_id AND ".
+						"who_disability = '$loc_who_disability' ";
+					break;
+				case 'dx_left':
+					$query = "UPDATE m_leprosy_who_disability_grade SET ".
+						"upon_dx_left = '$loc_who_disability_grade', ".
+						"date_last_updated = '$loc_current_date', ".
+						"user_id = $loc_userid ".
+						"WHERE consult_id = $loc_consult_id AND ".
+						"who_disability = '$loc_who_disability' ";
+					break;
+				case 'tc_right':
+					$query = "UPDATE m_leprosy_who_disability_grade SET ".
+						"upon_tc_right = '$loc_who_disability_grade', ".
+						"date_last_updated = '$loc_current_date', ".
+						"user_id = $loc_userid ".
+						"WHERE consult_id = $loc_consult_id AND ".
+						"who_disability = '$loc_who_disability' ";
+					break;
+				case 'tc_left':
+					$query = "UPDATE m_leprosy_who_disability_grade SET ".
+						"upon_tc_left = '$loc_who_disability_grade', ".
+						"date_last_updated = '$loc_current_date', ".
+						"user_id = $loc_userid ".
+						"WHERE consult_id = $loc_consult_id AND ".
+						"who_disability = '$loc_who_disability' ";
+					break;
+				default:
+			}
+			$result = mysql_query($query)
+				or die("Couldnt execute query. ".mysql_error());
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// Comment date: Feb 10, 2010, JVTolentino
+		// This function will be used to create the 'Post-Treatment Table'
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function create_post_treatment_table() {
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			
+			$query = "SELECT date_of_diagnosis FROM m_leprosy_diagnosis WHERE ".
+				"consult_id = $loc_consult_id ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+
+			if($row = mysql_fetch_array($result)) {
+				list($year, $month, $day) = explode("-", $row['date_of_diagnosis']);
+				$loc_date_of_diagnosis = str_pad($month, 2, "0", STR_PAD_LEFT)."/".str_pad($day, 2, "0", STR_PAD_LEFT)."/".$year;
+			} 
+
+			$query = "SELECT * FROM m_leprosy_post_treatment WHERE ".
+				"consult_id = $loc_consult_id ";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+
+			if($row = mysql_fetch_array($result)) {
+				$loc_upon_dx_physician = $row['upon_dx_physician'];
+				$loc_upon_tc_physician = $row['upon_tc_physician'];
+				$loc_upon_tc_date = $row['upon_tc_date'];
+				$loc_patient_cured = $row['patient_cured'];
+				$loc_updated = 'Y';
+			}
+			else {
+				$loc_updated = 'N';
+			}
+
+			print "<table border=3 bordercolor='black' align='center' width=600>";
+				print "<tr>";
+					print "<th align='left' colspan=3 bgcolor=#CC9900#>Post Treatment</th>";
+				print "</tr>";
+
+				print "<tr>";
+					print "<td>Upon Diagnosis</td>";
+					if($loc_updated == 'Y') {
+						print "<td>Examining Physician: <input type='text' name='upon_dx_physician' ".
+							"value='$loc_upon_dx_physician' size=30></input></td>";
+					}
+					else {
+						print "<td>Examining Physician: <input type='text' name='upon_dx_physician' size=30></input></td>";
+					}
+
+					print "<td>Date: <input type='text' name='upon_dx_date' value='$loc_date_of_diagnosis' size=10 readonly></input></td>";
+				print "</tr>";
+				
+				print "<tr>";	
+					print "<td>Upon Completion of Treatment</td>";
+					if($loc_updated == 'Y') {
+						print "<td>Examining Physician: <input type='text' name='upon_tc_physician' ".
+							"value='$loc_upon_tc_physician' size=30></input></td>";	
+					}
+					else {
+						print "<td>Examining Physician: <input type='text' name='upon_tc_physician' size=30></input></td>";	
+					}
+					print "<td>Date: ".
+						"<input type='text' name='upon_tc_date' ".
+						"readonly='true' size=10 value='".date("m/d/Y").
+						"' <a href=\"javascript:show_calendar4('document.form_leprosy.upon_tc_date', ".
+						"document.form_leprosy.upon_tc_date.value);\">".
+						"<img src='../images/cal.gif' width='16' height='16' border='0' ".
+						"alt='Click Here to Pick up the Date'></a></input>";
+						"</td>";
+				print "</tr>";
+
+				print "<tr>";
+					print "<td>Patient Status: </td>";
+					print "<td colspan=2><select name='patient_cured'>";
+						print "<option value='Y'>Cured</option>";
+						print "<option value='N'>Not Cured</option>";
+					print "</select></td>";
+				print "</tr>";
+				
+				print "<tr>";
+					print "<td colspan=3 align='center'><input type='submit' name='submit_button' ".
+						"value='Save Post Treatment Record'></input></td>";
+				print "</tr>";
+			print "</table>";
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+		
+		
+		// Comment date: FEb 10, 2010, JVTolentino
+		// This function will add/update a record in [m_leprosy_post_treatment].
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function post_treatment_record() {
+			$loc_consult_id = $_GET['consult_id'];
+			$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+			$loc_upon_dx_physician = $_POST['upon_dx_physician'];
+			$loc_upon_tc_physician = $_POST['upon_tc_physician'];
+			list($month, $day, $year) = explode("/", $_POST['upon_tc_date']);
+			$loc_upon_tc_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+			$loc_patient_cured = $_POST['patient_cured'];
+			list($month, $day, $year) = explode("/", date("m/d/Y"));
+			$loc_current_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+			$loc_userid = $_SESSION['userid'];
+
+			$query = "SELECT * FROM m_leprosy_post_treatment WHERE consult_id = $loc_consult_id ";
+			$result = mysql_query($query) 
+				or die("Couldn't execute query. ".mysql_error());
+
+			if(mysql_num_rows($result)) {
+				$query = "UPDATE m_leprosy_post_treatment SET ".
+					"upon_dx_physician = '$loc_upon_dx_physician', ".
+					"upon_tc_physician = '$loc_upon_tc_physician', ".
+					"upon_tc_date = '$loc_upon_tc_date', ".
+					"patient_cured = '$loc_patient_cured', ".
+					"date_last_updated = '$loc_date_last_updated', ".
+					"user_id = $loc_userid ".
+					"WHERE consult_id = $loc_consult_id ";
+			}
+			else {
+				$query = "INSERT INTO m_leprosy_post_treatment ".
+					"(consult_id, patient_id, upon_dx_physician, upon_tc_physician, upon_tc_date, ".
+					"patient_cured, date_last_updated, user_id) ".
+					"VALUES($loc_consult_id, $loc_patient_id, '$loc_upon_dx_physician', ".
+					"'$loc_upon_tc_physician', '$loc_upon_tc_date', '$loc_patient_cured', ".
+					"'$loc_date_last_updated', $loc_userid)";
+			}
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
 		// Comment date: Jan 27, 2010, JVTolentino
 		// This function will be used to add records to 'Leprosy Module Tables' in CHITS DB.
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1841,6 +2266,12 @@
 				case 'Update Eye Evaluation':
 					$this->eye_evaluation_record();
 					break;
+				case 'Update WHO Disability Grade':
+					$this->who_disability_grade_record();
+					break;
+				case 'Save Post Treatment Record':
+					$this->post_treatment_record();
+					break;
 			}
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1858,20 +2289,55 @@
 		//		this everytime this module starts.
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function init_primary_keys() {
+			$query = "ALTER TABLE m_leprosy_contact_examination DROP PRIMARY KEY, ".
+				"ADD PRIMARY KEY(record_number)";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());			
+
 			$query = "ALTER TABLE m_leprosy_diagnosis DROP PRIMARY KEY, ".
 				"ADD PRIMARY KEY(record_number)";
 			$result = mysql_query($query)
-				or die("Couldnt' execute query. ".mysql_error());
+				or die("Couldn't execute query. ".mysql_error());
 			
-			$query = "ALTER TABLE m_leprosy_past_treatment DROP PRIMARY KEY, ".
+			$query = "ALTER TABLE m_leprosy_drug_collection_chart DROP PRIMARY KEY, ".
 				"ADD PRIMARY KEY(record_number)";
 			$result = mysql_query($query)
-				or die("Couldnt' execute query. ".mysql_error());
-				
+				or die("Couldn't execute query. ".mysql_error());
+
+			$query = "ALTER TABLE m_leprosy_eye_evaluation DROP PRIMARY KEY, ".
+				"ADD PRIMARY KEY(record_number)";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+
 			$query = "ALTER TABLE m_leprosy_other_illness DROP PRIMARY KEY, ".
 				"ADD PRIMARY KEY(record_number)";
 			$result = mysql_query($query)
-				or die("Couldnt' execute query. ".mysql_error());
+				or die("Couldn't execute query. ".mysql_error());
+
+			$query = "ALTER TABLE m_leprosy_past_treatment DROP PRIMARY KEY, ".
+				"ADD PRIMARY KEY(record_number)";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+
+			$query = "ALTER TABLE m_leprosy_post_treatment DROP PRIMARY KEY, ".
+				"ADD PRIMARY KEY(record_number)";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+
+			$query = "ALTER TABLE m_leprosy_skin_smear DROP PRIMARY KEY, ".
+				"ADD PRIMARY KEY(record_number)";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+
+			$query = "ALTER TABLE m_leprosy_voluntary_muscle_testing DROP PRIMARY KEY, ".
+				"ADD PRIMARY KEY(record_number)";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
+
+			$query = "ALTER TABLE m_leprosy_who_disability_grade DROP PRIMARY KEY, ".
+				"ADD PRIMARY KEY(record_number)";
+			$result = mysql_query($query)
+				or die("Couldn't execute query. ".mysql_error());
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -1898,7 +2364,8 @@
 				if (@$_POST['h_save_flag'] == 'GO') {
 					print "&nbsp;";
 					$leprosy->new_leprosy_record();
-					$leprosy->init_primary_keys();
+					// test wether it still needed to initialize primary keys after a POST.
+					//$leprosy->init_primary_keys();
 					
 					print "&nbsp;";
 					$leprosy->show_NLCPForm1();

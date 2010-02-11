@@ -282,6 +282,10 @@ class querydb{
 			$this->process_dhc_pho();
 		elseif($quesno==62):
 			$this->process_dhc_summary();
+		elseif($quesno==66):
+			$this->process_leprosy_summary();
+		elseif($quesno==67):
+			$this->process_leprosy_quarterly();
 		else:
 			echo "No available query for this indicator.";
 		endif;
@@ -780,6 +784,13 @@ class querydb{
 	function process_dhc_summary(){
 		echo "<a href='./pdf_reports/dental_summary.php'>Show Dental Summary Table</a>";
 	}
+	
+	function process_leprosy_quarterly(){
+		echo "<a href='./pdf_reports/leprosy_quarterly.php'>Show NLCP Quarterly Table</a>";
+	}
 
+	function process_leprosy_summary(){
+		echo "<a href='./pdf_reports/leprosy_summary.php'>Show NLCP Summary Table</a>";
+	}
 }
 ?>
