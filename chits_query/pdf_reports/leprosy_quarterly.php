@@ -147,8 +147,7 @@
 			$this->Cell(340,10,'National Leprosy Control Program',1,1,C);
 			
 			$this->SetFont('Arial','B','12');
-			$w = array(80,30,30,30,30,70,70);
-		//	$w = array(76,28,28,26,28,28,63,63);
+			$w = array(80,30,30,30,30,70,70); //340
 			$this->SetWidths($w);
 
 			$label = array('Indicators', 
@@ -159,23 +158,10 @@
 				'Interpretation',
 				'Recommendation/Actions Taken');
 			$this->Row($label);
-
-
-			/* the following code was taken from dental_quarter_report.
-			$label = array('Indicators', 
-				'Elig. Pop.', 
-				'Number (Male)', 
-				'Number (Female)', 
-				'Number (Total)', 
-				'%', 
-				'Interpretation', 
-				'Recommendation/Action Taken');
-			$this->Row($label);
-			*/
 		}
 		
 		
-		
+	
 		function q_report_header($population) {
 			$this->SetFont('Arial','B','12');
 			$this->Cell(0,5,'FHSIS REPORT FOR THE QUARTER: '.$_SESSION[quarter]."          YEAR: ".$_SESSION[year],0,1,L);
@@ -186,13 +172,6 @@
 		
 		
 		function show_leprosy_quarterly(){
-			/*
-			$arr_indicator = array('a' => 'Orally Fit Children 12-71 monthds old',
-				'b' => 'Children 12-71 months old provided with BOHC?', 
-				'c' => 'Adolescent & Youth (10-24 years) given BOHC?',
-				'd' => 'Pregnant women provided with BOHC?',
-				'e' => 'Older Person 60 years old & above provided with BOHC?');
-			*/
 			//$w = array(76,28,28,26,28,28,63,63);
 			$w = array(80,30,30,30,30,70,70);
 			$str_brgy = $this->get_brgy();    
@@ -203,8 +182,8 @@
 				$col3 = $this->get_data($_SESSION[sdate2], $_SESSION[edate2], 
 					$indicator_ctr, $str_brgy, 3);
 				$col4 = $col2 + $col3;
-			//	$col5 = $this->get_data($_SESSION[sdate2], $_SESSION[edate2], ``
-			//		$indicator_ctr, $str_brgy, 5);
+				$col5 = $this->get_data($_SESSION[sdate2], $_SESSION[edate2], 
+					$indicator_ctr, $str_brgy, 5);
 				//$col6; this column is empty
 				//$col7; this column is empty
 				
@@ -277,114 +256,165 @@
 			// Column 7 = Recommendation/Action Taken
 			switch($col_code) {
 				case '2':
-					// Indicator #1: Leprosy Cases
+					// Indicator #1: Leprosy Cases. 
+					// Note: code finalized
 					if($indicator == '1') {
-						$query = "SELECT DISTINCT m_leprosy_diagnosis.patient_id FROM m_leprosy_diagnosis ".
-							"INNER JOIN m_patient ON m_leprosy_diagnosis.patient_id = m_patient.patient_id ".
-							"WHERE m_patient.patient_gender = 'M' AND ".
+						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
+							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
+							"WHERE b.patient_gender = 'M' AND ".
 							"(date_of_diagnosis >= '$start' AND ".
 							"date_of_diagnosis <= '$end') ";
 						$result = mysql_query($query)
-							or die("Couldn't execute query. case:2, indicator:1 ".mysql_error());
+							or die("Couldn't execute query.");
 						return mysql_num_rows($result);
 						break;
 					}
 					
 					// Indicator #2: Leprosy cases below 15 yrs old?
+					// Note: code finalized
 					if($indicator == '2') {
-						$query = "SELECT DISTINCT m_leprosy_diagnosis.patient_id FROM m_leprosy_diagnosis ".
-							"INNER JOIN m_patient ON m_leprosy_diagnosis.patient_id = m_patient.patient_id ".
-							"WHERE m_patient.patient_gender = 'M' AND ".
-							"m_leprosy_diagnosis.patient_age < 15 AND ".
-							"(date_of_diagnosis >= '$start' AND ".
-							"date_of_diagnosis <= '$end') ";
+						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
+							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
+							"WHERE b.patient_gender = 'M' AND ".
+							"a.patient_age < 15 AND ".
+							"(a.date_of_diagnosis >= '$start' AND ".
+							"a.date_of_diagnosis <= '$end') ";
 						$result = mysql_query($query)
-							or die("Couldn't execute query. case:2, indicator:1 ".mysql_error());
+							or die("Couldn't execute query.");
 						return mysql_num_rows($result);
 						break;
 					}
 
 					// Indicator #3: Newly detected Leprosy cases?
+					// Note: code finalized
 					if($indicator == '3') {
-						$query = "SELECT DISTINCT m_leprosy_diagnosis.patient_id FROM m_leprosy_diagnosis ".
-							"INNER JOIN m_patient ON m_leprosy_diagnosis.patient_id = m_patient.patient_id ".
-							"WHERE m_patient.patient_gender = 'M' AND ".
-							"m_leprosy_diagnosis.patient_case = 'New Case' AND ".
-							"(date_of_diagnosis >= '$start' AND ".
-							"date_of_diagnosis <= '$end') ";
+						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
+							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
+							"WHERE b.patient_gender = 'M' AND ".
+							"a.patient_case = 'New Case' AND ".
+							"(a.date_of_diagnosis >= '$start' AND ".
+							"a.date_of_diagnosis <= '$end') ";
 						$result = mysql_query($query)
-							or die("Couldn't execute query. case:2, indicator:1 ".mysql_error());
+							or die("Couldn't execute query. ");
 						return mysql_num_rows($result);
 						break;
 					}
 
 					// Indicator #4: Newly detected cases with Grade 2 disability?
-
+					// Note: code finalized
+					if($indicator == '4') {
+						$query = "SELECT b.patient_id FROM m_patient a ".
+							"INNER JOIN m_leprosy_diagnosis b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_leprosy_who_disability_grade c ON b.consult_id = c.consult_id ".
+							"WHERE b.patient_case = 'New Case' AND ".
+							"a.patient_gender = 'M' AND ".
+							"((c.who_disability = 'Maximum Grade' AND ".
+                                                        "c.upon_dx_right = '2') OR ".
+                                                        "(c.who_disability = 'Maximum Grade' AND ".
+                                                        "c.upon_dx_left = '2')) AND ".
+							"(b.date_of_diagnosis >= '$start' AND ".
+							"b.date_of_diagnosis <= '$end')";
+						$result = mysql_query($query)
+							or die("Couldn't execute query.");
+						return mysql_num_rows($result);
+						break;
+					}
 					// Indicator #5: Case cured?
-					
-
+					// Note: code finalized
+					if($indicator == '5') {
+						$query = "SELECT b.patient_id FROM m_patient a ".
+                                                        "INNER JOIN m_leprosy_diagnosis b ON a.patient_id = b.patient_id ".
+                                                        "INNER JOIN m_leprosy_post_treatment c ON b.consult_id = c.consult_id ".
+                                                        "WHERE c.patient_cured = 'Y' AND ".
+                                                        "a.patient_gender = 'M' AND ".
+							"(b.date_of_diagnosis >= '$start' AND ".
+							"b.date_of_diagnosis <= '$end') ";
+						$result = mysql_query($query)
+							or die("Couldn't execute query.");
+						return mysql_num_rows($result);
+						break;
+					}
 				case '3':
 					// Indicator #1: Leprosy Cases
+					// Note: code finalized
 					if($indicator == '1') {
-						$query = "SELECT DISTINCT m_leprosy_diagnosis.patient_id FROM m_leprosy_diagnosis ".
-							"INNER JOIN m_patient ON m_leprosy_diagnosis.patient_id = m_patient.patient_id ".
-							"WHERE m_patient.patient_gender = 'F' AND ".
-							"(m_leprosy_diagnosis.date_of_diagnosis >= '$start' AND ".
-							"m_leprosy_diagnosis.date_of_diagnosis <= '$end') ";
+						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
+							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
+							"WHERE b.patient_gender = 'F' AND ".
+							"(a.date_of_diagnosis >= '$start' AND ".
+							"a.date_of_diagnosis <= '$end') ";
 
 					$result = mysql_query($query)
-						or die("Couldn't execute query. case:3, indicator:1 ".mysql_error());
+						or die("Couldn't execute query.");
 					return mysql_num_rows($result);
 
 					break;
 					}
 
 					// Indicator #2: Leprosy cases below 15 yrs old?
+					// Note: code finalized
 					if($indicator == '2') {
-						$query = "SELECT DISTINCT m_leprosy_diagnosis.patient_id FROM m_leprosy_diagnosis ".
-							"INNER JOIN m_patient ON m_leprosy_diagnosis.patient_id = m_patient.patient_id ".
-							"WHERE m_patient.patient_gender = 'F' AND ".
-							"m_leprosy_diagnosis.patient_age < 15 AND ".
+						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
+							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
+							"WHERE b.patient_gender = 'F' AND ".
+							"a.patient_age < 15 AND ".
 							"(date_of_diagnosis >= '$start' AND ".
 							"date_of_diagnosis <= '$end') ";
 						$result = mysql_query($query)
-							or die("Couldn't execute query. case:2, indicator:1 ".mysql_error());
+							or die("Couldn't execute query.");
 						return mysql_num_rows($result);
 						break;
 					}
 
 					// Indicator #3: Newly detected Leprosy cases?
+					// Note: code finalized
 					if($indicator == '3') {
-						$query = "SELECT DISTINCT m_leprosy_diagnosis.patient_id FROM m_leprosy_diagnosis ".
-							"INNER JOIN m_patient ON m_leprosy_diagnosis.patient_id = m_patient.patient_id ".
-							"WHERE m_patient.patient_gender = 'F' AND ".
-							"m_leprosy_diagnosis.patient_case = 'New Case' AND ".
-							"(date_of_diagnosis >= '$start' AND ".
-							"date_of_diagnosis <= '$end') ";
+						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
+							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
+							"WHERE b.patient_gender = 'F' AND ".
+							"a.patient_case = 'New Case' AND ".
+							"(a.date_of_diagnosis >= '$start' AND ".
+							"a.date_of_diagnosis <= '$end') ";
 						$result = mysql_query($query)
-							or die("Couldn't execute query. case:2, indicator:1 ".mysql_error());
+							or die("Couldn't execute query.");
 						return mysql_num_rows($result);
 						break;
 					}
 
 					// Indicator #4: Newly detected cases with Grade 2 disability?
-
+					// Note: code finalized
+					if($indicator == '4') {
+						$query = "SELECT b.patient_id FROM m_patient a ".
+							"INNER JOIN m_leprosy_diagnosis b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_leprosy_who_disability_grade c ON b.consult_id = c.consult_id ".
+							"WHERE b.patient_case = 'New Case' AND ".
+							"a.patient_gender = 'F' AND ".
+							"((c.who_disability = 'Maximum Grade' AND ".
+                                                        "c.upon_dx_right = '2') OR ".
+                                                        "(c.who_disability = 'Maximum Grade' AND ".
+                                                        "c.upon_dx_left = '2')) AND ".
+							"(b.date_of_diagnosis >= '$start' AND ".
+							"b.date_of_diagnosis <= '$end')";
+						$result = mysql_query($query)
+							or die("Couldn't execute query. ".mysql_error());
+						return mysql_num_rows($result);
+						break;
+					}
 					// Indicator #5: Case cured?
-					
-
-				case '4':
-					return;
-					break;
-				case '5':
-					// need to find a way to compute for rate
-					return;
-					break;
-				case '6':
-					return;
-					break;
-				case '7':
-					return;
-					break;
+					// Note: code finalized
+					if($indicator == '5') {
+						$query = "SELECT b.patient_id FROM m_patient a ".
+                                                        "INNER JOIN m_leprosy_diagnosis b ON a.patient_id = b.patient_id ".
+                                                        "INNER JOIN m_leprosy_post_treatment c ON b.consult_id = c.consult_id ".
+                                                        "WHERE c.patient_cured = 'Y' AND ".
+                                                        "a.patient_gender = 'F' AND ".
+							"(b.date_of_diagnosis >= '$start' AND ".
+							"b.date_of_diagnosis <= '$end') ";
+						$result = mysql_query($query)
+							or die("Couldn't execute query.");
+						return mysql_num_rows($result);
+						break;
+					}
 				default:
 					break;
 					

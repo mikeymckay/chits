@@ -2123,7 +2123,8 @@
 			if($row = mysql_fetch_array($result)) {
 				$loc_upon_dx_physician = $row['upon_dx_physician'];
 				$loc_upon_tc_physician = $row['upon_tc_physician'];
-				$loc_upon_tc_date = $row['upon_tc_date'];
+				list($year, $month, $day) = explode("-", $row['upon_tc_date']);
+				$loc_upon_tc_date = str_pad($month, 2, "0", STR_PAD_LEFT)."/".str_pad($day, 2, "0", STR_PAD_LEFT)."/".$year;
 				$loc_patient_cured = $row['patient_cured'];
 				$loc_updated = 'Y';
 			}
@@ -2158,21 +2159,39 @@
 					else {
 						print "<td>Examining Physician: <input type='text' name='upon_tc_physician' size=30></input></td>";	
 					}
-					print "<td>Date: ".
-						"<input type='text' name='upon_tc_date' ".
-						"readonly='true' size=10 value='".date("m/d/Y").
-						"' <a href=\"javascript:show_calendar4('document.form_leprosy.upon_tc_date', ".
-						"document.form_leprosy.upon_tc_date.value);\">".
-						"<img src='../images/cal.gif' width='16' height='16' border='0' ".
-						"alt='Click Here to Pick up the Date'></a></input>";
-						"</td>";
+					if($loc_updated == 'Y') {
+						print "<td>Date: ".
+							"<input type='text' name='upon_tc_date' ".
+							"readonly='true' size=10 value='$loc_upon_tc_date'>".
+							"<a href=\"javascript:show_calendar4('document.form_leprosy.upon_tc_date', ".
+							"document.form_leprosy.upon_tc_date.value);\">".
+							"<img src='../images/cal.gif' width='16' height='16' border='0' ".
+							"alt='Click Here to Pick up the Date'></a></input>";
+							"</td>";
+					}
+					else {
+						print "<td>Date: ".
+							"<input type='text' name='upon_tc_date' ".
+							"readonly='true' size=10 value='".date("m/d/Y").
+							"'> <a href=\"javascript:show_calendar4('document.form_leprosy.upon_tc_date', ".
+							"document.form_leprosy.upon_tc_date.value);\">".
+							"<img src='../images/cal.gif' width='16' height='16' border='0' ".
+							"alt='Click Here to Pick up the Date'></a></input>";
+							"</td>";
+					}
 				print "</tr>";
 
 				print "<tr>";
 					print "<td>Patient Status: </td>";
 					print "<td colspan=2><select name='patient_cured'>";
-						print "<option value='Y'>Cured</option>";
-						print "<option value='N'>Not Cured</option>";
+						if($loc_patient_cured == 'Y') {
+							print "<option value='N'>Not Cured</option>";
+							print "<option value='Y' selected>Cured</option>";
+						}
+						else {
+							print "<option value='N' selected>Not Cured</option>";
+							print "<option value='Y'>Cured</option>";
+						}
 					print "</select></td>";
 				print "</tr>";
 				
@@ -2211,7 +2230,7 @@
 					"upon_tc_physician = '$loc_upon_tc_physician', ".
 					"upon_tc_date = '$loc_upon_tc_date', ".
 					"patient_cured = '$loc_patient_cured', ".
-					"date_last_updated = '$loc_date_last_updated', ".
+					"date_last_updated = '$loc_current_date', ".
 					"user_id = $loc_userid ".
 					"WHERE consult_id = $loc_consult_id ";
 			}
@@ -2221,7 +2240,7 @@
 					"patient_cured, date_last_updated, user_id) ".
 					"VALUES($loc_consult_id, $loc_patient_id, '$loc_upon_dx_physician', ".
 					"'$loc_upon_tc_physician', '$loc_upon_tc_date', '$loc_patient_cured', ".
-					"'$loc_date_last_updated', $loc_userid)";
+					"'$loc_current_date', $loc_userid)";
 			}
 			$result = mysql_query($query)
 				or die("Couldn't execute query. ".mysql_error());
