@@ -175,17 +175,93 @@
 			//$w = array(76,28,28,26,28,28,63,63);
 			$w = array(80,30,30,30,30,70,70);
 			$str_brgy = $this->get_brgy();    
-			
+			$q_pop = mysql_query("SELECT SUM(population) FROM m_lib_population WHERE population_year='$_SESSION[year]'") 
+				or die("Cannot query: 123". mysql_error());
+			list($population)= mysql_fetch_array($q_pop);
+
 			for($indicator_ctr = 1; $indicator_ctr <= 5; $indicator_ctr++) {
 				$col2 = $this->get_data($_SESSION[sdate2], $_SESSION[edate2],
 					$indicator_ctr, $str_brgy, 2);
 				$col3 = $this->get_data($_SESSION[sdate2], $_SESSION[edate2], 
 					$indicator_ctr, $str_brgy, 3);
 				$col4 = $col2 + $col3;
-				$col5 = $this->get_data($_SESSION[sdate2], $_SESSION[edate2], 
-					$indicator_ctr, $str_brgy, 5);
-				//$col6; this column is empty
-				//$col7; this column is empty
+
+				switch($indicator_ctr) {
+					// Leprosy cases. 
+					// Formula is: total cases / total population * 10,000
+					case 1: 
+						if(($col4 == 0) || ($population == 0)) {
+							$col5 = 0;
+						}
+						else {
+							$col5 = number_format((($col4 / $population) * 10000),2,'.','');
+						}
+						break;
+					// Leprosy cases below 15 yrs old. 
+					// Formula is: leprosy cases below 15 yrs old / total cases * 100
+					case 2:
+						$start = $_SESSION[sdate2];
+						$end = $_SESSION[edate2];
+						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
+							"WHERE (a.date_of_diagnosis >= '$start' AND ".
+							"a.date_of_diagnosis <= '$end') ";
+						$result = mysql_query($query)
+							or die("Couldn't execute query.");
+						$leprosy_cases = mysql_num_rows($result);
+
+						$col5 = $col4." / ".$leprosy_cases;
+						
+						if(($col4 == 0) || ($leprosy_cases == 0)) {
+							$col5 = 0;
+						}
+						else {
+							$col5 = number_format((($col4 / $leprosy_cases) * 100),2,'.','')."%";
+						}
+						break;
+					// Newly detected leprosy cases. 
+					// Formula is: newly detected leprosy cases / total population * 100,000
+					case 3:
+						if(($col4 == 0) || ($population == 0)) {
+							$col5 = 0;
+						}
+						else {
+							$col5 = number_format((($col4 / $population) * 100000),2,'.','');
+						}
+						break;
+					// Newly detected case with Grade 2 disability. 
+					// Formula is: newly detected leprosy case with grade 2 disability / total population * 100,000
+					case 4:
+						if(($col4 == 0) || ($population == 0)) {
+							$col5 = 0;
+						}
+						else {
+							$col5 = number_format((($col4 / $population) * 100000),2,'.','');
+						}
+						break;
+					// Case cured. 
+					// Formula is: case cured / leprosy cases * 100
+					case 5:
+						$start = $_SESSION[sdate2];
+						$end = $_SESSION[edate2];
+						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
+							"WHERE (a.date_of_diagnosis >= '$start' AND ".
+							"a.date_of_diagnosis <= '$end') ";
+						$result = mysql_query($query)
+							or die("Couldn't execute query.");
+						$leprosy_cases = mysql_num_rows($result);
+
+						$col5 = $col4." / ".$leprosy_cases;
+						
+						if(($col4 == 0) || ($leprosy_cases == 0)) {
+							$col5 = 0;
+						}
+						else {
+							$col5 = number_format((($col4 / $leprosy_cases) * 100),2,'.','')."%";
+						}
+						break;
+					default:
+						break;
+				}
 				
 				switch($indicator_ctr) {
 					case 1:
