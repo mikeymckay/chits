@@ -401,7 +401,7 @@
 						$query = "SELECT b.patient_id FROM m_patient a ".
                                                         "INNER JOIN m_leprosy_diagnosis b ON a.patient_id = b.patient_id ".
                                                         "INNER JOIN m_leprosy_post_treatment c ON b.consult_id = c.consult_id ".
-                                                        "WHERE c.patient_cured = 'Y' AND ".
+                                                        "WHERE c.patient_cured = 'Completed' AND ".
                                                         "a.patient_gender = 'M' AND ".
 							"(b.date_of_diagnosis >= '$start' AND ".
 							"b.date_of_diagnosis <= '$end') ";
@@ -482,7 +482,7 @@
 						$query = "SELECT b.patient_id FROM m_patient a ".
                                                         "INNER JOIN m_leprosy_diagnosis b ON a.patient_id = b.patient_id ".
                                                         "INNER JOIN m_leprosy_post_treatment c ON b.consult_id = c.consult_id ".
-                                                        "WHERE c.patient_cured = 'Y' AND ".
+                                                        "WHERE c.patient_cured = 'Completed' AND ".
                                                         "a.patient_gender = 'F' AND ".
 							"(b.date_of_diagnosis >= '$start' AND ".
 							"b.date_of_diagnosis <= '$end') ";

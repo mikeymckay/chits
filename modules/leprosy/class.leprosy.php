@@ -235,7 +235,7 @@
 				"`upon_dx_physician` char(30) COLLATE swe7_bin NOT NULL,".
   				"`upon_tc_physician` char(30) COLLATE swe7_bin NOT NULL,".
 				"`upon_tc_date` date NOT NULL,".
-  				"`patient_cured` enum('Y','N') COLLATE swe7_bin NOT NULL,".
+  				"`patient_cured` char(20) COLLATE swe7_bin NOT NULL,".
   				"`date_last_updated` date NOT NULL,".
   				"`user_id` float NOT NULL,".
   				"PRIMARY KEY (`record_number`)".
@@ -1126,7 +1126,7 @@
 							break;
 						default:
 							print "<td>".
-								"<input type='radio' name='skin_smear_done' value='Y' checked>Done</input>".
+								"<input type='radio' name='skin_smear_done' value='Y'>Done</input>".
 								"<input type='radio' name='skin_smear_done' value='N'>Not Done</input>".
 								"</td>";
 					}
@@ -1135,47 +1135,93 @@
 						print "<td>Bacillary Index (BI) Reading: ";
 						print "<select name='bacillary_index_reading'>";
 						switch($loc_bacillary_index_reading) {
-							case '+':
-								print "<option value='+' selected>+</option>";
-								print "<option value='++'>++</option";
-								print "<option value='+++'>+++</option>";
-								print "<option value='-'>-</option>";
+							case '0':
+								print "<option value='0' selected>0</option>";
+								print "<option value='1'>1</option";
+								print "<option value='2'>2</option>";
+								print "<option value='3'>3</option>";
+								print "<option value='4'>4</option";
+								print "<option value='5'>5</option>";
+								print "<option value='6'>6</option>";
 								break;
-							case '++':
-								print "<option value='+'>+</option>";
-								print "<option value='++' selected>++</option";
-								print "<option value='+++'>+++</option>";
-								print "<option value='-'>-</option>";
+							case '1':
+								print "<option value='0'>0</option>";
+								print "<option value='1' selected>1</option";
+								print "<option value='2'>2</option>";
+								print "<option value='3'>3</option>";
+								print "<option value='4'>4</option";
+								print "<option value='5'>5</option>";
+								print "<option value='6'>6</option>";
+
 								break;
-							case '+++':
-								print "<option value='+'>+</option>";
-								print "<option value='++'>++</option";
-								print "<option value='+++' selected>+++</option>";
-								print "<option value='-'>-</option>";
+							case '2':
+								print "<option value='0'>0</option>";
+								print "<option value='1'>1</option";
+								print "<option value='2' selected>2</option>";
+								print "<option value='3'>3</option>";
+								print "<option value='4'>4</option";
+								print "<option value='5'>5</option>";
+								print "<option value='6'>6</option>";
 								break;
-							case '-':
-								print "<option value='+'>+</option>";
-								print "<option value='++'>++</option";
-								print "<option value='+++'>+++</option>";
-								print "<option value='-' selected>-</option>";
+							case '3':
+								print "<option value='0'>0</option>";
+								print "<option value='1'>1</option";
+								print "<option value='2'>2</option>";
+								print "<option value='3' selected>3</option>";
+								print "<option value='4'>4</option";
+								print "<option value='5'>5</option>";
+								print "<option value='6'>6</option>";
+								break;
+							case '4':
+								print "<option value='0'>0</option>";
+								print "<option value='1'>1</option";
+								print "<option value='2'>2</option>";
+								print "<option value='3'>3</option>";
+								print "<option value='4' selected>4</option";
+								print "<option value='5'>5</option>";
+								print "<option value='6'>6</option>";
+								break;
+							case '5':
+								print "<option value='0'>0</option>";
+								print "<option value='1'>1</option";
+								print "<option value='2'>2</option>";
+								print "<option value='3'>3</option>";
+								print "<option value='4'>4</option";
+								print "<option value='5' selected>5</option>";
+								print "<option value='6'>6</option>";
+								break;
+							case '6':
+								print "<option value='0'>0</option>";
+								print "<option value='1'>1</option";
+								print "<option value='2'>2</option>";
+								print "<option value='3'>3</option>";
+								print "<option value='4'>4</option";
+								print "<option value='5'>5</option>";
+								print "<option value='6' selected>6</option>";
 								break;
 							default:
-								print "<option value='+'>+</option>";
-								print "<option value='++'>++</option";
-								print "<option value='+++'>+++</option>";
-								print "<option value='-'>-</option>";
+								print "<option value='0'>0</option>";
+								print "<option value='1'>1</option";
+								print "<option value='2'>2</option>";
+								print "<option value='3'>3</option>";
+								print "<option value='4'>4</option";
+								print "<option value='5'>5</option>";
+								print "<option value='6'>6</option>";
 								break;
 						}
 						print "</select>";
 					}
 					else {
-						print "<td>Bacilliary Index (BI) Reading: ".
-							"<select name='bacillary_index_reading'>".
-								"<option value='+'>+</option>".
-								"<option value='++'>++</option>".
-								"<option value='+++'>+++</option>".
-								"<option value='-'>-</option>".
-							"</select></td>";
+						print "<td>Bacilliary Index (BI) Reading: ";
+							print "<select name='bacillary_index_reading'>";
+								print "<option value='0'>0</option>";
+								print "<option value='1'>1</option";
+								print "<option value='2'>2</option>";
+								print "<option value='3'>3</option>";
+								print "<option value='4'>4</option";
+								print "<option value='5'>5</option>";
+								print "<option value='6'>6</option>";
+							print "</select></td>";
 					}
 				print "</tr>";
 				
@@ -2184,13 +2230,13 @@
 				print "<tr>";
 					print "<td>Patient Status: </td>";
 					print "<td colspan=2><select name='patient_cured'>";
-						if($loc_patient_cured == 'Y') {
-							print "<option value='N'>Not Cured</option>";
-							print "<option value='Y' selected>Cured</option>";
+						if($loc_patient_cured == 'Completed') {
+							print "<option value='Defaulted'>Defaulted</option>";
+							print "<option value='Completed' selected>Completed</option>";
 						}
 						else {
-							print "<option value='N' selected>Not Cured</option>";
-							print "<option value='Y'>Cured</option>";
+							print "<option value='Defaulted' selected>Defaulted</option>";
+							print "<option value='Completed'>Completed</option>";
 						}
 					print "</select></td>";
 				print "</tr>";

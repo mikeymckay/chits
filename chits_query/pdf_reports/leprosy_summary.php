@@ -410,7 +410,7 @@
 							"FROM m_patient a ".
 							"INNER JOIN m_leprosy_diagnosis b ON a.patient_id = b.patient_id ".
 							"INNER JOIN m_leprosy_post_treatment c ON b.consult_id = c.consult_id ".
-							"WHERE c.patient_cured = 'Y' AND ".
+							"WHERE c.patient_cured = 'Completed' AND ".
 							"a.patient_gender = '$arr_gender[$sex]' ";
 						$result = mysql_query($query)
 							or die("Couldn't execute query". mysql_error());
