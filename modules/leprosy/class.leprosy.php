@@ -157,7 +157,7 @@
 				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
 			
 			
-			module::execsql("CREATE TABLE IF NOT EXISTS `m_leprosy_kin_smear` (".
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_leprosy_skin_smear` (".
 				"`record_number` float NOT NULL AUTO_INCREMENT,".
 				"`consult_id` float NOT NULL,".
 				"`patient_id` float NOT NULL,".
@@ -236,6 +236,7 @@
   				"`upon_tc_physician` char(30) COLLATE swe7_bin NOT NULL,".
 				"`upon_tc_date` date NOT NULL,".
   				"`patient_cured` char(20) COLLATE swe7_bin NOT NULL,".
+				"`movement_of_patient` char(10) COLLATE swe7_bin NOT NULL, ".
   				"`date_last_updated` date NOT NULL,".
   				"`user_id` float NOT NULL,".
   				"PRIMARY KEY (`record_number`)".
@@ -2172,6 +2173,7 @@
 				list($year, $month, $day) = explode("-", $row['upon_tc_date']);
 				$loc_upon_tc_date = str_pad($month, 2, "0", STR_PAD_LEFT)."/".str_pad($day, 2, "0", STR_PAD_LEFT)."/".$year;
 				$loc_patient_cured = $row['patient_cured'];
+				$loc_movement_of_patient = $row['movement_of_patient'];
 				$loc_updated = 'Y';
 			}
 			else {
@@ -2230,15 +2232,72 @@
 				print "<tr>";
 					print "<td>Patient Status: </td>";
 					print "<td colspan=2><select name='patient_cured'>";
-						if($loc_patient_cured == 'Completed') {
-							print "<option value='Defaulted'>Defaulted</option>";
-							print "<option value='Completed' selected>Completed</option>";
-						}
-						else {
-							print "<option value='Defaulted' selected>Defaulted</option>";
-							print "<option value='Completed'>Completed</option>";
+						switch($loc_patient_cured) {
+							case 'Completed':
+								print "<option value='Defaulted'>Defaulted</option>";
+								print "<option value='Completed' selected>Completed</option>";
+								print "<option value='Undergoing Treatment'>Undergoing Treatment</option>";
+								break;
+							case 'Defaulted':
+								print "<option value='Defaulted' selected>Defaulted</option>";
+								print "<option value='Completed'>Completed</option>";
+								print "<option value='Undergoing Treatment'>Undergoing Treatment</option>";
+								break;
+							case 'Undergoing Treatment':
+								print "<option value='Defaulted'>Defaulted</option>";
+								print "<option value='Completed'>Completed</option>";
+								print "<option value='Undergoing Treatment' selected>Undergoing Treatment</option>";
+								break;
+							default:
+								print "<option value='Defaulted'>Defaulted</option>";
+								print "<option value='Completed'>Completed</option>";
+								print "<option value='Undergoing Treatment' selected>Undergoing Treatment</option>";
+								break;
 						}
 					print "</select></td>";
+				print "</tr>";
+
+				print "<tr>";
+					print "<td>Movement of Patient: </td>";
+					print "<td colspan=2><select name='movement_of_patient'>";
+						switch($loc_movement_of_patient) {
+							case 'T/I':
+								print "<option value='T/I' selected>T/I</option>";
+								print "<option value='T/O'>T/O</option>";
+								print "<option value='Died'>Died</option>";
+								print "<option value='Lost'>Lost</option>";
+								print "<option value='n/a'>N/A</option>";
+								break;
+							case 'T/O':
+								print "<option value='T/I'>T/I</option>";
+								print "<option value='T/O' selected>T/O</option>";
+								print "<option value='Died'>Died</option>";
+								print "<option value='Lost'>Lost</option>";
+								print "<option value='n/a'>N/A</option>";
+								break;
+							case 'Died':
+								print "<option value='T/I'>T/I</option>";
+								print "<option value='T/O'>T/O</option>";
+								print "<option value='Died' selected>Died</option>";
+								print "<option value='Lost'>Lost</option>";
+								print "<option value='n/a'>N/A</option>";
+								break;
+							case 'Lost':
+								print "<option value='T/I'>T/I</option>";
+								print "<option value='T/O'>T/O</option>";
+								print "<option value='Died'>Died</option>";
+								print "<option value='Lost' selected>Lost</option>";
+								print "<option value='n/a'>N/A</option>";
+								break;
+							default:
+								print "<option value='T/I'>T/I</option>";
+								print "<option value='T/O'>T/O</option>";
+								print "<option value='Died'>Died</option>";
+								print "<option value='Lost'>Lost</option>";
+								print "<option value='n/a' selected>N/A</option>";
+								break;
+						}
+					print "</selecte></td>";
 				print "</tr>";
 				
 				print "<tr>";
@@ -2262,6 +2321,7 @@
 			list($month, $day, $year) = explode("/", $_POST['upon_tc_date']);
 			$loc_upon_tc_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
 			$loc_patient_cured = $_POST['patient_cured'];
+			$loc_movement_of_patient = $_POST['movement_of_patient'];
 			list($month, $day, $year) = explode("/", date("m/d/Y"));
 			$loc_current_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
 			$loc_userid = $_SESSION['userid'];
@@ -2276,6 +2336,7 @@
 					"upon_tc_physician = '$loc_upon_tc_physician', ".
 					"upon_tc_date = '$loc_upon_tc_date', ".
 					"patient_cured = '$loc_patient_cured', ".
+					"movement_of_patient = '$loc_movement_of_patient', ".
 					"date_last_updated = '$loc_current_date', ".
 					"user_id = $loc_userid ".
 					"WHERE consult_id = $loc_consult_id ";
@@ -2283,10 +2344,10 @@
 			else {
 				$query = "INSERT INTO m_leprosy_post_treatment ".
 					"(consult_id, patient_id, upon_dx_physician, upon_tc_physician, upon_tc_date, ".
-					"patient_cured, date_last_updated, user_id) ".
+					"patient_cured, movement_of_patient, date_last_updated, user_id) ".
 					"VALUES($loc_consult_id, $loc_patient_id, '$loc_upon_dx_physician', ".
 					"'$loc_upon_tc_physician', '$loc_upon_tc_date', '$loc_patient_cured', ".
-					"'$loc_current_date', $loc_userid)";
+					"'$loc_movement_of_patient', '$loc_current_date', $loc_userid)";
 			}
 			$result = mysql_query($query)
 				or die("Couldn't execute query. ".mysql_error());
