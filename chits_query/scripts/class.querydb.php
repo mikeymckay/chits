@@ -286,6 +286,8 @@ class querydb{
 			$this->process_leprosy_summary();
 		elseif($quesno==67):
 			$this->process_leprosy_quarterly();
+		elseif($quesno==68):
+			$this->process_leprosy_tcl();
 		else:
 			echo "No available query for this indicator.";
 		endif;
@@ -791,6 +793,10 @@ class querydb{
 
 	function process_leprosy_summary(){
 		echo "<a href='./pdf_reports/leprosy_summary.php'>Show NLCP Summary Table</a>";
+	}
+
+	function process_leprosy_tcl(){
+		echo "<a href='./pdf_reports/leprosy_tcl.php'>show NLCP Target Client List</a>";
 	}
 }
 ?>
