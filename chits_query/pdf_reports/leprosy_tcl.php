@@ -144,7 +144,7 @@
 			
 			$this->SetFont('Arial','B',12);
 			
-			$this->Cell(0,5, 'Target Client List for National Leprosy Control Program ('.$_SESSION[sdate_orig].' to '.$_SESSION[edate_orig].') '.$municipality_label,0,1,'C');
+			$this->Cell(0,5, 'Target Client List for National Leprosy Control Program ('.$_SESSION[sdate_orig].' to '.$_SESSION[edate_orig].')',0,1,'C');
 			
 			if($_SESSION[brgy] == 'all' || $_SESSION[brgy] == 'All') {
 				$brgy_label = 'All Barangays';
@@ -158,12 +158,18 @@
 			$this->SetFont('Arial','',10);
  
 			$this->Cell(0,5, $brgy_label, 0, 1, 'C');
+			$this->Cell(0,5,$_SESSION[datanode][name],0,1,'C');
+			$this->Cell(0,5,'Province of '.$_SESSION[province],0,1,'C');
 
-			$w = array(9,50,100,20); //340
-			$header = array('#','Patient Name','Address','Case');
+			$w = array(8,69,15,15,69,26,24,26,24,40,24); //340
+			$header = array('#', 'Name', 'Age', 'Sex', 'Address', 'Patient Status', 'WHO Disability Grading', 'MDT Classification', 'Date MDT Started', 'Movement Of Patient', 'Date MDT Completed');
+			$w2 = array(8,69,15,15,69,13,13,24,13,13,24,10,10,10,10,24);
+			$sub_header = array('','','','','','Old','New','','PB','MB','','T/O','T/I','Died','Lost','');
 			
 			$this->SetWidths($w);
-			$this->Row($header);	
+			$this->Row($header);
+			$this->SetWidths($w2);
+			$this->Row($sub_header);
 		}
 		
 		
@@ -185,65 +191,76 @@
 			$end = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
 
 			$ctr = 1;
+			$w = array(8,69,15,15,69,26,24,26,24,40,24); //340
+			$this->SetWidths($w);
 
-			$patients = "SELECT patient_id, consult_id FROM m_leprosy_diagnosis WHERE (date_of_diagnosis >= '$start' AND date_of_diagnosis <= '$end') ".
-				"ORDER BY consult_id";
-			$patient_results = mysql_query($patients) or die("Couldn't execute query.");
-
-			while(list($p_id, $c_id) = mysql_fetch_array($patient_results)) {
-				// The following codes will be used to get the patient's fullname.
-				$query = "SELECT a.patient_lastname, a.patient_firstname, a.patient_middle FROM m_patient a ".
-					"INNER JOIN m_leprosy_diagnosis b ON a.patient_id = b.patient_id WHERE ".
-					"b.patient_id = $p_id";
-				$result = mysql_query($query) or die("Couldn't execute query.");
-
-				list($ln,$fn,$mn) = mysql_fetch_array($result);
-				$patient_name = $ln.", ".$fn." ".$mn;
-
-				
-				// The following codes will be used to get the patient's full address.
-				$query = "SELECT c.address, d.barangay_name FROM ".
-					"m_leprosy_diagnosis a INNER JOIN m_family_members b ON a.patient_id = b.patient_id ".
-					"INNER JOIN m_family_address c ON b.family_id = c.family_id ".
-					"INNER JOIN m_lib_barangay d ON c.barangay_id = d.barangay_id ".
-					"WHERE a.patient_id = $p_id";
-				$result = mysql_query($query) or die("Couldn't execute query.");
-
-				list($address, $barangay) = mysql_fetch_array($result);
-				$patient_address = $address.", ".$barangay;
-
-				
-				// The following codes will be used to get the patient's case.
-				$query = "SELECT patient_case FROM m_leprosy_diagnosis WHERE consult_id = $c_id";
-				$result = mysql_query($query) or die("Couldn't execute query.".mysql_error());
-
-				list($patient_case) = mysql_fetch_array($result);
-
-
-
-				// The following codes will be used to print the row.
-				$row_contents = array($ctr, $patient_name, $patient_address, $patient_case);
-				$this->Row($row_contents);
+			if($_SESSION[brgy] == 'All' || $_SESSION[brgy] == 'all') {
+				$patients = "SELECT b.patient_lastname, b.patient_firstname, b.patient_middle, a.patient_age, b.patient_gender, ".
+					"d.address, e.barangay_name, a.patient_case, a.consult_id, a.classification ".
+					"FROM m_leprosy_diagnosis a INNER JOIN m_patient b ON a.patient_id = b.patient_id ".	// lastname, firstname, middle
+					"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".			// to get the family id in order
+					"INNER JOIN m_family_address d ON c.family_id = d.family_id ".				// to get the family address
+					"INNER JOIN m_lib_barangay e ON d.barangay_id = e.barangay_id ".			// and then family barangay
+					"WHERE (a.date_of_diagnosis >= '$start' AND a.date_of_diagnosis <= '$end') ORDER BY a.date_of_diagnosis";
 			}
-			
-			/*
-			$patients = "SELECT b.patient_lastname, b.patient_firstname, b.patient_middle, d.address, e.barangay_name, a.patient_case ".
-				"FROM m_leprosy_diagnosis a INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
-				"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
-				"INNER JOIN m_family_address d ON c.family_id = d.family_id ".
-				"INNER JOIN m_lib_barangay e ON d.barangay_id = e.barangay_id ".
-				"WHERE (a.date_of_diagnosis >= '$start' AND a.date_of_diagnosis <= '$end')";
+			else {
+				$patients = "SELECT b.patient_lastname, b.patient_firstname, b.patient_middle, a.patient_age, b.patient_gender, ".
+					"d.address, e.barangay_name, a.patient_case, a.consult_id, a.classification ".
+					"FROM m_leprosy_diagnosis a INNER JOIN m_patient b ON a.patient_id = b.patient_id ".	// lastname, firstname, middle
+					"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".			// to get the family id in order
+					"INNER JOIN m_family_address d ON c.family_id = d.family_id ".				// to get the family address
+					"INNER JOIN m_lib_barangay e ON d.barangay_id = e.barangay_id ".			// and then family barangay
+					"WHERE (a.date_of_diagnosis >= '$start' AND a.date_of_diagnosis <= '$end') AND ".
+					"e.barangay_id = '$_SESSION[brgy]' ORDER BY a.date_of_diagnosis";
+			}
 
 			$result = mysql_query($patients)
 				or die("Couldn't execute query.");
 			$ctr = 1;
 	
-			while(list($ln, $fn, $mn, $address, $barangay_name, $patient_case) = mysql_fetch_array($result)) {
-				$row_contents = array($ctr, $ln.", ".$fn." ".$mn, $address.", ".$barangay_name, $patient_case);
+			while(list($ln, $fn, $mn, $age, $patient_gender, $address, $barangay, $patient_case, $consult_id, $classification ) = mysql_fetch_array($result)) {
+				$patient_name = $ln.", ".$fn." ".$mn;
+				list($age_in_year,$month) = explode(".", $age);
+				$patient_address = $address.", ".$barangay;
+
+				// The following query will be used to get the patient's maximum who disability grade.
+				$who_query = "SELECT b.upon_dx_right, b.upon_dx_left, b.upon_tc_right, b.upon_tc_left ".
+					"FROM m_leprosy_diagnosis a INNER JOIN m_leprosy_who_disability_grade b ON a.consult_id = b.consult_id ".
+					"WHERE b.who_disability = 'Maximum Grade' AND b.consult_id = $consult_id ";
+				$who_result = mysql_query($who_query) or die("Couldn't execute query");
+				list($dx_right, $dx_left, $tc_right, $tc_left) = mysql_fetch_array($who_result); 
+				$who_dg = 0;
+				if($dx_right > $who_dg)
+					$who_dg = $dx_right;
+				if($dx_left > $who_dg)
+					$who_dg = $dx_left;
+				if($tc_right > $who_dg)
+					$who_dg = $tc_right;
+				if($tc_left > $who_dg)
+					$who_dg = $tc_left;
+
+				// The following query will be used to get the date when MDT was started.
+				$mdt_started_query = "SELECT b.date_for_the_supervised_dose FROM m_leprosy_diagnosis a ".
+					"INNER JOIN m_leprosy_drug_collection_chart b ON a.consult_id = b.consult_id ".
+					"WHERE b.consult_id = $consult_id ORDER BY b.date_for_the_supervised_dose";
+				$mdt_started_result = mysql_query($mdt_started_query) or die("Couldn't execute query");
+				list($mdt_started) = mysql_fetch_array($mdt_started_result);
+
+				// The following query will be used to get the movement of patient and when MDT was completed.
+				$post_treatment_query = "SELECT b.upon_tc_date, b.movement_of_patient, b.patient_cured FROM m_leprosy_diagnosis a ".
+					"INNER JOIN m_leprosy_post_treatment b ON a.consult_id = b.consult_id ".
+					"WHERE b.consult_id = $consult_id ";
+				$post_treatment_result = mysql_query($post_treatment_query) or die("Couldn't execute query.".mysql_error());
+				list($tc_date, $movement, $patient_cured) = mysql_fetch_array($post_treatment_result);
+				if($patient_cured != 'Completed') 
+					$tc_date = '';
+
+				$row_contents = array($ctr, $patient_name, $age_in_year, $patient_gender, $patient_address, $patient_case, $who_dg, $classification, $mdt_started, $movement, $tc_date);
+				//$row_contents = array($ctr, $ln.", ".$fn." ".$mn, $address.", ".$barangay_name, $patient_case);
 				$this->Row($row_contents);
 				$ctr++;
 			}
-			*/
+			
 		}
 		
 		

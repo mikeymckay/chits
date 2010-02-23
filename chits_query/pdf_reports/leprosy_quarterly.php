@@ -165,7 +165,7 @@
 		function q_report_header($population) {
 			$this->SetFont('Arial','B','12');
 			$this->Cell(0,5,'FHSIS REPORT FOR THE QUARTER: '.$_SESSION[quarter]."          YEAR: ".$_SESSION[year],0,1,L);
-			$this->Cell(0,5, 'MUNICAPLITY/CITY NAME: '.$_SESSION[datanode][name],0,1,L);
+			$this->Cell(0,5, 'MUNICIPALITY/CITY NAME: '.$_SESSION[datanode][name],0,1,L);
 			$this->Cell(0,5,'PROVINCE: '.$_SESSION[province]."          PROJECTED POPULATION OF THE YEAR: ".$population,0,1,L);
 		}
 		
