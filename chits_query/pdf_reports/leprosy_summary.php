@@ -8,6 +8,10 @@
 	$db_conn = mysql_connect("localhost","$_SESSION[dbuser]","$_SESSION[dbpass]");
 	mysql_select_db($_SESSION[dbname]);
 	
+	// Author: Jeffrey V. Tolentino
+        // Report Version: 1.0
+        // Description: Leprosy - Summary Table (FHSIS)
+        // Version Released: Feb 2010
 	
 	
 	// Comment date: Jan 05, 2010, JVTolentino

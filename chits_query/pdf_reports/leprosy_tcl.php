@@ -7,7 +7,11 @@
 
 	$db_conn = mysql_connect("localhost","$_SESSION[dbuser]","$_SESSION[dbpass]");
 	mysql_select_db($_SESSION[dbname]);
-	
+
+	// Author: Jeffrey V. Tolentino
+	// Report Version: 1.0
+	// Description: Leprosy - Target Client List (NLCP - Manual of Procedures)
+	// Version Released: Feb 2010
 	
 	
 	// Comment date: Jan 05, 2010, JVTolentino
@@ -245,6 +249,11 @@
 					"WHERE b.consult_id = $consult_id ORDER BY b.date_for_the_supervised_dose";
 				$mdt_started_result = mysql_query($mdt_started_query) or die("Couldn't execute query");
 				list($mdt_started) = mysql_fetch_array($mdt_started_result);
+				if($mdt_started != '') {
+					list($year, $month, $day) = explode("-", $mdt_started);
+                        		$mdt_started = str_pad($month, 2, "0", STR_PAD_LEFT)."/".str_pad($day, 2, "0", STR_PAD_LEFT)."/".$year;
+				}
+
 
 				// The following query will be used to get the movement of patient and when MDT was completed.
 				$post_treatment_query = "SELECT b.upon_tc_date, b.movement_of_patient, b.patient_cured FROM m_leprosy_diagnosis a ".
@@ -252,8 +261,13 @@
 					"WHERE b.consult_id = $consult_id ";
 				$post_treatment_result = mysql_query($post_treatment_query) or die("Couldn't execute query.".mysql_error());
 				list($tc_date, $movement, $patient_cured) = mysql_fetch_array($post_treatment_result);
-				if($patient_cured != 'Completed') 
+				if($patient_cured != 'Completed') {
 					$tc_date = '';
+				}
+				else {
+					list($year, $month, $day) = explode("-", $tc_date);
+                        		$tc_date = str_pad($month, 2, "0", STR_PAD_LEFT)."/".str_pad($day, 2, "0", STR_PAD_LEFT)."/".$year;
+				}
 
 				$row_contents = array($ctr, $patient_name, $age_in_year, $patient_gender, $patient_address, $patient_case, $who_dg, $classification, $mdt_started, $movement, $tc_date);
 				//$row_contents = array($ctr, $ln.", ".$fn." ".$mn, $address.", ".$barangay_name, $patient_case);

@@ -20,7 +20,8 @@
    // 7. CONSTRUCTOR FUNCTION
    // 8. drop_tables()
 
-	
+
+
    // Comment date: Sep 25, '09
    // The constructor function starts here
    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -306,44 +307,96 @@
     
     
     
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    // Comment date: Oct. 13, 09, JVTolentino
-    // The succeeding codes and functions will be used exclusively(??) for
-    //    the 'CHITS - DENTAL HEALTH CARE PROGRAM MODULE'. These codes
-    //    are open-source, so feel free to modify, enhance, and distribute
-    //    as you wish.
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    	// Comment date: Oct. 13, 09, JVTolentino
+    	// The succeeding codes and functions will be used exclusively(??) for
+    	//    the 'CHITS - DENTAL HEALTH CARE PROGRAM MODULE'. These codes
+    	//    are open-source, so feel free to modify, enhance, and distribute
+    	//    as you wish.
+    	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	// Comment date: Feb 27, 2010, JVTolentino
+	// Version: 0.2
+	// After a workgroup discussion amongst the dentists of the four pilot
+	// 	rhus and pasay rhu, there were common concensus among the group. 
+	// 	These are the following:
+	//
+	// 	1. Recording of tooth condition is done on per tooth basis, 
+	//		method of encoding is very tedious. The group requested 
+	//		that the data submission would go for the whole teeth.
+	// 	2. There is no 'Oral Prophylaxis' for services. Teeth will be 
+	//		color coded according to the following: 
+	//		(RED: Fluoride, Blue: OP)
+	// 	3. The legends should be smaller and more visible. 
+	//		There are two options: 1. place in in the right side of
+	// 		the dental chart, or 2. place it in a pop-up window.
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+
+
+	// Comment date: Jan 29, 2010, JVTolentino
+ 	// There is an issue regarding the database, for some reason the primary keys (ai)
+    	//      for every table will initialize to 1 everytime each module starts, instead of 
+   	//              getting the last value of the last record.
+    	//      This is a server-side problem. The solution is to drop each primary each and then 
+    	//              re-assigns it. The following codes can be inserted into index.php, under the info
+     	//              directory. I'm experimenting if it is possible to not modify index.php everytime
+     	//              a module is being introduced to EMR, rather insert the codes here and execute
+    	//              this everytime this module starts.
+	//
+	// Comment date: Feb 27, 2010, JVTolentino
+	// This function was experimented on the leprosy module, it proves to be successful
+	// 	and I decided to include it in this version.
+     	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      	function init_primary_keys() {
+		$query = "ALTER TABLE `m_dental_fhsis` DROP PRIMARY KEY, ADD PRIMARY KEY(`record_number`)";
+		$result = mysql_query($query) or die("Couldn't execute query.");
+
+		$query = "ALTER TABLE `m_dental_other_services` DROP PRIMARY KEY, ADD PRIMARY KEY(`record_number`)";
+		$result = mysql_query($query) or die("Couldn't execute query.");
+
+		$query = "ALTER TABLE `m_dental_patient_ohc` DROP PRIMARY KEY, ADD PRIMARY KEY(`ohc_id`)";
+		$result = mysql_query($query) or die("Couldn't execute query.");
+
+		$query = "ALTER TABLE `m_dental_services` DROP PRIMARY KEY, ADD PRIMARY KEY(`service_id`)";
+		$result = mysql_query($query) or die("Couldn't execute query.");
+
+		$query = "ALTER TABLE `m_dental_other_services` DROP PRIMARY KEY, ADD PRIMARY KEY(`record_number`)";
+		$result = mysql_query($query) or die("Couldn't execute query.");
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
     
-    
-    
-    
-    // Comment date: Oct 16, '09, JVTolentino
-    // The following function will be used for acquiring tooth condition
-    //    from m_dental_patient_ohc.
-    // This function accepts two arguments:
-    //    1. $tn -> corresponds to the field tooth_number
-    //    2. $cid -> corresponds to the field consult_id
-    // Initial assessment is that the function will not need the patient's
-    //    id to get a unique record, likewise, the date of oral examination
-    //    is also not required. The field consult_id will most probably be
-    //    enough to get a unique tooth_condition for every oral examination.
-    //    If these arguments prove flawed, change the arguments so that it 
-    //    references the fields patient_id and date_of_oral.
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    function tooth_condition($tn, $cid) {
-      $query = "SELECT `tooth_condition` FROM `m_dental_patient_ohc` WHERE `tooth_number` = ".$tn." AND `consult_id` = ".$cid."";
-      $result = mysql_query($query)
-        or die ("Couldn't execute query.");
+    	// Comment date: Oct 16, '09, JVTolentino
+   	// The following function will be used for acquiring tooth condition
+    	//    from m_dental_patient_ohc.
+    	// This function accepts two arguments:
+    	//    1. $tn -> corresponds to the field tooth_number
+    	//    2. $cid -> corresponds to the field consult_id
+    	// Initial assessment is that the function will not need the patient's
+    	//    id to get a unique record, likewise, the date of oral examination
+    	//    is also not required. The field consult_id will most probably be
+    	//    enough to get a unique tooth_condition for every oral examination.
+    	//    If these arguments prove flawed, change the arguments so that it 
+    	//    references the fields patient_id and date_of_oral.
+    	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    	function tooth_condition($tn, $cid) {
+      		$query = "SELECT `tooth_condition` FROM `m_dental_patient_ohc` WHERE `tooth_number` = ".$tn." AND `consult_id` = ".$cid."";
+      		$result = mysql_query($query)
+        		or die("Couldn't execute query.");
       
-      if($row = mysql_fetch_assoc($result)) {
-        return $row['tooth_condition'];
-      }
-      else {
-        return "&nbsp;";
-      }
-    }
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      		if($row = mysql_fetch_assoc($result)) {
+        		return $row['tooth_condition'];
+      		}
+      		else {
+        		return '';
+      		}
+    	}
+    	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     
     
@@ -672,9 +725,314 @@
       echo "</table>"; 
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    
-    
+
+
+
+	// Comment date: Mar 01, 2010, JVTolentino
+        // This function will be used to populate the combo boxes for the
+	// patient's teeth conditions
+	// Note: $patient_tc = $patient_tooth_condition
+        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function get_teeth_conditions_v02($teeth_status, $patient_tc) {
+		if($teeth_status == '') {
+			$query = "SELECT DISTINCT legend FROM m_lib_dental_tooth_condition ORDER BY legend";
+		}
+		else {
+			$query = "SELECT DISTINCT legend FROM m_lib_dental_tooth_condition WHERE ".
+				"status='$teeth_status' ORDER BY legend";
+		}
+		$result = mysql_query($query) or die("Couldn't execute query.");
+
+		while(list($legend) = mysql_fetch_array($result)) {
+			if($patient_tc == $legend) {
+				print "<option value='$legend' selected>$legend</option>";
+			}
+			else {
+				if(($legend == 'y' || $legend == 'Y') && ($patient_tc == '')) {
+					print "<option value='$legend' selected>$legend</option>";
+				}
+				else {
+					print "<option value='$legend'>$legend</option>";
+				}
+			}
+		}
+	}
+    	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+	// Comment date: Mar 01, 2010, JVTolentino
+	// This function will be used to accommodate the enhancements of the
+	// 	dental module, specifically, in saving the teeth conditions
+	//	of a patient.
+    	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function show_teeth_conditions_v02() {
+		$loc_consult_id = $_GET['consult_id'];
+		print "<table border=3 bordercolor='red' align='center'>";
+			print "<tr>";
+                        	print "<th colspan=16 align='left' bgcolor='CC9900'>Set Patient's Teeth Conditions</th>";
+                        print "</tr>";
+
+			// Upper-teeth-temporary symbols and conditions.
+			if($this->patient_age < 13.0) {
+				print "<tr>";
+					print "<td align='center'></td>";
+					print "<td align='center'></td>";
+					print "<td align='center'></td>";
+					for($this->toothnumber = 55; $this->toothnumber >= 51; $this->toothnumber--) {
+						print "<td align='center'><b>$this->toothnumber</b></td>";
+					}
+					for($this->toothnumber=61; $this->toothnumber<=65; $this->toothnumber++) {
+            					print "<td align='center'><b>$this->toothnumber</b></td>";
+          				}
+          				print "<td align='center'></td>";
+          				print "<td align='center'></td>";
+          				print "<td align='center'></td>";
+        			print "</tr>";
+
+				print "<tr>";
+					print "<td align='center'></td>";
+                                	print "<td align='center'></td>";
+                                	print "<td align='center'></td>";
+					for($tn = 55; $tn >= 51; $tn--) {
+						print "<td><select name='tooth_number_$tn'>";
+							$tc = $this->tooth_condition($tn, $loc_consult_id);
+							if($this->patient_age < 6.0) {
+								$this->get_teeth_conditions_v02('Temporary', $tc);
+							}
+							else {
+								$this->get_teeth_conditions_v02('Temporary', $tc);
+								if($tc == '') {
+									print "<option value='0' selected></option>";
+								}
+							}
+						print "</select></td>";
+					}
+					for($tn = 61; $tn <=65; $tn++) {
+						print "<td><select name='tooth_number_$tn'>";
+							$tc = $this->tooth_condition($tn, $loc_consult_id);
+							if($this->patient_age < 6.0) {
+                                                                $this->get_teeth_conditions_v02('Temporary', $tc);
+                                                        }
+                                                        else {
+                                                                $this->get_teeth_conditions_v02('Temporary', $tc);
+								if($tc == '') {
+									print "<option value='0' selected></option>";
+								}
+                                                        }
+                                        	print "</select></td>";
+                                	}
+					print "<td align='center'></td>";
+                                	print "<td align='center'></td>";
+                                	print "<td align='center'></td>";
+				print "</tr>";
+			}
+
+
+			// Upper-teeth-permanent symbols and conditions.
+			if($this->patient_age >= 6.0) {
+				print "<tr>";
+					for($this->toothnumber = 18; $this->toothnumber >= 11; $this->toothnumber--) {
+						print "<td align='center'><b>$this->toothnumber</b></td>";
+					}
+					for($this->toothnumber=21; $this->toothnumber<=28; $this->toothnumber++) {
+            					print "<td align='center'><b>$this->toothnumber</b></td>";
+          				}
+        			print "</tr>";
+
+				print "<tr>";
+					for($tn = 18; $tn >= 11; $tn--) {
+						print "<td><select name='tooth_number_$tn'>";
+							$tc = $this->tooth_condition($tn, $loc_consult_id);
+							if($this->patient_age >= 13.0) {
+								$this->get_teeth_conditions_v02('Permanent', $tc);
+							}
+							else {
+								$this->get_teeth_conditions_v02('Permanent', $tc);
+								if($tc == '') {
+									print "<option value='0' selected></option>";
+								}
+							}
+						print "</select></td>";
+					}
+					for($tn = 21; $tn <=28; $tn++) {
+						print "<td><select name='tooth_number_$tn'>";
+							$tc = $this->tooth_condition($tn, $loc_consult_id);
+							if($this->patient_age >= 13.0) {
+                                                                $this->get_teeth_conditions_v02('Permanent', $tc);
+                                                        }
+                                                        else {
+                                                                $this->get_teeth_conditions_v02('Permanent', $tc);
+								if($tc == '') {
+									print "<option value='0' selected></option>";
+								}
+                                                        }
+                                        	print "</select></td>";
+                                	}
+				print "</tr>";
+			}
+
+
+			// Lower-teeth-temporary symbols and conditions.
+			if($this->patient_age < 13.0) {
+				print "<tr>";
+					print "<td align='center'></td>";
+					print "<td align='center'></td>";
+					print "<td align='center'></td>";
+					for($this->toothnumber = 85; $this->toothnumber >= 81; $this->toothnumber--) {
+						print "<td align='center'><b>$this->toothnumber</b></td>";
+					}
+					for($this->toothnumber=71; $this->toothnumber<=75; $this->toothnumber++) {
+            					print "<td align='center'><b>$this->toothnumber</b></td>";
+          				}
+          				print "<td align='center'></td>";
+          				print "<td align='center'></td>";
+          				print "<td align='center'></td>";
+        			print "</tr>";
+
+				print "<tr>";
+					print "<td align='center'></td>";
+                                	print "<td align='center'></td>";
+                                	print "<td align='center'></td>";
+					for($tn = 85; $tn >= 81; $tn--) {
+						print "<td><select name='tooth_number_$tn'>";
+							$tc = $this->tooth_condition($tn, $loc_consult_id);
+							if($this->patient_age < 6.0) {
+								$this->get_teeth_conditions_v02('Temporary', $tc);
+							}
+							else {
+								$this->get_teeth_conditions_v02('Temporary', $tc);
+								if($tc == '') {
+									print "<option value='0' selected></option>";
+								}
+							}
+						print "</select></td>";
+					}
+					for($tn = 71; $tn <=75; $tn++) {
+						print "<td><select name='tooth_number_$tn'>";
+							$tc = $this->tooth_condition($tn, $loc_consult_id);
+							if($this->patient_age < 6.0) {
+                                                                $this->get_teeth_conditions_v02('Temporary', $tc);
+                                                        }
+                                                        else {	
+                                                                $this->get_teeth_conditions_v02('Temporary', $tc);
+								if($tc == '') {
+									print "<option value='0' selected></option>";
+								}
+                                                        }
+                                        	print "</select></td>";
+                                	}
+					print "<td align='center'></td>";
+                                	print "<td align='center'></td>";
+                                	print "<td align='center'></td>";
+				print "</tr>";
+			}
+
+
+			// Lower-teeth-permanent symbols and conditions.
+			if($this->patient_age >= 6.0) {
+				print "<tr>";
+					for($this->toothnumber = 48; $this->toothnumber >= 41; $this->toothnumber--) {
+						print "<td align='center'><b>$this->toothnumber</b></td>";
+					}
+					for($this->toothnumber=31; $this->toothnumber<=38; $this->toothnumber++) {
+            					print "<td align='center'><b>$this->toothnumber</b></td>";
+          				}
+        			print "</tr>";
+
+				print "<tr>";
+					for($tn = 48; $tn >= 41; $tn--) {
+						print "<td><select name='tooth_number_$tn'>";
+							$tc = $this->tooth_condition($tn, $loc_consult_id);
+							if($this->patient_age >= 13.0) {
+								$this->get_teeth_conditions_v02('Permanent', $tc);
+							}
+							else {
+								$this->get_teeth_conditions_v02('Permanent', $tc);
+								if($tc == '') {
+									print "<option value='0' selected></option>";
+								}
+							}
+						print "</select></td>";
+					}
+					for($tn = 31; $tn <=38; $tn++) {
+						print "<td><select name='tooth_number_$tn'>";
+							$tc = $this->tooth_condition($tn, $loc_consult_id);
+							if($this->patient_age >= 13.0) {
+                                                                $this->get_teeth_conditions_v02('Permanent', $tc);
+                                                        }
+                                                        else {
+                                                                $this->get_teeth_conditions_v02('Permanent', $tc);
+								if($tc == '') {
+									print "<option value='0' selected></option>";
+								}
+                                                        }
+                                        	print "</select></td>";
+                                	}
+				print "</tr>";
+			}
+
+
+			print "<tr>";
+				print "<td colspan=16 align='center'>";
+					print "<input type='submit' name='submit_button' value='Save Teeth Conditions'>";
+					print "</input>";
+				print "</td>";
+			print "</tr>";
+		print "</table>";
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+	// Comment date: Mar 01, 2010, JVTolentino
+        // This module will add/modify a record in m_dental_patient_ohc.
+        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function dental_patient_ohc_record_v02() {
+		$loc_consult_id = $_GET['consult_id'];
+		$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+                list($month, $day, $year) = explode("/", $_POST['date_of_oral']);
+                $loc_date_of_oral = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+                $loc_patient_pregnant = mc::check_if_pregnant($loc_patient_id, $loc_date_of_oral);
+                $loc_dentist = $_SESSION['userid'];
+
+		// $tn = tooth_number
+		// $tc = tooth_condition
+		for($tn = 11; $tn <= 85; $tn++) {
+			$tc = $_POST['tooth_number_'.$tn];
+			if(($tc == '0') || ($tc == '')) {
+				// DO NOTHING
+			}
+			else {
+				$query = "SELECT * FROM m_dental_patient_ohc WHERE ".
+					"consult_id = $loc_consult_id ".
+					"AND tooth_number = $tn ";
+				$result = mysql_query($query) or die("Couldn't execute query.");
+
+				if(mysql_num_rows($result)) {
+					$query = "UPDATE m_dental_patient_ohc SET ".
+						"is_patient_pregnant = '$loc_patient_pregnant', ".
+						"tooth_condition = '$tc', ".
+						"date_of_oral = '$loc_date_of_oral', ".
+						"dentist = $loc_dentist ".
+						"WHERE consult_id = $loc_consult_id ".
+						"AND tooth_number = $tn ";
+				}
+				else {
+					$query = "INSERT INTO m_dental_patient_ohc ".
+                        			"(patient_id, consult_id, is_patient_pregnant, ".
+                        			"tooth_number, tooth_condition, date_of_oral, dentist) ".
+                        			"VALUES($loc_patient_id, $loc_consult_id, '$loc_patient_pregnant', ".
+                        			"$tn, '$tc', '$loc_date_of_oral', $loc_dentist)";
+				}
+				$result = mysql_query($query) or die("Couldn't add/modify patient's record.".mysql_error());
+			}
+		} 
+
+		
+	}
+	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
     
     
 	// Comment date: Oct 22, '09, JVTolentino
@@ -863,6 +1221,10 @@
 	// Comment date: Dec 02, 2009, JVTolentino
 	// Added additional codes for populating the table [m_dental_fhsis]. This table is used
 	// 	for creating the dental report.
+	//
+	// Comment date: Mar 01, 2010, JVTolentino
+	// A new function was added and will be executed based on the requirements of version 0.2. 
+	//	The function is dental_patient_ohc_record_v02().
 	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     function new_dental_record() {
 		// The following variables are used for inserting a new record in
@@ -1025,6 +1387,12 @@
 					$loc_out_drainage_of_localized_oral_abscess, $loc_education_and_counselling, 
 					$loc_scaling, $loc_gum_treatment);
 			}
+		}
+
+
+		// New function needed for version 0.2
+		elseif(@$_POST['submit_button'] == "Save Teeth Conditions") {
+			$this->dental_patient_ohc_record_v02();
 		}
 		
 		$loc_patient_age = healthcenter::get_patient_age($_GET['consult_id']);
@@ -2793,48 +3161,55 @@
 	
 	
 	
-   // Comment date: Nov 04, '09, JVTolentino
-   // This is the main function for the dental module.
-   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-   function _consult_dental() {
-      echo "<form name='form_dental' action='$_POST[PHP_SELF]' method='POST'>";
+   	// Comment date: Nov 04, '09, JVTolentino
+   	// This is the main function for the dental module.
+	//
+	// Comment Date: Feb 27, 2010, JVTolentino
+	// I will just do some clean-up of this function in preparation for
+	// 	v0.2.
+   	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   	function _consult_dental() {
+      		echo "<form name='form_dental' action='$_POST[PHP_SELF]' method='POST'>";
       
-      $dental = new dental;
+      		$dental = new dental;
       
-      $dental->toothnumber = 0;
-      $dental->condition[$dental->toothnumber] = 'Y';
-      $dental->consult_id = $_GET['consult_id'];
-      $dental->patient_id = healthcenter::get_patient_id($_GET['consult_id']);
-      $dental->patient_age = healthcenter::get_patient_age($_GET['consult_id']);
-      $dental->dentist = $_SESSION['userid'];
+      		$dental->toothnumber = 0;
+      		$dental->condition[$dental->toothnumber] = 'Y';
+      		$dental->consult_id = $_GET['consult_id'];
+      		$dental->patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+      		$dental->patient_age = healthcenter::get_patient_age($_GET['consult_id']);
+      		$dental->dentist = $_SESSION['userid'];
       
-      // The following codes will initialize hidden textboxes and their values
-      echo "<input type='hidden' name='h_patient_id' value='{$dental->patient_id}'></input>";
-      echo "<input type='hidden' name='h_consult_id' value='{$dental->consult_id}'></input>";
-      echo "<input type='hidden' name='h_dentist' value='{$dental->dentist}'></input>";
+      		// The following codes will initialize hidden textboxes and their values
+      		echo "<input type='hidden' name='h_patient_id' value='{$dental->patient_id}'></input>";
+      		echo "<input type='hidden' name='h_consult_id' value='{$dental->consult_id}'></input>";
+      		echo "<input type='hidden' name='h_dentist' value='{$dental->dentist}'></input>";
       
-      if (@$_POST['h_save_flag'] == 'GO') {
-        $dental->new_dental_record();
+      		if (@$_POST['h_save_flag'] == 'GO') {
+        		$dental->new_dental_record();
 		
 			print "&nbsp;";
 			$dental->show_message_if_patient_is_pregnant($dental->patient_id, date("Y-m-d"));
         
-        echo "&nbsp;";
-        $dental->show_date_of_oral();
+        		echo "&nbsp;";
+        		$dental->show_date_of_oral();
 			
-        $dental->get_teeth_conditions($dental->patient_age);
+        		$dental->get_teeth_conditions($dental->patient_age);
 			
-        echo "&nbsp;";
-        $dental->select_tooth_and_condition($dental->patient_age);
+        		//echo "&nbsp;";
+        		//$dental->select_tooth_and_condition($dental->patient_age);
 			
-        echo "&nbsp;";
-        $dental->show_teeth_conditions($dental->patient_age);
+        		//echo "&nbsp;";
+        		//$dental->show_teeth_conditions($dental->patient_age);
+
+			print "&nbsp;";
+			$dental->show_teeth_conditions_v02();
         
-        echo "&nbsp;";
-        $dental->show_ohc_table_a($dental->patient_id);
+        		echo "&nbsp;";
+        		$dental->show_ohc_table_a($dental->patient_id);
         
-        echo "&nbsp;";
-        $dental->show_ohc_table_b($dental->patient_id);
+        		echo "&nbsp;";
+        		$dental->show_ohc_table_b($dental->patient_id);
 			
 			echo "&nbsp;";
 			$dental->show_services_monitoring_chart($dental->patient_id);
@@ -2844,8 +3219,10 @@
         
 			echo "&nbsp;";
 			$dental->show_tooth_legends($dental->patient_age);
-      } 
+     		}	 
 		else {
+			$dental->init_primary_keys();
+
 			print "&nbsp;";  
 			$dental->show_message_if_patient_is_pregnant($dental->patient_id, date("Y-m-d"));
 			
@@ -2854,11 +3231,14 @@
 			
 			$dental->get_teeth_conditions($dental->patient_age);
 			
-			echo "&nbsp;";
-			$dental->select_tooth_and_condition($dental->patient_age);
+			//echo "&nbsp;";
+			//$dental->select_tooth_and_condition($dental->patient_age);
 			
-			echo "&nbsp;";
-			$dental->show_teeth_conditions($dental->patient_age);
+			//echo "&nbsp;";
+			//$dental->show_teeth_conditions($dental->patient_age);
+
+			print "&nbsp;";
+			$dental->show_teeth_conditions_v02();
         
 			echo "&nbsp;";
 			$dental->show_ohc_table_a($dental->patient_id);
@@ -2874,13 +3254,15 @@
         
 			echo "&nbsp;";
 			$dental->show_tooth_legends($dental->patient_age);
-      }
+      		}
       
 		echo "<input type='hidden' name='h_save_flag' value='GO'></input>";
 		echo "</form>";
-    
-   }
+   	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  } // class ends here
+  
+
+
+} // class ends here
   
 ?>
