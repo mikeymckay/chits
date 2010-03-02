@@ -770,8 +770,12 @@
 		$loc_consult_id = $_GET['consult_id'];
 		print "<table border=3 bordercolor='red' align='center'>";
 			print "<tr>";
-                        	print "<th colspan=16 align='left' bgcolor='CC9900'>Set Patient's Teeth Conditions</th>";
+                        	print "<th colspan=16 align='left' bgcolor='CC9900'><a name='set_teeth_conditions'>Set Patient's Teeth Conditions</a></th>";
                         print "</tr>";
+
+			print "<tr>";
+				print "<td colspan=16><a href='#condition_legends'>Tooth Condition Legends</a></td>";
+			print "</tr>";
 
 			// Upper-teeth-temporary symbols and conditions.
 			if($this->patient_age < 13.0) {
@@ -1394,6 +1398,17 @@
 		elseif(@$_POST['submit_button'] == "Save Teeth Conditions") {
 			$this->dental_patient_ohc_record_v02();
 		}
+
+
+		// New function needed for version 0.2
+		elseif(@$_POST['submit_button'] == "Save Additional Services") {
+			if($_POST['oral_prophylaxis'] != '') {
+				$this->additional_services_provided_v02($_POST['oral_prophylaxis']);
+			}
+			if($_POST['fluoride'] != '') {
+				$this->additional_services_provided_v02($_POST['fluoride']);
+			}
+		}
 		
 		$loc_patient_age = healthcenter::get_patient_age($_GET['consult_id']);
 		$loc_patient_gender = $this->get_patient_gender($loc_patient_id);
@@ -1434,8 +1449,12 @@
     function show_tooth_legends() {
       echo "<table border=3 bordercolor=#009900# align='center' width=500>";
         echo "<tr>";
-          echo "<th align='left' bgcolor='CC9900' colspan=3>Tooth Condition Legends</th>";
+          echo "<th align='left' bgcolor='CC9900' colspan=3><a name='condition_legends'>Tooth Condition Legends</a></th>";
         echo "</tr>";
+
+	print "<tr>";
+		print "<td colspan=2><a href='#set_teeth_conditions'>Return to top</a></td>";
+	print "</tr>";
         
         echo "<tr>";
           echo "<td colspan=2>Capital letters shall be used for recording the condition of permanent".
@@ -2030,9 +2049,9 @@
 	
 	
 	// Comment date: Nov 10, '09, JVTolentino
-   // This function is used for the Services Monitoring Chart
+   	// This function is used for the Services Monitoring Chart
 	// Further comments will be added soon.
-   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function show_services_monitoring_chart($p_id) {
 		print "<table border=3 bordercolor='red' align='center'>";
 			print "<tr>";
@@ -2040,78 +2059,93 @@
 			print "</tr>";
 			
 			echo "<tr>";
-          echo "<td>";
-            echo "<table align='center' border=0 cellspacing=0>";
-              echo "<tr>";
-                echo "<td width=200 align='left'>Select tooth number:</td>";
-                echo "<td>";
-                  echo "<select name='select_tooth_for_service'>";
-                    for($i=11; $i<=18; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
+          			echo "<td>";
+            			echo "<table align='center' border=0 cellspacing=0>";
+              				echo "<tr>";
+                				echo "<td width=200 align='left'>Select tooth number:</td>";
+                				echo "<td>";
+                  					echo "<select name='select_tooth_for_service'>";
+                    						for($i=11; $i<=18; $i++) {
+                      							echo "<option value=$i>$i</option>";
+                    						}
                 
-                    for($i=21; $i<=28; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
+                    						for($i=21; $i<=28; $i++) {
+                      							echo "<option value=$i>$i</option>";
+                    						}
                 
-                    for($i=31; $i<=38; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
+                    						for($i=31; $i<=38; $i++) {
+                      							echo "<option value=$i>$i</option>";
+                    						}
                 
-                    for($i=41; $i<=48; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
+                    						for($i=41; $i<=48; $i++) {
+                      							echo "<option value=$i>$i</option>";
+                    						}
 
-                    for($i=51; $i<=55; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
+                    						for($i=51; $i<=55; $i++) {
+                      							echo "<option value=$i>$i</option>";
+                    						}
                 
-                    for($i=61; $i<=65; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
+                    						for($i=61; $i<=65; $i++) {
+                      							echo "<option value=$i>$i</option>";
+                    						}
                 
-                    for($i=71; $i<=75; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
+                    						for($i=71; $i<=75; $i++) {
+                      							echo "<option value=$i>$i</option>";
+                    						}
                 
-                    for($i=81; $i<=85; $i++) {
-                      echo "<option value=$i>$i</option>";
-                    }
+                    						for($i=81; $i<=85; $i++) {
+                      							echo "<option value=$i>$i</option>";
+                    						}
 
-                  echo "</select>";
-                echo "</td>";
-              echo "</tr>";
+                  					echo "</select>";
+                				echo "</td>";
+              				echo "</tr>";
     
-              echo "<tr>";
-                echo "<td width=200 align='left'>Select service:</td>";
+              				echo "<tr>";
+                				echo "<td width=200 align='left'>Select service:</td>";
                 
-                // Comment date: Nov 10, '09, JVTolentino
-                // The following codes will be used to propagate a list box which will show
-                //    all the possible tooth services that a dentist can provide to a patient.
-                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                echo "<td>";
-                  $query = "SELECT DISTINCT legend FROM m_lib_dental_services ORDER BY legend";
-                  $result = mysql_query($query)
-                    or die ("Couldn't execute query.");
+                				// Comment date: Nov 10, '09, JVTolentino
+                				// The following codes will be used to propagate a list box which will show
+                				//    all the possible tooth services that a dentist can provide to a patient.
+                				// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                				echo "<td>";
+                  				$query = "SELECT DISTINCT legend FROM m_lib_dental_services ORDER BY legend";
+                  				$result = mysql_query($query)
+                    					or die ("Couldn't execute query.");
                   
-                  echo "<select name='select_tooth_service'>"; 
-							echo "<option value='0'></option>";
-							while ($row = mysql_fetch_array($result)) {
-								extract($row);
-								echo "<option value='$legend'>$legend</option>";
-							}
-                  echo "</select>";
-                echo "</td>";     
-                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                  					echo "<select name='select_tooth_service'>"; 
+								echo "<option value='0'></option>";
+								while ($row = mysql_fetch_array($result)) {
+									extract($row);
+									echo "<option value='$legend'>$legend</option>";
+								}
+                  					echo "</select>";
+                				echo "</td>";     
+                				// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                 
-                echo "<td width=100 align='center'><input type='submit' name='submit_button'".
-					"value='Save Service Provided'></input></td>";
-              echo "</tr>";
-    
-            echo "</table>";
-          echo "</td>";
-        echo "</tr>";
-		
+                				echo "<td width=100 align='center'><input type='submit' name='submit_button'".
+							"value='Save Service Provided'></input></td>";
+              				echo "</tr>";
+            			echo "</table>";
+          			echo "</td>";
+        		echo "</tr>";
+
+			// The following codes will be added to accomodate v02.
+			print "<tr>";
+				print "<td><table align='center' border=0 cellspacing=0>";
+					// The following codes will be added to accomodate v02.
+                                        print "<tr>";
+						print "<td><input type='checkbox' name='oral_prophylaxis' value='OP'>Oral Prophylaxis</input></td>";
+					print "</tr>";
+                                        print "<tr>";
+						print "<td><input type='checkbox' name='fluoride' value='FL'>Fluoride</input></td>";
+                                                print "<td align='center'><input type='submit' name='submit_button' value='Save Additional Services'></input></td>";
+                                        print "</tr>";
+				print "</table></td>";
+			print "</tr>";
+              		// Code for v02 ends here.
+
+
 		print "</table>";
 		
 		print "&nbsp;";
@@ -2143,6 +2177,96 @@
 		print "</table>";
 	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+
+	// Comment date: Mar 02, 2010. JVTolentino
+	// This function will add records to m_dental_services. As requested by the dentists,
+	//	after the General Assembly last Feb 25, there will be two additional
+	// 	services: Fluoride (FL) and Oral Prophylaxis (OP). These two services are 
+	// 	NOT defined in the services legends section (up to the time of this writing)
+	//	and will be corrected accordingly.
+	// These two services will present complexities to the codes because, as in real life,
+	//	when a dentist provides either of the two, the whole mouth will receive the 
+	// 	service.
+	// My initial idea is to create a loop in such a way that the whole mouth, i.e. teeth,
+	// 	will receive either an FL, OP, or both.
+	// To make matters more interesting ^^. The services will be color coded: RED for FL, 
+	//	BLUE for OP, and ___ for BOTH. That is, in the 'Service Monitoring Chart', if
+	//	a patient received an OP on a certain date, the boxes that represents the teeth
+	// 	will have a BLUE background ^^.
+	// The general challenge is to accommodate these changes in such a way that only minor
+	//	revisions will be done to the existing db schema. (Or better, NO revisions at all.)
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function additional_services_provided_v02($service) {
+		$loc_consult_id = $_GET['consult_id'];
+                $loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+                list($month, $day, $year) = explode("/", $_POST['date_of_oral']);
+                $loc_date_of_oral = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+                //$loc_patient_pregnant = mc::check_if_pregnant($loc_patient_id, $loc_date_of_oral);
+                $loc_dentist = $_SESSION['userid'];
+
+		if($this->patient_age >= 13.0) {
+			for($tn=18; $tn>=11; $tn--) {
+				$query = "INSERT INTO m_dental_services ".
+					"(patient_id, consult_id, tooth_number, service_provided, date_of_service, dentist) ".
+					"VALUES($loc_patient_id, $loc_consult_id, $tn, '$service', '$loc_date_of_oral', $loc_dentist)";
+				$result = mysql_query($query) or die("Couldn't execute query.");
+			}
+
+			for($tn=21; $tn<=28; $tn++) {
+                                $query = "INSERT INTO m_dental_services ".
+                                        "(patient_id, consult_id, tooth_number, service_provided, date_of_service, dentist) ".
+                                        "VALUES($loc_patient_id, $loc_consult_id, $tn, '$service', '$loc_date_of_oral', $loc_dentist)";
+                                $result = mysql_query($query) or die("Couldn't execute query.");
+                        }
+
+			for($tn=48; $tn>=41; $tn--) {
+                                $query = "INSERT INTO m_dental_services ".
+                                        "(patient_id, consult_id, tooth_number, service_provided, date_of_service, dentist) ".
+                                        "VALUES($loc_patient_id, $loc_consult_id, $tn, '$service', '$loc_date_of_oral', $loc_dentist)";
+                                $result = mysql_query($query) or die("Couldn't execute query.");
+                        }
+
+                        for($tn=31; $tn<=38; $tn++) {
+                                $query = "INSERT INTO m_dental_services ".
+                                        "(patient_id, consult_id, tooth_number, service_provided, date_of_service, dentist) ".
+                                        "VALUES($loc_patient_id, $loc_consult_id, $tn, '$service', '$loc_date_of_oral', $loc_dentist)";
+                                $result = mysql_query($query) or die("Couldn't execute query.");
+                        }
+		}
+		else {
+			for($tn=55; $tn>=51; $tn--) {
+                                $query = "INSERT INTO m_dental_services ".
+                                        "(patient_id, consult_id, tooth_number, service_provided, date_of_service, dentist) ".
+                                        "VALUES($loc_patient_id, $loc_consult_id, $tn, '$service', '$loc_date_of_oral', $loc_dentist)";
+                                $result = mysql_query($query) or die("Couldn't execute query.");
+                        }
+
+                        for($tn=61; $tn<=65; $tn++) {
+                                $query = "INSERT INTO m_dental_services ".
+                                        "(patient_id, consult_id, tooth_number, service_provided, date_of_service, dentist) ".
+                                        "VALUES($loc_patient_id, $loc_consult_id, $tn, '$service', '$loc_date_of_oral', $loc_dentist)";
+                                $result = mysql_query($query) or die("Couldn't execute query.");
+                        }
+
+                        for($tn=85; $tn>=81; $tn--) {
+                                $query = "INSERT INTO m_dental_services ".
+                                        "(patient_id, consult_id, tooth_number, service_provided, date_of_service, dentist) ".
+                                        "VALUES($loc_patient_id, $loc_consult_id, $tn, '$service', '$loc_date_of_oral', $loc_dentist)";
+                                $result = mysql_query($query) or die("Couldn't execute query.");
+                        }
+
+                        for($tn=71; $tn<=75; $tn++) {
+                                $query = "INSERT INTO m_dental_services ".
+                                        "(patient_id, consult_id, tooth_number, service_provided, date_of_service, dentist) ".
+                                        "VALUES($loc_patient_id, $loc_consult_id, $tn, '$service', '$loc_date_of_oral', $loc_dentist)";
+                                $result = mysql_query($query) or die("Couldn't execute query.");
+                        }
+		}
+	}
+        // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
 	
