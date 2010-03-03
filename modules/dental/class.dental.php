@@ -1270,9 +1270,10 @@
 			} else {
 				$query = "SELECT * FROM m_dental_services WHERE ".
 					"tooth_number = $loc_tooth_for_service AND ".
-					"consult_id = $loc_consult_id ";
+					"consult_id = $loc_consult_id AND ".
+					"(service_provided <> 'OP' AND service_provided <> 'FL')";
 				$result = mysql_query($query)
-					or die("Couldn't ascertain if the record already exists in the database.");
+					or die("Couldn't execute query.");
 			
 				if(mysql_num_rows($result)) {
 					$this->update_dental_service($loc_patient_id, $loc_consult_id, 
@@ -1409,6 +1410,13 @@
 				$this->additional_services_provided_v02($_POST['fluoride']);
 			}
 		}
+
+
+		// New function needed for version 0.2
+		elseif(@$_POST['submit_button'] == "Delete Additional Services") {
+			$this->delete_additional_services($_POST['consult_id_of_op_and_fl'], $_POST['delete_op_or_fl']);
+		}
+		
 		
 		$loc_patient_age = healthcenter::get_patient_age($_GET['consult_id']);
 		$loc_patient_gender = $this->get_patient_gender($loc_patient_id);
@@ -1479,8 +1487,12 @@
           }
 		
 		echo "<tr>";
-          echo "<th align='left' bgcolor='CC9900' colspan=3>Services Monitoring Legends</th>";
+          echo "<th align='left' bgcolor='CC9900' colspan=3><a name='services_legends'>Services Monitoring Legends</a></th>";
         echo "</tr>";
+
+		print "<tr>";
+			print "<td colspan=3><a href='#set_dental_service'>Return to top</a></td>";
+		print "</tr>";
 		
 		echo "<tr>";
           echo "<td align='center'><i>Service</i></td>";
@@ -1498,7 +1510,23 @@
               echo "<td align='center'>$legend</td>";
             echo "</tr>";
           }
-		
+
+	// Additional services not found in library
+	// These are needed for version 0.2
+	print "<tr>";
+		print "<td align='center'>Oral Prophylaxis</td>";
+		print "<td align='center'>BLUE (color coded)</td>";
+	print "</tr>";
+
+	print "<tr>";
+		print "<td align='center'>Fluoride</td>";
+		print "<td align='center'>RED (color coded)</td>";
+        print "</tr>";
+
+	print "<tr>";
+                print "<td align='center'>Oral Prophylaxis & Fluoride</td>";
+                print "<td align='center'>VIOLET (color coded)</td>";
+        print "</tr>";
 		
       echo "</table>";
     }
@@ -2027,10 +2055,21 @@
 	
 	
 	// Comment date: Nov 10, '09, JVTolentino
-    // The following function will be used for acquiring tooth condition
-    //    [from m_dental_services].
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    function tooth_service_acquired($tn, $c_id) {
+    	// The following function will be used for acquiring tooth condition
+    	//    [from m_dental_services].
+	//
+	// Comment date: Mar 03, 2010. JVTolentino
+	// On Version 0.2, the additional requirements is for this function
+	// 	to return multiple values. It is now possible to have multiple
+	//	services to a single tooth, e.g., patient x received an oral
+	//	prophylaxis (which means, the whole mouth was serviced) 
+	//	and then had his tooth_number 55 removed/extracted.
+	// Thus, in this revision, this function will now return an array
+	// 	of services given to a single tooth based on consult_id.
+    	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    	function tooth_service_acquired($tn, $c_id) {
+		/*
+		// The following was the original code.
 		$query = "SELECT service_provided FROM m_dental_services ".
 			"WHERE tooth_number = $tn AND consult_id = $c_id ";
 		$result = mysql_query($query)
@@ -2039,10 +2078,21 @@
 		if($row = mysql_fetch_assoc($result)) {
 			return $row['service_provided'];
 		} else {
-			return "&nbsp;";
+			return '';
 		}
-    }
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		*/
+		$services_provided = array();
+		$query = "SELECT service_provided FROM m_dental_services ".
+			"WHERE tooth_number = $tn AND consult_id = $c_id ";
+		$result = mysql_query($query) or die("Couldn't execute query.");
+
+		while(list($service_provided) = mysql_fetch_array($result)) {
+			array_push($services_provided, $service_provided);
+		}
+		return $services_provided;
+			
+    	}
+    	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
 	
@@ -2055,7 +2105,11 @@
 	function show_services_monitoring_chart($p_id) {
 		print "<table border=3 bordercolor='red' align='center'>";
 			print "<tr>";
-				print "<th align='left' bgcolor='CC9900'>Set Dental Service Provided to Patient</th>";
+				print "<th align='left' bgcolor='CC9900'><a name='set_dental_service'>Set Dental Service Provided to Patient</a></th>";
+			print "</tr>";
+
+			print "<tr>";
+				print "<td><a href='#services_legends'>Dental Services Legends</a></td>";
 			print "</tr>";
 			
 			echo "<tr>";
@@ -2065,37 +2119,74 @@
                 				echo "<td width=200 align='left'>Select tooth number:</td>";
                 				echo "<td>";
                   					echo "<select name='select_tooth_for_service'>";
-                    						for($i=11; $i<=18; $i++) {
-                      							echo "<option value=$i>$i</option>";
-                    						}
-                
-                    						for($i=21; $i<=28; $i++) {
-                      							echo "<option value=$i>$i</option>";
-                    						}
-                
-                    						for($i=31; $i<=38; $i++) {
-                      							echo "<option value=$i>$i</option>";
-                    						}
-                
-                    						for($i=41; $i<=48; $i++) {
-                      							echo "<option value=$i>$i</option>";
-                    						}
+								if($this->patient_age < 6.0) {
+									for($i=51; $i<=55; $i++) {
+                                                                                echo "<option value=$i>$i</option>";
+                                                                        }
 
-                    						for($i=51; $i<=55; $i++) {
-                      							echo "<option value=$i>$i</option>";
-                    						}
+                                                                        for($i=61; $i<=65; $i++) {
+                                                                                echo "<option value=$i>$i</option>";
+                                                                        }
+
+                                                                        for($i=71; $i<=75; $i++) {
+                                                                                echo "<option value=$i>$i</option>";
+                                                                        }
+
+                                                                        for($i=81; $i<=85; $i++) {
+                                                                                echo "<option value=$i>$i</option>";
+                                                                        }
+                                                                }
+
+								elseif($this->patient_age >= 6.0 && $this->patient_age < 13.0) {
+									for($i=11; $i<=18; $i++) {
+                      								echo "<option value=$i>$i</option>";
+                    							}
+
+									for($i=21; $i<=28; $i++) {
+                      								echo "<option value=$i>$i</option>";
+                    							}
+
+									for($i=31; $i<=38; $i++) {
+                      								echo "<option value=$i>$i</option>";
+                    							}
+
+									for($i=41; $i<=48; $i++) {
+                      								echo "<option value=$i>$i</option>";
+                    							}
+
+                    							for($i=51; $i<=55; $i++) {
+                      								echo "<option value=$i>$i</option>";
+                    							}
                 
-                    						for($i=61; $i<=65; $i++) {
-                      							echo "<option value=$i>$i</option>";
-                    						}
+                    							for($i=61; $i<=65; $i++) {
+                      								echo "<option value=$i>$i</option>";
+                    							}
                 
-                    						for($i=71; $i<=75; $i++) {
-                      							echo "<option value=$i>$i</option>";
-                    						}
+                    							for($i=71; $i<=75; $i++) {
+                      								echo "<option value=$i>$i</option>";
+                    							}
                 
-                    						for($i=81; $i<=85; $i++) {
-                      							echo "<option value=$i>$i</option>";
-                    						}
+                    							for($i=81; $i<=85; $i++) {
+                      								echo "<option value=$i>$i</option>";
+                    							}
+								}
+								else {
+									for($i=11; $i<=18; $i++) {
+                      								echo "<option value=$i>$i</option>";
+                    							}
+
+									for($i=21; $i<=28; $i++) {
+                      								echo "<option value=$i>$i</option>";
+                    							}
+
+									for($i=31; $i<=38; $i++) {
+                      								echo "<option value=$i>$i</option>";
+                    							}
+
+									for($i=41; $i<=48; $i++) {
+                      								echo "<option value=$i>$i</option>";
+                    							}
+								}
 
                   					echo "</select>";
                 				echo "</td>";
@@ -2133,15 +2224,47 @@
 			// The following codes will be added to accomodate v02.
 			print "<tr>";
 				print "<td><table align='center' border=0 cellspacing=0>";
-					// The following codes will be added to accomodate v02.
                                         print "<tr>";
-						print "<td><input type='checkbox' name='oral_prophylaxis' value='OP'>Oral Prophylaxis</input></td>";
+						print "<td><input type='checkbox' name='oral_prophylaxis' value='OP'>Oral Prophylaxis (BLUE)</input><br>";
+						print "<input type='checkbox' name='fluoride' value='FL'>Fluoride (RED)</input></td>";
 					print "</tr>";
                                         print "<tr>";
-						print "<td><input type='checkbox' name='fluoride' value='FL'>Fluoride</input></td>";
                                                 print "<td align='center'><input type='submit' name='submit_button' value='Save Additional Services'></input></td>";
                                         print "</tr>";
 				print "</table></td>";
+			print "</tr>";
+
+			print "<tr>";
+				print "<td><table align='center' border=0 cellspacing=0>";
+					print "<tr>";
+						$loc_patient_id = healthcenter::get_patient_id($_GET['consult_id']);
+						$query = "SELECT DISTINCT consult_id, date_of_service FROM m_dental_services ".
+							"WHERE patient_id = $loc_patient_id AND ".
+							"(service_provided = 'OP' OR service_provided = 'FL') ".
+							"ORDER BY date_of_service";
+						$result = mysql_query($query) or die("Couldn't execute query.");
+
+						print "<td><select name='consult_id_of_op_and_fl'>";
+								print "<option value='0'></option>";
+							while(list($consult_id, $date_of_service) = mysql_fetch_array($result)) {
+								print "<option value='$consult_id'>$date_of_service</option>";
+							}
+						print "</select></td>";
+
+						print "<td><select name='delete_op_or_fl'>";
+							print "<option value='0'></option>";
+							print "<option value='op'>Oral Prophylaxis</option>";
+							print "<option value='fl'>Fluoride</option>";
+							print "<option value='op_fl'>Oral Prophylaxis and Fluoride</option>";
+						print "</select></td>";
+					print "</tr>";
+
+					print "<tr>";
+						print "<td align='center' colspan=2>";
+							print "<input type='submit' name='submit_button' value='Delete Additional Services'></input>";
+						print "</td>";
+                                        print "</tr>";
+				print "</td></table>";
 			print "</tr>";
               		// Code for v02 ends here.
 
@@ -2193,7 +2316,7 @@
 	// My initial idea is to create a loop in such a way that the whole mouth, i.e. teeth,
 	// 	will receive either an FL, OP, or both.
 	// To make matters more interesting ^^. The services will be color coded: RED for FL, 
-	//	BLUE for OP, and ___ for BOTH. That is, in the 'Service Monitoring Chart', if
+	//	BLUE for OP, and VIOLET for BOTH. That is, in the 'Service Monitoring Chart', if
 	//	a patient received an OP on a certain date, the boxes that represents the teeth
 	// 	will have a BLUE background ^^.
 	// The general challenge is to accommodate these changes in such a way that only minor
@@ -2267,9 +2390,36 @@
 		}
 	}
         // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-	
-	
-	
+
+
+
+	// Comment date: Mar 03, 2010. JVTolentino
+	// This function will delete records to m_dental_services based on consult_id and
+	// 	service_provided
+	// This function was created to accommodate the enhancements in version 0.2.
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	function delete_additional_services($consult_id, $service_provided) {
+		if($service_provided == 'op') {
+			$query = "DELETE FROM m_dental_services WHERE ".
+				"consult_id = $consult_id AND ".
+				"service_provided = 'OP' ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+		elseif($service_provided == 'fl') {
+			$query = "DELETE FROM m_dental_services WHERE ".
+                                "consult_id = $consult_id AND ".
+                                "service_provided = 'FL' ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+		elseif($service_provided == 'op_fl') {
+			$query = "DELETE FROM m_dental_services WHERE ".
+                                "consult_id = $consult_id AND ".
+                                "(service_provided = 'OP' OR service_provided = 'FL')";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+	}
+        // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 	
 	
 	// Comment date: Dec 03, 2009, JVTolentino
@@ -2534,7 +2684,8 @@
 			"dentist = $dentist ".
 			"WHERE patient_id = $patient_id AND ".
 			"consult_id = $consult_id AND ".
-			"tooth_number = $tooth_number ";
+			"tooth_number = $tooth_number AND ".
+			"(service_provided <> 'OP' AND service_provided <> 'FL')";
 		
 		$result = mysql_query($query)
 			or die("Couldn't add new dental service to the database.");
@@ -2551,7 +2702,8 @@
 	function delete_dental_service($consult_id, $tooth_number) {
 		$query = "DELETE FROM m_dental_services WHERE ".
 			"consult_id = $consult_id AND ".
-			"tooth_number = $tooth_number ";
+			"tooth_number = $tooth_number AND ".
+			"(service_provided <> 'OP' AND service_provided <> 'FL')";
 		$result = mysql_query($query)
 			or die("Couldnt' delete record.");
 	}
@@ -2627,9 +2779,18 @@
 	
 	
 	// Comment date: Nov 10, '09, JVTolentino
-    // This function is used to display the services provided by the dentist to a patient.
+    	// This function is used to display the services provided by the dentist to a patient.
 	// Upper teeth (temporary).
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	//
+	// Comment date: Mar 03, 2010. JVTolentino
+	// In version 0.2, a single tooth can now have multiple services, e.g., an oral 
+	//	prophylaxis (which means the whole mouth was serviced) and tooth_number
+	//	55 was extracted. To accomodate this, the function tooth_service_acquired
+	//	will now return an array.
+	// Additional: if the service was an Oral Prophylaxis (OP) the cell will have a 
+	// 	BLUE background. if Fluoride (FL) a RED background. if both a VIOLET
+	//	background. There's no need to indicate OP or Fl.
+    	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function temp_upper_teeth_service_monitoring_chart($p_id) {
 		$query = "SELECT DISTINCT consult_id FROM m_dental_services WHERE patient_id = $p_id ".
 			"AND tooth_number BETWEEN 50 AND 66 ORDER BY consult_id DESC";
@@ -2666,30 +2827,98 @@
 					echo "<tr>";
 						echo "<td align='center'>{$row['date_of_service']}</td>";
 						for($loc_tooth_number=55; $loc_tooth_number>=51; $loc_tooth_number--) {
+							/*
 							echo "<td align='center'>".
 								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
 								"</td>";
+							*/
+							// Start of v0.2 code.
+							$service_to_be_displayed = '&nbsp;';
+							$services = $this->tooth_service_acquired($loc_tooth_number, $c_id);
+							for($j = 0; $j < count($services); $j++) {
+								if($services[$j] != 'OP' && $services[$j] != 'FL') {
+									$service_to_be_displayed = $services[$j];
+								}
+							}
+
+							$got_op = in_array('OP', $services);
+							$got_fl = in_array('FL', $services);
+
+							if($got_op && $got_fl) {
+								$td_background = 'Violet';
+							}
+							elseif($got_op) {
+								$td_background = 'Blue';
+							}
+							elseif($got_fl) {
+								$td_background = 'Red';
+							}
+							else {
+								$td_background = 'white';
+							}
+							print "<td align='center' bgcolor='$td_background'>$service_to_be_displayed</td>";
+
+							// End of v0.2 code.
 						}
 						for($loc_tooth_number=61; $loc_tooth_number<=65; $loc_tooth_number++) {
+							/*
 							echo "<td align='center'>".
 								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
 								"</td>";
+							*/
+							// Start of v0.2 code.
+							$service_to_be_displayed = '&nbsp;';
+                                                        $services = $this->tooth_service_acquired($loc_tooth_number, $c_id);
+                                                        for($j = 0; $j < count($services); $j++) {
+                                                                if($services[$j] != 'OP' && $services[$j] != 'FL') {
+                                                                        $service_to_be_displayed = $services[$j];
+                                                                }
+                                                        }
+
+                                                        $got_op = in_array('OP', $services);
+                                                        $got_fl = in_array('FL', $services);
+
+                                                        if($got_op && $got_fl) {
+                                                                $td_background = 'Violet';
+                                                        }
+                                                        elseif($got_op) {
+                                                                $td_background = 'Blue';
+                                                        }
+                                                        elseif($got_fl) {
+                                                                $td_background = 'Red';
+                                                        }
+                                                        else {
+                                                                $td_background = 'white';
+                                                        }
+                                                        print "<td align='center' bgcolor='$td_background'>$service_to_be_displayed</td>";
+
+                                                        // End of v0.2 code.
 						}
 					echo "</tr>";
 				}
 			}
 		echo "</table>";
 	}
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
 	
 	
 	
 	// Comment date: Nov 10, '09, JVTolentino
-    // This function is used to display the services provided by the dentist to a patient.
+    	// This function is used to display the services provided by the dentist to a patient.
 	// Lower teeth (temporary).
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	//
+        // Comment date: Mar 03, 2010. JVTolentino
+        // In version 0.2, a single tooth can now have multiple services, e.g., an oral 
+        //      prophylaxis (which means the whole mouth was serviced) and tooth_number
+        //      55 was extracted. To accomodate this, the function tooth_service_acquired
+        //      will now return an array.
+        // Additional: if the service was an Oral Prophylaxis (OP) the cell will have a 
+        //      BLUE background. if Fluoride (FL) a RED background. if both a VIOLET
+        //      background. There's no need to indicate OP or Fl.
+
+    	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function temp_lower_teeth_service_monitoring_chart($p_id) {
 		$query = "SELECT DISTINCT consult_id FROM m_dental_services WHERE patient_id = $p_id ".
 			"AND tooth_number BETWEEN 70 AND 86 ORDER BY consult_id DESC";
@@ -2726,30 +2955,100 @@
 					echo "<tr>";
 						echo "<td align='center'>{$row['date_of_service']}</td>";
 						for($loc_tooth_number=85; $loc_tooth_number>=81; $loc_tooth_number--) {
-							echo "<td align='center'>".
-								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
-								"</td>";
+							/*
+                                                        echo "<td align='center'>".
+                                                                "{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
+                                                                "</td>";
+                                                        */
+                                                        // Start of v0.2 code.
+                                                        $service_to_be_displayed = '&nbsp;';
+                                                        $services = $this->tooth_service_acquired($loc_tooth_number, $c_id);
+                                                        for($j = 0; $j < count($services); $j++) {
+                                                                if($services[$j] != 'OP' && $services[$j] != 'FL') {
+                                                                        $service_to_be_displayed = $services[$j];
+                                                                }
+                                                        }
+
+                                                        $got_op = in_array('OP', $services);
+                                                        $got_fl = in_array('FL', $services);
+
+                                                        if($got_op && $got_fl) {
+                                                                $td_background = 'Violet';
+                                                        }
+                                                        elseif($got_op) {
+                                                                $td_background = 'Blue';
+                                                        }
+                                                        elseif($got_fl) {
+                                                                $td_background = 'Red';
+                                                        }
+                                                        else {
+                                                                $td_background = 'white';
+                                                        }
+                                                        print "<td align='center' bgcolor='$td_background'>$service_to_be_displayed</td>";
+
+                                                        // End of v0.2 code.
+
 						}
 						for($loc_tooth_number=71; $loc_tooth_number<=75; $loc_tooth_number++) {
-							echo "<td align='center'>".
-								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
-								"</td>";
+							/*
+                                                        echo "<td align='center'>".
+                                                                "{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
+                                                                "</td>";
+                                                        */
+                                                        // Start of v0.2 code.
+                                                        $service_to_be_displayed = '&nbsp;';
+                                                        $services = $this->tooth_service_acquired($loc_tooth_number, $c_id);
+                                                        for($j = 0; $j < count($services); $j++) {
+                                                                if($services[$j] != 'OP' && $services[$j] != 'FL') {
+                                                                        $service_to_be_displayed = $services[$j];
+                                                                }
+                                                        }
+
+                                                        $got_op = in_array('OP', $services);
+                                                        $got_fl = in_array('FL', $services);
+
+                                                        if($got_op && $got_fl) {
+                                                                $td_background = 'Violet';
+                                                        }
+                                                        elseif($got_op) {
+                                                                $td_background = 'Blue';
+                                                        }
+                                                        elseif($got_fl) {
+                                                                $td_background = 'Red';
+                                                        }
+                                                        else {
+                                                                $td_background = 'white';
+                                                        }
+                                                        print "<td align='center' bgcolor='$td_background'>$service_to_be_displayed</td>";
+
+                                                        // End of v0.2 code.
+
 						}
 					echo "</tr>";
 				}
 			}
 		echo "</table>";
 	}
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
 	
 	
 	
 	// Comment date: Nov 10, '09, JVTolentino
-    // This function is used to display the services provided by the dentist to a patient.
+    	// This function is used to display the services provided by the dentist to a patient.
 	// Upper teeth (permanent).
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	//
+        // Comment date: Mar 03, 2010. JVTolentino
+        // In version 0.2, a single tooth can now have multiple services, e.g., an oral 
+        //      prophylaxis (which means the whole mouth was serviced) and tooth_number
+        //      55 was extracted. To accomodate this, the function tooth_service_acquired
+        //      will now return an array.
+        // Additional: if the service was an Oral Prophylaxis (OP) the cell will have a 
+        //      BLUE background. if Fluoride (FL) a RED background. if both a VIOLET
+        //      background. There's no need to indicate OP or Fl.
+
+    	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function perm_upper_teeth_service_monitoring_chart($p_id) {
 		$query = "SELECT DISTINCT consult_id FROM m_dental_services WHERE patient_id = $p_id ".
 			"AND tooth_number BETWEEN 10 AND 29 ORDER BY consult_id DESC";
@@ -2786,30 +3085,100 @@
 					echo "<tr>";
 						echo "<td align='center'>{$row['date_of_service']}</td>";
 						for($loc_tooth_number=18; $loc_tooth_number>=11; $loc_tooth_number--) {
-							echo "<td align='center'>".
-								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
-								"</td>";
+							/*
+                                                        echo "<td align='center'>".
+                                                                "{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
+                                                                "</td>";
+                                                        */
+                                                        // Start of v0.2 code.
+                                                        $service_to_be_displayed = '&nbsp;';
+                                                        $services = $this->tooth_service_acquired($loc_tooth_number, $c_id);
+                                                        for($j = 0; $j < count($services); $j++) {
+                                                                if($services[$j] != 'OP' && $services[$j] != 'FL') {
+                                                                        $service_to_be_displayed = $services[$j];
+                                                                }
+                                                        }
+
+                                                        $got_op = in_array('OP', $services);
+                                                        $got_fl = in_array('FL', $services);
+
+                                                        if($got_op && $got_fl) {
+                                                                $td_background = 'Violet';
+                                                        }
+                                                        elseif($got_op) {
+                                                                $td_background = 'Blue';
+                                                        }
+                                                        elseif($got_fl) {
+                                                                $td_background = 'Red';
+                                                        }
+                                                        else {
+                                                                $td_background = 'white';
+                                                        }
+                                                        print "<td align='center' bgcolor='$td_background'>$service_to_be_displayed</td>";
+
+                                                        // End of v0.2 code.
+
 						}
 						for($loc_tooth_number=21; $loc_tooth_number<=28; $loc_tooth_number++) {
-							echo "<td align='center'>".
-								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
-								"</td>";
+							/*
+                                                        echo "<td align='center'>".
+                                                                "{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
+                                                                "</td>";
+                                                        */
+                                                        // Start of v0.2 code.
+                                                        $service_to_be_displayed = '&nbsp;';
+                                                        $services = $this->tooth_service_acquired($loc_tooth_number, $c_id);
+                                                        for($j = 0; $j < count($services); $j++) {
+                                                                if($services[$j] != 'OP' && $services[$j] != 'FL') {
+                                                                        $service_to_be_displayed = $services[$j];
+                                                                }
+                                                        }
+
+                                                        $got_op = in_array('OP', $services);
+                                                        $got_fl = in_array('FL', $services);
+
+                                                        if($got_op && $got_fl) {
+                                                                $td_background = 'Violet';
+                                                        }
+                                                        elseif($got_op) {
+                                                                $td_background = 'Blue';
+                                                        }
+                                                        elseif($got_fl) {
+                                                                $td_background = 'Red';
+                                                        }
+                                                        else {
+                                                                $td_background = 'white';
+                                                        }
+                                                        print "<td align='center' bgcolor='$td_background'>$service_to_be_displayed</td>";
+
+                                                        // End of v0.2 code.
+
 						}
 					echo "</tr>";
 				}
 			}
 		echo "</table>";
 	}
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	
 	
 	
 	
 	
 	// Comment date: Nov 10, '09, JVTolentino
-    // This function is used to display the services provided by the dentist to a patient.
+    	// This function is used to display the services provided by the dentist to a patient.
 	// Lower teeth (permanent).
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	//
+        // Comment date: Mar 03, 2010. JVTolentino
+        // In version 0.2, a single tooth can now have multiple services, e.g., an oral 
+        //      prophylaxis (which means the whole mouth was serviced) and tooth_number
+        //      55 was extracted. To accomodate this, the function tooth_service_acquired
+        //      will now return an array.
+        // Additional: if the service was an Oral Prophylaxis (OP) the cell will have a 
+        //      BLUE background. if Fluoride (FL) a RED background. if both a VIOLET
+        //      background. There's no need to indicate OP or Fl.
+
+    	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	function perm_lower_teeth_service_monitoring_chart($p_id) {
 		$query = "SELECT DISTINCT consult_id FROM m_dental_services WHERE patient_id = $p_id ".
 			"AND tooth_number BETWEEN 30 AND 49 ORDER BY consult_id DESC";
@@ -2846,14 +3215,77 @@
 					echo "<tr>";
 						echo "<td align='center'>{$row['date_of_service']}</td>";
 						for($loc_tooth_number=48; $loc_tooth_number>=41; $loc_tooth_number--) {
-							echo "<td align='center'>".
-								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
-								"</td>";
+							/*
+                                                        echo "<td align='center'>".
+                                                                "{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
+                                                                "</td>";
+                                                        */
+                                                        // Start of v0.2 code.
+                                                        $service_to_be_displayed = '&nbsp;';
+                                                        $services = $this->tooth_service_acquired($loc_tooth_number, $c_id);
+
+							$got_op = in_array('OP', $services);
+                                                        $got_fl = in_array('FL', $services);
+
+                                                        if($got_op && $got_fl) {
+                                                                $td_background = 'Violet';
+                                                        }
+                                                        elseif($got_op) {
+                                                                $td_background = 'Blue';
+                                                        }
+                                                        elseif($got_fl) {
+                                                                $td_background = 'Red';
+                                                        }
+                                                        else {
+                                                                $td_background = 'white';
+                                                        }
+
+                                                        for($j = 0; $j < count($services); $j++) {
+                                                                if($services[$j] != 'OP' && $services[$j] != 'FL') {
+                                                                        $service_to_be_displayed = $services[$j];
+                                                                }
+                                                        }
+                                                        print "<td align='center' bgcolor='$td_background'>$service_to_be_displayed</td>";
+
+                                                        // End of v0.2 code.
+
 						}
 						for($loc_tooth_number=31; $loc_tooth_number<=38; $loc_tooth_number++) {
-							echo "<td align='center'>".
-								"{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
-								"</td>";
+							/*
+                                                        echo "<td align='center'>".
+                                                                "{$this->tooth_service_acquired($loc_tooth_number, $c_id)}".
+                                                                "</td>";
+                                                        */
+                                                        // Start of v0.2 code.
+                                                        $service_to_be_displayed = '&nbsp;';
+                                                        $services = $this->tooth_service_acquired($loc_tooth_number, $c_id);
+
+							$got_op = in_array('OP', $services);
+                                                        $got_fl = in_array('FL', $services);
+
+                                                        if($got_op && $got_fl) {
+                                                                $td_background = 'Violet';
+                                                        }
+                                                        elseif($got_op) {
+                                                                $td_background = 'Blue';
+                                                        }
+                                                        elseif($got_fl) {
+                                                                $td_background = 'Red';
+                                                        }
+                                                        else {
+                                                                $td_background = 'white';
+                                                        }
+
+                                                        for($j = 0; $j < count($services); $j++) {
+                                                                if($services[$j] != 'OP' && $services[$j] != 'FL') {
+                                                                        $service_to_be_displayed = $services[$j];
+                                                                }
+                                                        }
+
+                                                        print "<td align='center' bgcolor='$td_background'>$service_to_be_displayed</td>";
+
+                                                        // End of v0.2 code.
+
 						}
 					echo "</tr>";
 				}
