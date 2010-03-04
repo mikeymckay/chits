@@ -171,25 +171,44 @@
 		
 		
 		
-		function show_dental_quarterly(){
-			/*
-			$arr_indicator = array('a' => 'Orally Fit Children 12-71 monthds old',
-				'b' => 'Children 12-71 months old provided with BOHC?', 
-				'c' => 'Adolescent & Youth (10-24 years) given BOHC?',
-				'd' => 'Pregnant women provided with BOHC?',
-				'e' => 'Older Person 60 years old & above provided with BOHC?');
-			*/
+		function show_dental_quarterly() {
 			$w = array(76,28,28,26,28,28,63,63);
-			$str_brgy = $this->get_brgy();    
+			$str_brgy = $this->get_brgy();
 			
 			for($indicator_ctr = 1; $indicator_ctr <= 5; $indicator_ctr++) {
-				//$col2; need to find a way to get the elig. pop. data
+				$col2 = $this->get_data($_SESSION[sdate2], $_SESSION[edate2],
+                                        $indicator_ctr, $str_brgy, 2);
 				$col3 = $this->get_data($_SESSION[sdate2], $_SESSION[edate2], 
 					$indicator_ctr, $str_brgy, 3);
 				$col4 = $this->get_data($_SESSION[sdate2], $_SESSION[edate2], 
 					$indicator_ctr, $str_brgy, 4);
 				$col5 = $col3 + $col4;
-				//$col6; need to find a way to get the % data
+
+				switch($indicator_ctr) {
+					case 1:
+						$st = $col2 * (20 / 100);
+						$col6 = number_format((($col5 / $st) * 100),2,'.','');
+						break;
+					case 2:
+                                                $st = $col2 * (20 / 100);
+						$col6 = number_format((($col5 / $st) * 100),2,'.','');
+						break;
+					case 3:
+                                                $st = $col2 * (10 / 100);
+						$col6 = number_format((($col5 / $st) * 100),2,'.','');
+						break;
+					case 4:
+                                                $st = $col2 * (25 / 100);
+						$col6 = number_format((($col5 / $st) * 100),2,'.','');
+						break;
+					case 5:
+                                                $st = $col2 * (30 / 100);
+						$col6 = number_format((($col5 / $st) * 100),2,'.','');
+						break;
+					default:
+						break;
+				}
+
 				//$col7; this column is empty
 				//$col8; this column is empty
 				
@@ -214,14 +233,13 @@
 					default:
 						break;
 				}
-				$dental_contents = array($indicator,
-					'n/a', $col3, $col4, $col5, 'n/a', '', '');
+				$dental_contents = array($indicator, round($col2), $col3, $col4, $col5, $col6, '', '');
 				$this->Row($dental_contents);
 			}
 		}
-		
-		
-		
+
+
+
 		function get_brgy(){  //returns the barangay is CSV format. to be used in WHERE clause for determining barangay residence of patient
 			$arr_brgy = array();
 			
@@ -238,7 +256,6 @@
 			$str_brgy = implode(',',$arr_brgy);
 			
 			return $str_brgy;
-        
 		}       
 		
 		
@@ -265,6 +282,31 @@
 			// Column 8 = Recommendation/Action Taken
 			switch($col_code) {
 				case '2':
+					$q_pop = mysql_query("SELECT SUM(population) FROM m_lib_population WHERE population_year='$_SESSION[year]'")
+                                		or die("Cannot query: 123". mysql_error());
+                        		list($population)= mysql_fetch_array($q_pop);
+
+					switch($indicator) {
+						case 1:
+							$ep = $population * (13.5 / 100);
+							break;
+						case 2:
+							$ep = $population * (13.5 / 100);
+							break;
+						case 3:	
+							$ep = $population * (30 / 100);
+                                                        break;
+						case 4:
+							$ep = $population * (3.5 / 100);
+                                                        break;
+						case 5:
+							$ep = $population * (6.1 / 100);
+                                                        break;
+						default:
+							break;
+					}
+					$ep = number_format($ep,2,'.','');
+					return $ep;
 					break;
 				case '3':
 					$query = "SELECT patient_id, date_of_consultation FROM m_dental_fhsis ".

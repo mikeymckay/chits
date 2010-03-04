@@ -216,7 +216,9 @@
 			"('PF', 'Permanent Filling'),".
 			"('S', 'Sealant'),".
 			"('TF', 'Temporary Filling'),".
-			"('X', 'Extraction');");
+			"('X', 'Extraction'),".
+			"('OP', 'Oral Prophylaxis'),".
+			"('FL', 'Fluoride');");
         
       
       // The following codes will be used to create m_dental_patient_ohc_table_a.
@@ -358,13 +360,14 @@
 		$query = "ALTER TABLE `m_dental_other_services` DROP PRIMARY KEY, ADD PRIMARY KEY(`record_number`)";
 		$result = mysql_query($query) or die("Couldn't execute query.");
 
-		$query = "ALTER TABLE `m_dental_patient_ohc` DROP PRIMARY KEY, ADD PRIMARY KEY(`ohc_id`)";
+		$query = "ALTER TABLE `m_dental_patient_ohc_table_a` DROP PRIMARY KEY, ADD PRIMARY KEY(`ohc_table_id`)";
 		$result = mysql_query($query) or die("Couldn't execute query.");
+
+		$query = "ALTER TABLE `m_dental_patient_ohc` DROP PRIMARY KEY, ADD PRIMARY KEY(`ohc_id`)";
+                $result = mysql_query($query) or die("Couldn't execute query.");
+
 
 		$query = "ALTER TABLE `m_dental_services` DROP PRIMARY KEY, ADD PRIMARY KEY(`service_id`)";
-		$result = mysql_query($query) or die("Couldn't execute query.");
-
-		$query = "ALTER TABLE `m_dental_other_services` DROP PRIMARY KEY, ADD PRIMARY KEY(`record_number`)";
 		$result = mysql_query($query) or die("Couldn't execute query.");
 	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -803,6 +806,7 @@
 							$tc = $this->tooth_condition($tn, $loc_consult_id);
 							if($this->patient_age < 6.0) {
 								$this->get_teeth_conditions_v02('Temporary', $tc);
+								print "<option value='0'></option>";
 							}
 							else {
 								$this->get_teeth_conditions_v02('Temporary', $tc);
@@ -817,6 +821,7 @@
 							$tc = $this->tooth_condition($tn, $loc_consult_id);
 							if($this->patient_age < 6.0) {
                                                                 $this->get_teeth_conditions_v02('Temporary', $tc);
+								print "<option value='0'></option>";
                                                         }
                                                         else {
                                                                 $this->get_teeth_conditions_v02('Temporary', $tc);
@@ -850,6 +855,7 @@
 							$tc = $this->tooth_condition($tn, $loc_consult_id);
 							if($this->patient_age >= 13.0) {
 								$this->get_teeth_conditions_v02('Permanent', $tc);
+								print "<option value='0'></option>";
 							}
 							else {
 								$this->get_teeth_conditions_v02('Permanent', $tc);
@@ -864,6 +870,7 @@
 							$tc = $this->tooth_condition($tn, $loc_consult_id);
 							if($this->patient_age >= 13.0) {
                                                                 $this->get_teeth_conditions_v02('Permanent', $tc);
+								print "<option value='0'></option>";
                                                         }
                                                         else {
                                                                 $this->get_teeth_conditions_v02('Permanent', $tc);
@@ -903,6 +910,7 @@
 							$tc = $this->tooth_condition($tn, $loc_consult_id);
 							if($this->patient_age < 6.0) {
 								$this->get_teeth_conditions_v02('Temporary', $tc);
+								print "<option value='0'></option>";
 							}
 							else {
 								$this->get_teeth_conditions_v02('Temporary', $tc);
@@ -917,6 +925,7 @@
 							$tc = $this->tooth_condition($tn, $loc_consult_id);
 							if($this->patient_age < 6.0) {
                                                                 $this->get_teeth_conditions_v02('Temporary', $tc);
+								print "<option value='0'></option>";
                                                         }
                                                         else {	
                                                                 $this->get_teeth_conditions_v02('Temporary', $tc);
@@ -950,6 +959,7 @@
 							$tc = $this->tooth_condition($tn, $loc_consult_id);
 							if($this->patient_age >= 13.0) {
 								$this->get_teeth_conditions_v02('Permanent', $tc);
+								print "<option value='0'></option>";
 							}
 							else {
 								$this->get_teeth_conditions_v02('Permanent', $tc);
@@ -964,6 +974,7 @@
 							$tc = $this->tooth_condition($tn, $loc_consult_id);
 							if($this->patient_age >= 13.0) {
                                                                 $this->get_teeth_conditions_v02('Permanent', $tc);
+								print "<option value='0'></option>";
                                                         }
                                                         else {
                                                                 $this->get_teeth_conditions_v02('Permanent', $tc);
@@ -2198,9 +2209,14 @@
                 				// Comment date: Nov 10, '09, JVTolentino
                 				// The following codes will be used to propagate a list box which will show
                 				//    all the possible tooth services that a dentist can provide to a patient.
+						//
+						// Comment date: Mar 04, 2010. JVTolentino
+						// Two services will not be included in this query: Oral Prophylaxis (OP) and
+						// 	Fluoride (FL).
                 				// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 				echo "<td>";
-                  				$query = "SELECT DISTINCT legend FROM m_lib_dental_services ORDER BY legend";
+                  				$query = "SELECT legend FROM m_lib_dental_services WHERE ".
+							"legend <> 'OP' AND legend <> 'FL' ORDER BY legend";
                   				$result = mysql_query($query)
                     					or die ("Couldn't execute query.");
                   
@@ -2241,7 +2257,7 @@
 						$query = "SELECT DISTINCT consult_id, date_of_service FROM m_dental_services ".
 							"WHERE patient_id = $loc_patient_id AND ".
 							"(service_provided = 'OP' OR service_provided = 'FL') ".
-							"ORDER BY date_of_service";
+							"ORDER BY consult_id";
 						$result = mysql_query($query) or die("Couldn't execute query.");
 
 						print "<td><select name='consult_id_of_op_and_fl'>";
@@ -2329,6 +2345,14 @@
                 $loc_date_of_oral = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
                 //$loc_patient_pregnant = mc::check_if_pregnant($loc_patient_id, $loc_date_of_oral);
                 $loc_dentist = $_SESSION['userid'];
+
+		$query = "SELECT service_provided FROM m_dental_services where ".
+			"consult_id = $loc_consult_id AND service_provided = '$service' ";
+		$result = mysql_query($query) or die("Couldn't execute query.");
+		
+		if(mysql_num_rows($result)) {
+			return;
+		}
 
 		if($this->patient_age >= 13.0) {
 			for($tn=18; $tn>=11; $tn--) {
