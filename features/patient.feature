@@ -16,9 +16,9 @@ Feature: Manage Patients
 		Given I am logged in as "user" with password "user"
 		And I click "RECORDS"
 		And I am on the patient management form
-		When I fill in the "patient_firstname" with "Andres"
-		And I fill in the "patient_middlename" with "Cruz"
-		And I fill in the "patient_lastname" with "Bonifacio"
+		When I fill in the "first" with "Andres"
+		And I fill in the "middle" with "Cruz"
+		And I fill in the "last" with "Bonifacio"
 		And I fill in the "patient_dob" with "02/03/1982"
 		And I choose "Male" in the "patient_gender"
 		And I fill in the "patient_mother" with "Maria"
