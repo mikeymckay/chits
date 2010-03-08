@@ -282,6 +282,8 @@ class querydb{
 			$this->process_dhc_pho();
 		elseif($quesno==62):
 			$this->process_dhc_summary();
+		elseif($quesno==63):
+			$this->process_dhc_tcl();
 		elseif($quesno==66):
 			$this->process_leprosy_summary();
 		elseif($quesno==67):
@@ -786,6 +788,10 @@ class querydb{
 	function process_dhc_summary(){
 		echo "<a href='./pdf_reports/dental_summary.php'>Show Dental Summary Table</a>";
 	}
+
+	function process_dhc_tcl(){
+                echo "<a href='./pdf_reports/dental_tcl.php'>Show Dental Target Client List</a>";
+        }
 	
 	function process_leprosy_quarterly(){
 		echo "<a href='./pdf_reports/leprosy_quarterly.php'>Show NLCP Quarterly Table</a>";
