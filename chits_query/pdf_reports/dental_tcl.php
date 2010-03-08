@@ -165,11 +165,15 @@
 			$this->Cell(0,5,$_SESSION[datanode][name],0,1,'C');
 			$this->Cell(0,5,'Province of '.$_SESSION[province],0,1,'C');
 
-			$w = array(10,70,20,20,70,25,25,70,30); //340
-			$header = array('#', 'Name', 'Age', 'Sex', 'Address', 'No. of df Teeth', 'No. of MDF Teeth', 'Service Acquired (Tooth Number)', 'Date of Oral');
-			
+			$w = array(10,65,10,10,70,30,45,70,30); //340
+			$header = array('#', 'Name', 'Age', 'Sex', 'Address', 'No. of df Teeth', 'No. of MDF Teeth', 'Service Provided (Tooth Number)', 'Date');
+			$w2 = array(10,65,10,10,70,15,15,15,15,15,70,30); //340
+			$sub_header = array('', '', '', '', '', 'd', 'f', 'M', 'D', 'F', '', '');
+
 			$this->SetWidths($w);
 			$this->Row($header);
+			$this->SetWidths($w2);
+			$this->Row($sub_header);
 		}
 		
 		
@@ -241,6 +245,25 @@
 
 
 
+		// Comment date: Mar 08, 2010. JVTolentino
+		// This function will return an array of teeth_number based on 
+		// 	teeth_condition. This function is useful to determine
+		// 	the patient's teeth conditions during a consultation;
+		// 	e.g. what are the patient's decayed teeth.
+		function teeth_numbers_with_condition($consult_id, $condition) {
+			$query = "SELECT tooth_number FROM m_dental_patient_ohc WHERE ".
+				"consult_id = $consult_id AND tooth_condition = '$condition' ORDER BY tooth_number";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			$tc = array();
+			while(list($tooth_number) = mysql_fetch_array($result)) {
+				array_push($tc, $tooth_number);
+			}
+			return $tc;
+		} // end of function
+
+
+
 		function show_dental_tcl() {
 			list($month, $day, $year) = explode("/", $_SESSION[sdate_orig]);
 			$start = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
@@ -248,7 +271,7 @@
 			$end = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
 
 			$ctr = 1;
-			$w = array(10,70,20,20,70,25,25,70,30); //340
+			$w = array(10,65,10,10,70,15,15,15,15,15,70,30); //340
 			$this->SetWidths($w);
 
 			if($_SESSION[brgy] == 'All' || $_SESSION[brgy] == 'all') {
@@ -281,22 +304,94 @@
 				$patient_address = $address.", ".$barangay;
 
 
-				// the following codes will be used to get the patient's df teeth
-				$df_query = "SELECT patient_id FROM m_dental_patient_ohc WHERE ".
-					"consult_id = $consult_id AND ".
-					"(tooth_condition = 'd' OR tooth_condition = 'f')";
-				$df_result = mysql_query($df_query) or die("Couldn't execute query");
+				// The following codes will be used to get the patient's decayed teeth
+				$d_arr = array();
+				$d_arr = $this->teeth_numbers_with_condition($consult_id, 'd');
+				$d = count($d_arr);
+				if(count($d_arr) != 0) {
+					$d = $d.'(';
+					for($i=0; $i<count($d_arr); $i++) {
+						if($i==0) {
+							$d = $d.$d_arr[$i];
+						}
+						else {
+							$d = $d.', '.$d_arr[$i];
+						}
+					}
+					$d = $d.')';
+				}
 
-				$df_teeth = mysql_num_rows($df_result);
+
+				// The following codes will be used to get the patient's filled teeth
+				$f_arr = array();
+				$f_arr = $this->teeth_numbers_with_condition($consult_id, 'f');
+				$f = count($f_arr);
+                                if(count($f_arr) != 0) {
+                                        $f = $f.'(';
+                                        for($i=0; $i<count($f_arr); $i++) {
+                                                if($i==0) {
+                                                        $f = $f.$f_arr[$i];
+                                                }
+                                                else {
+                                                        $f = $f.', '.$f_arr[$i];
+                                                }
+                                        }
+                                        $f = $f.')';
+                                }
 
 
-				// the following codes will be used to get the patient's MDF teeth
-				$MDF_query = "SELECT patient_id FROM m_dental_patient_ohc WHERE ".
-					"consult_id = $consult_id AND ".
-					"(tooth_condition = 'M' OR tooth_condition = 'D' OR tooth_condition = 'F')";
-				$MDF_result = mysql_query($MDF_query) or die("Couldn't execute query");
+				// The following codes will be used to get the patient's Missing teeth
+				$M_arr = array();
+				$M_arr = $this->teeth_numbers_with_condition($consult_id, 'M');
+				$M = count($M_arr);
+                                if(count($M_arr) != 0) {
+                                        $M = $M.'(';
+                                        for($i=0; $i<count($M_arr); $i++) {
+                                                if($i==0) {
+                                                        $M = $M.$M_arr[$i];
+                                                }
+                                                else {
+                                                        $M = $M.', '.$M_arr[$i];
+                                                }
+                                        }
+                                        $M = $M.')';
+                                }
 
-				$MDF_teeth = mysql_num_rows($MDF_result);
+
+				// The following codes will be used to get the patient's Decayed teeth
+                                $D_arr = array();
+                                $D_arr = $this->teeth_numbers_with_condition($consult_id, 'D');
+                                $D = count($D_arr);
+                                if(count($D_arr) != 0) {
+                                        $D = $D.'(';
+                                        for($i=0; $i<count($D_arr); $i++) {
+                                                if($i==0) {
+                                                        $D = $D.$D_arr[$i];
+                                                }
+                                                else {
+                                                        $D = $D.', '.$D_arr[$i];
+                                                }
+                                        }
+                                        $D = $D.')';
+                                }
+
+
+				// The following codes will be used to get the patient's Filled teeth
+                                $F_arr = array();
+                                $F_arr = $this->teeth_numbers_with_condition($consult_id, 'F');
+                                $F = count($F_arr);
+                                if(count($F_arr) != 0) {
+                                        $F = $F.'(';
+                                        for($i=0; $i<count($F_arr); $i++) {
+                                                if($i==0) {
+                                                        $F = $F.$F_arr[$i];
+                                                }
+                                                else {
+                                                        $F = $F.', '.$F_arr[$i];
+                                                }
+                                        }
+                                        $F = $F.')';
+                                }
 
 
 				// the following codes will determine if the patient had an OP.
@@ -326,7 +421,7 @@
 				}
 				
 
-				$row_contents = array($ctr, $patient_name, $patient_age, $patient_gender, $patient_address, $df_teeth, $MDF_teeth, $services, $patient_date_of_oral);
+				$row_contents = array($ctr, $patient_name, $patient_age, $patient_gender, $patient_address, $d, $f, $M, $D, $F, $services, $patient_date_of_oral);
                                 $this->Row($row_contents);
 				// reset $services
 				$services = '';
