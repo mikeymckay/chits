@@ -136,10 +136,7 @@
 		
 		
 		function Header() {
-			$q_pop = mysql_query("SELECT SUM(population) FROM m_lib_population WHERE population_year='$_SESSION[year]'") 
-				or die("Cannot query: 123". mysql_error());
-			list($population)= mysql_fetch_array($q_pop);
-			
+			$population = $this->get_brgy_pop();
 			$this->q_report_header($population);
 			$this->Ln(10);
 			
@@ -169,7 +166,7 @@
 			$this->Cell(0,5,'PROVINCE: '.$_SESSION[province]."          PROJECTED POPULATION OF THE YEAR: ".$population,0,1,L);
 		}
 		
-		
+	
 		
 		function show_dental_quarterly() {
 			$w = array(76,28,28,26,28,28,63,63);
@@ -185,25 +182,36 @@
 				$col5 = $col3 + $col4;
 
 				switch($indicator_ctr) {
+					// Note: st = Service Target
 					case 1:
-						$st = $col2 * (20 / 100);
-						$col6 = number_format((($col5 / $st) * 100),2,'.','');
+						if($col2 != 0) {
+							$st = $col2 * (20 / 100);
+							$col6 = number_format((($col5 / $st) * 100),2,'.','');
+						}
 						break;
 					case 2:
-                                                $st = $col2 * (20 / 100);
-						$col6 = number_format((($col5 / $st) * 100),2,'.','');
+						if($col2 != 0) {
+                                                	$st = $col2 * (20 / 100);
+							$col6 = number_format((($col5 / $st) * 100),2,'.','');
+						}
 						break;
 					case 3:
-                                                $st = $col2 * (10 / 100);
-						$col6 = number_format((($col5 / $st) * 100),2,'.','');
+						if($col2 != 0) {
+                                                	$st = $col2 * (10 / 100);
+							$col6 = number_format((($col5 / $st) * 100),2,'.','');
+						}
 						break;
 					case 4:
-                                                $st = $col2 * (25 / 100);
-						$col6 = number_format((($col5 / $st) * 100),2,'.','');
+						if($col2 != 0) {
+                                                	$st = $col2 * (25 / 100);
+							$col6 = number_format((($col5 / $st) * 100),2,'.','');
+						}
 						break;
 					case 5:
-                                                $st = $col2 * (30 / 100);
-						$col6 = number_format((($col5 / $st) * 100),2,'.','');
+						if($col2 != 0) {
+                                                	$st = $col2 * (30 / 100);
+							$col6 = number_format((($col5 / $st) * 100),2,'.','');
+						}
 						break;
 					default:
 						break;
@@ -236,7 +244,7 @@
 				$dental_contents = array($indicator, round($col2), $col3, $col4, $col5, $col6, '', '');
 				$this->Row($dental_contents);
 			}
-		}
+		} // end of function
 
 
 
@@ -257,6 +265,24 @@
 			
 			return $str_brgy;
 		}       
+
+
+
+		function get_brgy_pop() {
+                        list($taon,$buwan,$araw) = explode('-',$_SESSION[edate2]);
+                        if(in_array('all',$_SESSION[brgy])):
+                                $q_brgy_pop = mysql_query("SELECT SUM(population) FROM m_lib_population WHERE population_year='$taon'") or die("Cannot query: 286");
+                        else:
+                                $str = implode(',',$_SESSION[brgy]);
+                                $q_brgy_pop = mysql_query("SELECT SUM(population) FROM m_lib_population WHERE population_year='$taon' AND barangay_id IN ($str)") or die("Cannot query: 372");
+                        endif;
+
+                        if(mysql_num_rows($q_brgy_pop)!=0):
+                                list($populasyon) = mysql_fetch_array($q_brgy_pop);
+                        endif;
+
+                        return $populasyon;
+                }
 		
 		
 		
@@ -282,9 +308,7 @@
 			// Column 8 = Recommendation/Action Taken
 			switch($col_code) {
 				case '2':
-					$q_pop = mysql_query("SELECT SUM(population) FROM m_lib_population WHERE population_year='$_SESSION[year]'")
-                                		or die("Cannot query: 123". mysql_error());
-                        		list($population)= mysql_fetch_array($q_pop);
+					$population = $this->get_brgy_pop();
 
 					switch($indicator) {
 						case 1:
@@ -309,27 +333,30 @@
 					return $ep;
 					break;
 				case '3':
-					$query = "SELECT patient_id, date_of_consultation FROM m_dental_fhsis ".
-							"WHERE indicator = $indicator AND ".
-							"indicator_qualified = 'YES' AND ".
-							"gender = 'M' AND ".
-							"(date_of_consultation >= '$start' AND ".
-							"date_of_consultation <= '$end') ";
-						$result = mysql_query($query)
-							or die("Couldn't execute query on case 3. ".mysql_error());
-						
+					$query = "SELECT a.patient_id, a.date_of_consultation ".
+						"FROM m_dental_fhsis a INNER JOIN m_family_members b ON a.patient_id = b.patient_id ".
+						"INNER JOIN m_family_address c ON b.family_id = c.family_id WHERE ".
+						"a.indicator = $indicator AND ".
+                                               	"a.indicator_qualified = 'YES' AND ".
+                                             	"a.gender = 'M' AND ".
+                                             	"(a.date_of_consultation >= '$start' AND ".
+                                         	"a.date_of_consultation <= '$end') AND ".
+						"c.barangay_id IN ($brgy) ";
+                                    	$result = mysql_query($query) or die("Couldn't execute query. ");
 					return mysql_num_rows($result);
 					break;
 				case '4':
-					$query = "SELECT patient_id, date_of_consultation FROM m_dental_fhsis ".
-						"WHERE indicator = $indicator AND ".
-						"indicator_qualified = 'YES' AND ".
-						"gender = 'F' AND ".
-						"(date_of_consultation >= '$start' AND ".
-						"date_of_consultation <= '$end') ";
-					$result = mysql_query($query)
-						or die("Couldn't execute query on case 4. ".mysql_error());
-						
+					$query = "SELECT a.patient_id, a.date_of_consultation ".
+						"FROM m_dental_fhsis a INNER JOIN m_family_members b ON a.patient_id = b.patient_id ".
+						"INNER JOIN m_family_address c ON b.family_id = c.family_id WHERE ".
+						"a.indicator = $indicator AND ".
+                                               	"a.indicator_qualified = 'YES' AND ".
+                                             	"a.gender = 'F' AND ".
+                                             	"(a.date_of_consultation >= '$start' AND ".
+                                         	"a.date_of_consultation <= '$end') AND ".
+						"c.barangay_id IN ($brgy) ";
+                                    	$result = mysql_query($query) or die("Couldn't execute query. ");
+
 					return mysql_num_rows($result);
 					break;
 					
@@ -347,7 +374,7 @@
 						break;
 					
 				}	
-		}
+		} // end of function
 		
 		
 		
