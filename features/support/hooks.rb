@@ -8,6 +8,15 @@ After ('@reset_users') do
   load_table("game_user")
 end
 
+Before ('@reset_consult') do
+  # Save user table data
+  save_table("m_consult")
+end
+
+After ('@reset_consult') do
+  # Reload user table data
+  load_table("m_consult")
+end
 Before ('@reset_families') do
   save_table("m_family")
   save_table("m_family_address")

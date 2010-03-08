@@ -16,17 +16,18 @@ Feature: Manage Patients
 		Given I am logged in as "user" with password "user"
 		And I click "RECORDS"
 		And I am on the patient management form
-		When I fill in the "patient_firstname" with "Andres"
-		And I fill in the "patient_middlename" with "Cruz"
-		And I fill in the "patient_lastname" with "Bonifacio"
-		And I fill in the "patient_dob" with "02/03/1982"
-		And I choose "Male" in the "patient_gender"
-		And I fill in the "patient_mother" with "Maria"
-		And I fill in the "patient_cellphone" with "09191234567"
-		And I press "submitpatient"
-		And I should see "Patient Andres Bonifacio was successfully been added"
+		When I fill in "patient_firstname" with "Andres"
+		And I fill in "patient_middle" with "Cruz"
+		And I fill in "patient_lastname" with "Bonifacio"
+		And I fill in "patient_dob" with "02/03/1982"
+		And I select "Male" from "patient_gender"
+		And I fill in "patient_mother" with "Maria"
+		And I fill in "patient_cellphone" with "09191234567"
+		And I press "Add Patient"
+		And I click in the javascript alert box
+		And I should see "Bonifacio, Andres"
 		And I am on the old patient form
-		And I fill "first" with "Andres"
+		And I fill in "first" with "Andres"
 		And I fill in "last" with "Bonifacio"
 		Then I should see "Found 1 Record: Andres Bonifacio"
 
