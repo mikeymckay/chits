@@ -30,16 +30,17 @@ Then I should see "CHILD"
 
 @reset_consult
 Scenario:Visit Child Care
-Given I am logged in as "user" with password "user"
+When I create a sample patient
+#And I am logged in as "user" with password "user"
 And I click "TODAY'S PATIENTS"
 And I should see "CONSULTS TODAY"
-When I fill in "last" with "garcia"
+And I fill in "last" with "garcia"
 And I press "Search"
 And I should see "SEARCH RESULTS"
 And I choose "consult_patient_id" 
 And I press "Select Patient"
 And I should see "VISIT DETAILS"
-And I check "ptgroup[]"
+And I check by value "FP"
 And I press "Save Details"
 And I should see "CHILD"
 And I click "CHILD"

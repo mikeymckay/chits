@@ -28,6 +28,7 @@ After ('@reset_families') do
   load_table("m_family_address")
 end
 
+<<<<<<< HEAD:features/support/hooks.rb
 Before ('@reset_patient') do
   # Save user table data
   save_table("m_patient")
@@ -39,6 +40,8 @@ After ('@reset_patient') do
 end
 
 
+=======
+>>>>>>> a1c3a21f6772a30bc7a6754627975fd2405ba7ac:features/support/hooks.rb
 def save_table(table_name)
   run "mysqldump -u #{@@test_database_username} --password=#{@@test_database_password} #{@@test_database_name} #{table_name}> /tmp/#{table_name}"
 

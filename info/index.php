@@ -66,7 +66,7 @@ if ($user->check_users()) {
 // do not edit or delete
 include "../modules/_modules.php";
 
-mysql_query("ALTER table `m_consult` DROP Primary Key, ADD Primary Key(`consult_id`)");
+//mysql_query("ALTER table `m_consult` DROP Primary Key, ADD Primary Key(`consult_id`)");
 
 ?>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
