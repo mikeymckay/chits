@@ -20,7 +20,7 @@ Feature: Upload Modules
     Given I am logged in as "admin" with password "admin"
     When I click "MODULES"
     And I click "Activate Modules"
-    And I check "initmod[]"
+    And I check by value "appointment"
     And I press "Update Activation Status"
     Then I should see "Permission denied"
     
