@@ -105,3 +105,16 @@ function pick(pxid,pxfirst,pxlast){
   }  
   window.close();        
 }
+
+function import_sputum(){        
+        winopen = window.open("../site/import_sputum.php?id="+form_symptomatic.pxid.value,"importsputum","width=600,height=600");
+}
+
+function delete_symp(){
+
+        if(window.confirm('Do you really want to delete this TB Symptomatic record?')){
+                form_symptomatic.confirm_del.value = 1;
+                form_symptomatic.submit();                
+        }
+        
+}

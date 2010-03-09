@@ -184,6 +184,7 @@ INSERT INTO `modules` (`module_id`, `module_init`, `module_version`, `module_des
 ('tcl', 'Y', '0.2-2004-05-19', 'CHITS Module - Target Client List', 'Herman Tolentino MD', 'tcl'),
 ('template', 'Y', '0.2-2004-05-02', 'CHITS Library - Template', 'Herman Tolentino MD', 'template'),
 ('vaccine', 'Y', '0.4-2004-05-21', 'CHITS Module - Vaccine', 'Herman Tolentino MD', 'vaccine'),
+('weekly_calendar', 'Y', '0.3-2010-01-21', 'CHITS Library - Weekly Calendar', 'darth_ali', 'weekly_calendar'),
 ('wtforage', 'Y', '0.1-2004-05-10', 'CHITS Library - Weight for Age', 'Ariel Betan/Herman Tolentino', 'wtforage');
 
 -- --------------------------------------------------------
@@ -356,6 +357,7 @@ INSERT INTO `module_dependencies` (`module_id`, `req_module`) VALUES
 ('vaccine', 'healthcenter'),
 ('vaccine', 'module'),
 ('vaccine', 'patient'),
+('weekly_calendar', 'module'),
 ('wtforage', 'ccdev'),
 ('wtforage', 'healthcenter'),
 ('wtforage', 'module'),
@@ -458,8 +460,8 @@ INSERT INTO `module_menu` (`menu_id`, `module_id`, `menu_cat`, `menu_title`, `me
 (1347, 'fp', 'LIBRARIES', 'FP History', 1347, 'Y', '_fp_history'),
 (1348, 'fp', 'LIBRARIES', 'FP Methods', 1348, 'Y', '_fp_methods'),
 (1349, 'population', 'LIBRARIES', 'Population', 1349, 'Y', '_population'),
-(1350, 'computebmi', 'PATIENTS', 'Compute BMI', 1350, 'Y', '_computebmi');
-
+(1350, 'computebmi', 'PATIENTS', 'Compute BMI', 1350, 'Y', '_computebmi'),
+(1352, 'weekly_calendar', 'LIBRARIES', 'Weekly Calendar', 1352, 'Y', '_weekly_calendar');
 -- --------------------------------------------------------
 
 --
@@ -574,7 +576,8 @@ INSERT INTO `module_permissions` (`module_id`, `user_id`) VALUES
 ('region', 1),
 ('reminder', 1),
 ('template', 1),
-('vaccine', 1);
+('vaccine', 1),
+('weekly_calendar', 1);
 
 -- --------------------------------------------------------
 
@@ -1010,7 +1013,7 @@ CREATE TABLE IF NOT EXISTS `m_consult_lab` (
   `request_id` float NOT NULL auto_increment,
   `patient_id` float NOT NULL default '0',
   `lab_id` varchar(10) NOT NULL default '',
-  `request_timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  `request_timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `request_user_id` float NOT NULL default '0',
   `consult_id` float NOT NULL default '0',
   `request_done` char(1) NOT NULL default 'N',
@@ -1051,6 +1054,9 @@ CREATE TABLE IF NOT EXISTS `m_consult_lab_sputum` (
   `sp1_reading` varchar(10) NOT NULL default '',
   `sp2_reading` varchar(10) NOT NULL default '',
   `sp3_reading` varchar(10) NOT NULL default '',
+  `lab_diag1` varchar(10) NOT NULL default '',
+  `lab_diag2` varchar(10) NOT NULL default '',
+  `lab_diag3` varchar(10) NOT NULL default '',
   `lab_diagnosis` varchar(10) NOT NULL default '',
   `user_id` float NOT NULL default '0',
   `release_flag` char(1) NOT NULL default '',
@@ -1060,9 +1066,68 @@ CREATE TABLE IF NOT EXISTS `m_consult_lab_sputum` (
   KEY `key_user` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+
+DROP TABLE IF EXISTS `m_lib_sputum_appearance`;
+CREATE TABLE IF NOT EXISTS `m_lib_sputum_appearance` (
+  `sputum_appearance_code` varchar(4) NOT NULL,
+  `sputum_appearance_name` text NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
 --
--- Dumping data for table `m_consult_lab_sputum`
+-- Dumping data for table `m_lib_sputum_appearance`
 --
+
+INSERT INTO `m_lib_sputum_appearance` (`sputum_appearance_code`, `sputum_appearance_name`) VALUES
+('BS', 'Blood-Stained'),
+('MP', 'Mucopurulent'),
+('MC', 'Mucoid'),
+('SA', 'Salivary'),
+('QNS', 'Inadequate Specimen');
+
+
+DROP TABLE IF EXISTS `m_lib_sputum_reading`;
+CREATE TABLE IF NOT EXISTS `m_lib_sputum_reading` (
+  `sputum_reading_code` varchar(5) NOT NULL,
+  `sputum_reading_label` text NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `m_lib_sputum_reading`
+--
+
+INSERT INTO `m_lib_sputum_reading` (`sputum_reading_code`, `sputum_reading_label`) VALUES
+('Z', 'Zero'),
+('+1', '+1'),
+('+2', '+2'),
+('+3', '+3'),
+('+4', '+4'),
+('+5', '+5'),
+('+6', '+6'),
+('+7', '+7'),
+('+8', '+8'),
+('+9', '+9'),
+('1P', '1+'),
+('2P', '2+'),
+('3P', '3+');
+
+
+DROP TABLE IF EXISTS `m_lib_sputum_period`;
+CREATE TABLE IF NOT EXISTS `m_lib_sputum_period` (
+  `period_code` varchar(5) NOT NULL,
+  `period_label` text NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `m_lib_sputum_period`
+--
+
+INSERT INTO `m_lib_sputum_period` (`period_code`, `period_label`) VALUES
+('DX', 'Before Treatment'),
+('E02', 'End of 2nd Month'),
+('E03', 'End of 3rd Month'),
+('E04', 'End of 4th Month'),
+('E05', 'End of 5th Month'),
+('7M', 'After 7th Month');
 
 
 -- --------------------------------------------------------
@@ -1550,6 +1615,27 @@ CREATE TABLE IF NOT EXISTS `m_consult_ntp_sputum` (
 
 
 -- --------------------------------------------------------
+DROP TABLE IF EXISTS `m_consult_ntp_symptomatics`;
+
+CREATE TABLE IF NOT EXISTS `m_consult_ntp_symptomatics` (
+  `symptomatic_id` float NOT NULL AUTO_INCREMENT,
+  `ntp_id` float NOT NULL,
+  `consult_id` float NOT NULL,
+  `patient_id` int(11) NOT NULL,
+  `date_seen` date NOT NULL,
+  `sputum_diag1` float NOT NULL,
+  `sputum_diag2` float NOT NULL,
+  `xray_date_referred` date NOT NULL,
+  `xray_date_received` date NOT NULL,
+  `xray_result` char(1) NOT NULL,
+  `remarks` text NOT NULL,
+  `symptomatic_flag` char(1) NOT NULL,
+  `enroll_flag` char(1) NOT NULL,
+  `user_id` float NOT NULL,
+  `date_updated` datetime NOT NULL,
+  PRIMARY KEY (`symptomatic_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
 
 --
 -- Table structure for table `m_consult_philhealth_labs`
@@ -2308,12 +2394,12 @@ INSERT INTO `m_lib_education` (`educ_id`, `educ_name`) VALUES
 -- Table structure for table `m_lib_fp_client`
 --
 
-DROP TABLE IF EXISTS `m_lib_fp_client`;
 CREATE TABLE IF NOT EXISTS `m_lib_fp_client` (
-  `client_id` int(7) NOT NULL auto_increment,
+  `client_id` int(7) NOT NULL AUTO_INCREMENT,
   `client_code` varchar(2) NOT NULL,
   `client_text` text NOT NULL,
-  PRIMARY KEY  (`client_id`)
+  `client_class` set('CU','NA') NOT NULL,
+  PRIMARY KEY (`client_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 
@@ -2323,12 +2409,12 @@ CREATE TABLE IF NOT EXISTS `m_lib_fp_client` (
 --
 
 
-INSERT INTO `m_lib_fp_client` (`client_id`, `client_code`, `client_text`) VALUES
-(1, 'CU', 'Current User'),
-(2, 'NA', 'New Acceptor'),
-(3, 'CM', 'Changing Method'),
-(4, 'CC', 'Changing Clinic'),
-(5, 'RS', 'Restart');
+INSERT INTO `m_lib_fp_client` (`client_id`, `client_code`, `client_text`, `client_class`) VALUES
+(1, 'CU', 'Current User (New to Other Method)', 'CU'),
+(2, 'NA', 'New Acceptor', 'NA'),
+(3, 'CM', 'Changing Method', 'CU'),
+(4, 'CC', 'Changing Clinic', 'CU'),
+(5, 'RS', 'Restart', 'CU');
 
 
 -- --------------------------------------------------------
@@ -2433,7 +2519,7 @@ INSERT INTO `m_lib_fp_methods` (`method_id`, `method_name`, `method_gender`) VAL
 ('CONDOM', 'Condom', 'M'),
 ('IUD', 'IUD', 'F'),
 ('NFPLAM', 'NFP Lactational amenorrhea', 'F'),
-('DMPA', 'Depo-Lactational Amenorrhea ', 'F'),
+('DMPA', 'Depot Medroxyprogesterone Acetate', 'F'),
 ('NFPBBT', 'NFP Basal Body Temperature', 'F'),
 ('NFPCM', 'NFP Cervical Mucus Method', 'F'),
 ('NFPSTM', 'NFP Sympothermal Method', 'F'),
@@ -16777,6 +16863,9 @@ CREATE TABLE IF NOT EXISTS `m_patient_ntp` (
   `sputum1_date` date NOT NULL default '0000-00-00',
   `sputum2_date` date NOT NULL default '0000-00-00',
   `sputum3_date` date NOT NULL default '0000-00-00',
+  `source_patient` varchar(20) NOT NULL,
+  `refer_physician` text NOT NULL,
+  `tbdc_review` set('Y','N') NOT NULL,
   PRIMARY KEY  (`ntp_id`),
   KEY `key_region` (`region_id`),
   KEY `key_treatment_category` (`treatment_category_id`),
@@ -17706,7 +17795,7 @@ CREATE TABLE IF NOT EXISTS `question` (
   `report_type` set('G','W','M','Q','A','S') NOT NULL DEFAULT 'G',
   `visible` set('Y','N') NOT NULL DEFAULT 'Y',
   PRIMARY KEY (`ques_id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=63 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `question`
@@ -17715,35 +17804,35 @@ CREATE TABLE IF NOT EXISTS `question` (
 INSERT INTO `question` (`ques_id`, `ques_label`, `cat_id`, `sql_code`, `report_type`, `visible`) VALUES
 (1, 'Number of Male and Female per barangay', 1, '"SELECT a.patient_lastname, a.patient_firstname, a.patient_gender, b.family_id, c.barangay_id, d.barangay_name\r\nFROM m_patient a, m_family_members b, m_family_address c, m_lib_barangay d\r\nWHERE a.patient_id = b.patient_id \r\nAND b.family_id = c.family_id AND c.barangay_id = d.barangay_id AND a.registration_date >=''$_SESSION[sdate]'' and a.registration_date<=''$_SESSION[edate]'' ORDER by d.barangay_name ASC, a.patient_gender DESC, a.patient_lastname ASC, a.patient_firstname ASC"', 'G', 'Y'),
 (2, 'Age and sex distribution', 1, '', 'G', 'Y'),
-(3, 'Top ten causes of morbidity', 7, '', 'G', 'Y'),
+(3, 'Top ten causes of morbidity', 7, '', 'G', 'N'),
 (4, 'Number of families who have consulted', 2, '', 'G', 'Y'),
 (5, 'Number of families with PhilHealth', 2, '', 'G', 'Y'),
 (6, 'Number of families with PhilHealth that have been given services', 2, '', 'G', 'Y'),
-(7, 'Number of FIC''s (including "OZ''s', 3, '', 'G', 'Y'),
-(8, 'Number of Antigen given', 3, '', 'G', 'Y'),
-(9, 'Number of Antigen not given', 3, '', 'G', 'Y'),
+(7, 'Number of FIC''s (including "OZ''s")', 3, '', 'G', 'N'),
+(8, 'Number of Antigen given', 3, '', 'G', 'N'),
+(9, 'Number of Antigen not given', 3, '', 'G', 'N'),
 (10, 'Number of Missed EPI appointments', 3, '', 'G', 'Y'),
-(11, 'Pregnant mothers with risk factors', 4, '', 'G', 'Y'),
+(11, 'Pregnant mothers with risk factors', 4, '', 'G', 'N'),
 (12, 'Pregnant mothers under 18 years old', 4, '', 'G', 'Y'),
-(13, 'Mothers given TT, FeSO4, Vit A', 4, '', 'G', 'Y'),
-(14, 'Mothers consulting monthly', 4, '', 'G', 'Y'),
-(15, 'Mother given T1 to T5', 4, '', 'G', 'Y'),
+(13, 'Mothers given TT, FeSO4, Vit A', 4, '', 'G', 'N'),
+(14, 'Mothers consulting monthly', 4, '', 'G', 'N'),
+(15, 'Mother given T1 to T5', 4, '', 'G', 'N'),
 (16, 'NSD per location per attendant', 4, '', 'G', 'Y'),
 (17, 'Mothers who breastfed her child after birth', 4, '', 'G', 'Y'),
 (18, 'Ferous Sulfate given', 4, '', 'G', 'Y'),
 (19, 'Lactating mother given Vit. A', 4, '', 'G', 'Y'),
-(20, 'Patient per regimen per barangay', 5, '', 'G', 'Y'),
-(21, 'Positive and Negative Per Classification', 5, '', 'G', 'Y'),
-(22, 'NTP Patients Undergoing Treatment', 5, '', 'G', 'Y'),
-(23, 'Completed NTP treatment per barangay', 5, '', 'G', 'Y'),
-(24, 'Defaulters Per Regimen', 5, '', 'G', 'Y'),
-(25, 'NTP Relapsed Cases', 5, '', 'G', 'Y'),
+(20, 'Patient per regimen per barangay', 5, '', 'G', 'N'),
+(21, 'Positive and Negative Per Classification', 5, '', 'G', 'N'),
+(22, 'NTP Patients Undergoing Treatment', 5, '', 'G', 'N'),
+(23, 'Completed NTP treatment per barangay', 5, '', 'G', 'N'),
+(24, 'Defaulters Per Regimen', 5, '', 'G', 'N'),
+(25, 'NTP Relapsed Cases', 5, '', 'G', 'N'),
 (26, 'NTP Patients by age and sex', 5, '', 'G', 'Y'),
 (27, 'Class of weight status according to age and status', 6, '', 'G', 'Y'),
-(28, 'Monthly Weight Distribution', 6, '', 'G', 'Y'),
-(29, 'FHSIS Notifiable Disease Report', 7, '', 'G', 'Y'),
-(30, 'FHSIS Maternal Care', 4, '', 'G', 'Y'),
-(31, 'FHSIS Child Care Report', 8, '', 'G', 'Y'),
+(28, 'Monthly Weight Distribution', 6, '', 'G', 'N'),
+(29, 'FHSIS Notifiable Disease Report', 7, '', 'G', 'N'),
+(30, 'FHSIS Maternal Care', 4, '', 'G', 'N'),
+(31, 'FHSIS Child Care Report', 8, '', 'G', 'N'),
 (32, 'Antigens Provided for CCDEV', 8, '', 'G', 'Y'),
 (33, 'List of Patients Not in Family Folder', 1, '', 'G', 'Y'),
 (34, 'Prenatal Form - Target Client List (TCL)', 4, '', 'G', 'Y'),
@@ -17754,11 +17843,28 @@ INSERT INTO `question` (`ques_id`, `ques_label`, `cat_id`, `sql_code`, `report_t
 (39, 'Child Care Summary Report', 8, '', 'S', 'Y'),
 (40, 'FP Target Client List', 9, '', 'G', 'Y'),
 (41, 'FP Summary Table for BHS', 9, '', 'S', 'Y'),
-(60, 'DHC Quarterly Report', 12, '', 'G', 'Y'),
+(60, 'DHC Quarterly Report', 12, '', 'Q', 'Y'),
 (61, 'DHC-PHO Report', 12, '', 'G', 'Y'),
 (62, 'DHC Summary Table', 12, '', 'S', 'Y'),
 (42, 'FP Quarterly Report', 9, '', 'Q', 'Y'),
-(43, 'FP Monthly Report', 9, '', 'M', 'Y');
+(43, 'FP Monthly Report', 9, '', 'M', 'Y'),
+(70, 'Morbidity Disease Weekly Report (W-BHS)', 7, '', 'W', 'Y'),
+(71, 'Morbidity Disease Monthly Report (M2)', 7, '', 'M', 'Y'),
+(72, 'Morbidity Disease Quarterly Report (Q2)', 7, '', 'Q', 'Y'),
+(73, 'Morbidity Disease Annual Report', 7, '', 'A', 'Y'),
+(80, 'Maternal Care Monthly Report', 4, '', 'M', 'Y'),
+(81, 'Maternal Care Quarterly Report', 4, '', 'Q', 'Y'),
+(50, 'Child Care Monthly Report', 8, '', 'M', 'Y'),
+(51, 'Child Care Quarterly Report', 8, '', 'Q', 'Y'),
+(66, 'Leprosy Summary Table', 13, '', 'S', 'Y'),
+(67, 'Leprosy Quarterly Report', 13, '', 'Q', 'Y'),
+(90, 'TB Symptomatics Masterlist', 5, '', 'G', 'Y'),
+(91, 'NTP Laboratory Register', 5, '', 'G', 'Y'),
+(92, 'Tubeculosis Quarterly Report', 5, '', 'Q', 'Y'),
+(93, 'Tuberculosis Monthly Report', 5, '', 'M', 'Y'),
+(94, 'Tuberculosis Summary Table', 5, '', 'S', 'Y'),
+(95, 'TB Register', 5, '', 'G', 'Y');
+
 
 
 -- --------------------------------------------------------
@@ -17855,3 +17961,11 @@ CREATE TABLE IF NOT EXISTS `m_dental_fhsis` (`record_number` float NOT NULL AUTO
 
 CREATE TABLE IF NOT EXISTS `m_dental_other_services` (`record_number` float NOT NULL AUTO_INCREMENT,`consult_id` float NOT NULL,`patient_id` float NOT NULL,`date_of_service` date NOT NULL,`dentist` float NOT NULL,`supervised_tooth_brushing` char(3) COLLATE swe7_bin NOT NULL,`altraumatic_restorative_treatment` char(3) COLLATE swe7_bin NOT NULL,`out_removal_of_unsavable_teeth` char(3) COLLATE swe7_bin NOT NULL COMMENT 'Oral Urgent Treatment (OUT)',`out_referral_of_complicates_cases` char(3) COLLATE swe7_bin NOT NULL COMMENT 'Oral Urgent Treatment (OUT)',`out_treatment_of_post_extraction_complications` char(3) COLLATE swe7_bin NOT NULL COMMENT 'Oral Urgent Treatment (OUT)',`out_drainage_of_localized_oral_abscess` char(3) COLLATE swe7_bin NOT NULL COMMENT 'Oral Urgent Treatment (OUT)',`education_and_counselling` char(3) COLLATE swe7_bin NOT NULL,`scaling` char(3) COLLATE swe7_bin NOT NULL,`gum_treatment` char(3) COLLATE swe7_bin NOT NULL,PRIMARY KEY (`record_number`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `m_lib_weekly_calendar` (
+  `year` year(4) NOT NULL,
+  `week` int(2) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;

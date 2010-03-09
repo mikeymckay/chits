@@ -8,8 +8,8 @@ class ntp extends module {
         //
         // do not forget to update version
         //
-        $this->author = 'Herman Tolentino MD';
-        $this->version = "0.8-".date("Y-m-d");
+        $this->author = 'Herman Tolentino MD / darth_ali';
+        $this->version = "0.81-".date("Y-m-d");
         $this->module = "ntp";
         $this->description = "CHITS Module - Natl TB Program";
         // 0.3 installed foreign key constraints
@@ -20,6 +20,7 @@ class ntp extends module {
         //     intensive_projected_end_date, maintenance_projected_end_date
         // 0.7 debugged and optimized refresh and display of ntp data
         // 0.8 added projected sputum exam dates
+            // 0.81. added a SYMPTOMATIC submenu
 
     }
 
@@ -219,6 +220,12 @@ class ntp extends module {
             "`healthcenter_id` varchar(10) NOT NULL default '',".
             "`ntp_timestamp` timestamp(14) NOT NULL,".
             "`course_end_flag` char(1) NOT NULL default 'N',".
+	    "`sputum1_date` date NOT NULL DEFAULT '0000-00-00',".
+  	    "`sputum2_date` date NOT NULL DEFAULT '0000-00-00',".
+  	    "`sputum3_date` date NOT NULL DEFAULT '0000-00-00',".
+	    "`source_patient` varchar(20) NOT NULL,".
+	    "`refer_physician` text NOT NULL,".
+	    "`tbdc_review` set('Y','N') NOT NULL,".
             "PRIMARY KEY  (`ntp_id`),".
             "KEY `key_region` (`region_id`),".
             "KEY `key_treatment_category` (`treatment_category_id`),".
@@ -347,6 +354,27 @@ class ntp extends module {
             "CONSTRAINT `m_consult_ntp_labs_request_ibfk_1` FOREIGN KEY (`consult_id`) REFERENCES `m_consult` (`consult_id`) ON DELETE CASCADE,".
             "CONSTRAINT `m_consult_ntp_labs_request_ibfk_2` FOREIGN KEY (`request_id`) REFERENCES `m_consult_lab` (`request_id`) ON DELETE CASCADE".
             ") TYPE=InnoDB; ");
+            
+
+
+        module::execsql("CREATE TABLE `m_consult_ntp_symptomatics` (
+		  `symptomatic_id` float NOT NULL AUTO_INCREMENT,
+		  `ntp_id` float NOT NULL,
+		  `consult_id` float NOT NULL,
+		  `patient_id` int(11) NOT NULL,
+		  `date_seen` date NOT NULL,
+		  `sputum_diag1` float NOT NULL,
+		  `sputum_diag2` float NOT NULL,
+		  `xray_date_referred` date NOT NULL,
+		  `xray_date_received` date NOT NULL,
+		  `xray_result` char(1) NOT NULL,
+		  `remarks` text NOT NULL,
+		  `symptomatic_flag` char(1) NOT NULL,
+		  `enroll_flag` char(1) NOT NULL,
+		  `user_id` float NOT NULL,
+		  `date_updated` datetime NOT NULL,
+		  PRIMARY KEY (`symptomatic_id`)
+		) ENGINE=MyISAM");
 
     }
 
@@ -487,13 +515,15 @@ class ntp extends module {
             $arg_list = func_get_args();
             $type_id = $arg_list[0];
         }
-        $sql = "select n.lab_id, l.lab_name ".
+        /*$sql = "select n.lab_id, l.lab_name ".
                "from m_lib_laboratory l, m_consult_ntp_labs n ".
-               "where l.lab_id = n.lab_id order by l.lab_name";
+               "where l.lab_id = n.lab_id order by l.lab_name"; */
+               
+        $sql = "select lab_id, lab_name FROM m_lib_laboratory WHERE lab_id='SPT' ORDER by lab_name ASC";
         if ($result = mysql_query($sql)) {
             if (mysql_num_rows($result)) {
-                while (list($id, $name) = mysql_fetch_array($result)) {
-                    print "<input type='checkbox' name='ntp_lab[]' value='$id' class='textbox' /> $name<br />";
+                while (list($id, $name) = mysql_fetch_array($result)) {                    
+                    print "<input type='checkbox' name='ntp_lab[]' value='$id' class='textbox' CHECKED /> $name<br />";
                 }
                 return $ret_val;
             }
@@ -553,10 +583,13 @@ class ntp extends module {
         print "<tr valign='top'><td>";
         print "<span class='library'>".FTITLE_NTP_LABS."</span><br>";
         print "</td></tr>";
+        
+        
         $sql = "select n.lab_id, l.lab_name ".
                "from m_lib_laboratory l, m_consult_ntp_labs n ".
                "where l.lab_id = n.lab_id ".
                "order by l.lab_name";
+                                
         if ($result = mysql_query($sql)) {
             if (mysql_num_rows($result)) {
                 while (list($id, $name) = mysql_fetch_array($result)) {
@@ -637,6 +670,11 @@ class ntp extends module {
             $n->process_ntp($menu_id, $post_vars, $get_vars, $validuser, $isadmin);
         }
         switch($get_vars["ntp"]) {
+
+	case "SYMP":
+	    $n->form_ntp_symptomatic($menu_id,$post_vars,$get_vars,$validuser,$isadmin);
+	    break;
+
         case "VISIT1":
             $n->form_patient_ntp($menu_id, $post_vars, $get_vars, $validuser, $isadmin);
             break;
@@ -651,9 +689,25 @@ class ntp extends module {
         case "LABS":
             // lab requests: either request or generate referral
             $n->form_consult_ntp_lab($menu_id, $post_vars, $get_vars, $validuser, $isadmin);
+            
+            //create a dropdown box showing NTP consults done for the patient but not             
+            $n->form_ntp_import($menu_id,$post_vars,$get_vars,$validuser,$isadmin);
+
+            
+            //display DSSM tests that have been done before the actual treatment
+            $n->check_before_dssm($_GET["ntp_id"]);            
+            
+            //if a request has been made, show the queue of labs here
+            $n->form_pending_request($menu_id,$post_vars,$get_vars,$validuser,$isadmin);
+            
+            //list the completed sputum exams for this NTP case 
+            $n->form_completed_request($menu_id,$post_vars,$get_vars,$validuser,$isadmin);
+            
+            //xxxx-- do function that will import sputum labs done outside request                        
             // lab requests done outside of ntp but can be
             // assigned to ntp, e.g., first sputum exam
-            $n->form_consult_assign_lab($menu_id, $post_vars, $get_vars, $validuser, $isadmin);
+            //$n->form_consult_assign_lab($menu_id, $post_vars, $get_vars, $validuser, $isadmin);
+
             break;
         }
     }
@@ -669,10 +723,18 @@ class ntp extends module {
             //print_r($arg_list);
         }
         if (!isset($get_vars["ntp"])) {
+
             header("location: ".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=".$get_vars["ptmenu"]."&module=".$get_vars["module"]."&ntp=VISIT1".($get_vars["ntp_id"]?"&ntp_id=".$get_vars["ntp_id"]:""));
         }
         print "<table cellpadding='1' cellspacing='1' width='300' bgcolor='#9999FF' style='border: 1px solid black'><tr valign='top'><td nowrap>";
+
+	print "<a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=".$get_vars["ptmenu"]."&module=".$get_vars["module"]."&ntp=SYMP".($get_vars["ntp_id"]?"&ntp_id=".$get_vars["ntp_id"]:"")."' class='groupmenu'>".strtoupper(($get_vars["ntp"]=="SYMP"?"<b>TB SYMPTOMATIC</b>":"TB SYMPTOMATIC"))."</a>";
+
         print "<a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=".$get_vars["ptmenu"]."&module=".$get_vars["module"]."&ntp=VISIT1".($get_vars["ntp_id"]?"&ntp_id=".$get_vars["ntp_id"]:"")."' class='groupmenu'>".strtoupper(($get_vars["ntp"]=="VISIT1"?"<b>VISIT1</b>":"VISIT1"))."</a>";
+
+	
+
+
         if ($get_vars["ntp_id"]) {
             print "<a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=".$get_vars["ptmenu"]."&module=".$get_vars["module"]."&ntp=INTAKE".($get_vars["ntp_id"]?"&ntp_id=".$get_vars["ntp_id"]:"")."' class='groupmenu'>".strtoupper(($get_vars["ntp"]=="INTAKE"?"<b>INTENSIVE</b>":"INTENSIVE"))."</a>";
             print "<a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=".$get_vars["ptmenu"]."&module=".$get_vars["module"]."&ntp=COLL".($get_vars["ntp_id"]?"&ntp_id=".$get_vars["ntp_id"]:"")."' class='groupmenu'>".strtoupper(($get_vars["ntp"]=="COLL"?"<b>MAINT</b>":"MAINT"))."</a>";
@@ -732,13 +794,13 @@ class ntp extends module {
                     }
                 }
 
-                $sql_first = "insert into m_patient_ntp (patient_id, occupation_id, ".
+                /*$sql_first = "insert into m_patient_ntp (patient_id, occupation_id, ".
                              "household_contacts, region_id, body_weight, bcg_scar, ".
                              "previous_treatment_flag, previous_treatment_duration, ".
                              "previous_treatment_drugs, treatment_category_id, ".
                              "contact_person, outcome_id, patient_type_id, ".
                              "treatment_partner_id, healthcenter_id, ntp_timestamp, ".
-                             "ntp_consult_date, user_id, tb_class) ".
+                             "ntp_consult_date, user_id, tb_class, source_patient, refer_physician, tbdc_review) ".
                              "values ('$patient_id', '".$post_vars["occupation"]."', ".
                              "'".$post_vars["hh_contacts"]."', '".$post_vars["region"]."', ".
                              "'$body_weight', '$bcg_scar', '$previous_tx', ".
@@ -751,6 +813,11 @@ class ntp extends module {
                              "'".$_SESSION["datanode"]["code"]."', sysdate(), ".
                              "sysdate(), '".$_SESSION["userid"]."', ".
                              "'".$post_vars["tb_class"]."')";
+                */
+                
+                $healthcenter = $_SESSION["datanode"]["code"];
+                $sql_first = "INSERT INTO m_patient_ntp SET patient_id='$patient_id',occupation_id='$post_vars[occupation]',household_contacts='$post_vars[hh_contacts]',region_id='$post_vars[region]',body_weight='$body_weight',bcg_scar='$bcg_scar',previous_treatment_flag='$previous_tx',previous_treatment_duration='$post_vars[previous_treatment_duration]',previous_treatment_drugs='$tx_drugs',treatment_category_id='$post_vars[treatment_category]',contact_person='$post_vars[contact_person]',outcome_id='$post_vars[treatment_outcome]',patient_type_id='$post_vars[patient_type]',treatment_partner_id='$post_vars[treatment_partner]',healthcenter_id='$healthcenter',ntp_timestamp=sysdate(),ntp_consult_date=sysdate(),user_id='$_SESSION[userid]',tb_class='$post_vars[tb_class]',source_patient='$post_vars[source_px]',refer_physician='$post_vars[refer_physician]',tbdc_review='$post_vars[tbdc_review]'";
+                
                 if ($result_first = mysql_query($sql_first)) {
                     header("location: ".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=".$get_vars["ptmenu"]."&module=".$get_vars["module"]);
                 }
@@ -766,9 +833,14 @@ class ntp extends module {
 
                 // if treatment outcome is any other than TX end this course
                 $course_end_flag = ($post_vars["treatment_outcome"]<>"TX"?"Y":"N");
-                if ($course_end_flag=="Y") {
-                    $treatment_end_date = date("Y-m-d");
-                } else {
+                if ($course_end_flag=="Y") {             
+                    if(empty($post_vars["date_outcome"])):
+                        $treatment_end_date = date("Y-m-d");
+                    else:
+                        list($tm,$td,$ty) = explode('/',$post_vars["date_outcome"]);
+                        $treatment_end_date = $ty.'-'.$tm.'-'.$td;
+                    endif;
+                } else {                    
                     $treatment_end_date = '0000-00-00';
                 }
                 $previous_tx = ($post_vars["previous_treatment_flag"]?"Y":"N");
@@ -795,9 +867,15 @@ class ntp extends module {
                              "treatment_partner_id = '".$post_vars["treatment_partner"]."', ".
                              "ntp_timestamp = sysdate(), ".
                              "user_id = '".$_SESSION["userid"]."', ".
-                             "tb_class = '".$post_vars["tb_class"]."' ".
-                             "where ntp_id = '".$post_vars["ntp_id"]."' ";
-                if ($result_first = mysql_query($sql_first)) {
+                             "tb_class = '".$post_vars["tb_class"]."', ".
+                             "source_patient = '".$post_vars["source_px"]."', ".
+                             "refer_physician = '".$post_vars["refer_physician"]."', ".
+                             "tbdc_review = '".$post_vars["tbdc_review"]."' ".
+                             " where ntp_id = '".$post_vars["ntp_id"]."' ";
+
+                $result_first = mysql_query($sql_first) or die("Cannot query 876 ".mysql_error());
+                
+                if ($result_first) {
                     header("location: ".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=".$get_vars["ptmenu"]."&module=ntp&ntp=VISIT1&ntp_id=".$get_vars["ntp_id"]);
                 }
             }
@@ -942,7 +1020,11 @@ class ntp extends module {
             break;
         case "Send Request":
             if ($post_vars["registry_id"]) {
-                foreach($post_vars["ntp_lab"] as $key=>$value) {
+                //print_r($post_vars);
+                
+                //$sql_lab = mysql_query("INSERT INTO m_consult_lab SET consult_id='$get_vars[consult_id]', patient_id='$get_vars[patient_id]', lab_id, request_timestamp, request_user_id ")                                
+                
+                foreach($post_vars["ntp_lab"] as $key=>$value) {                    
                     $sql_lab = "insert into m_consult_lab (consult_id, patient_id, lab_id, request_timestamp, request_user_id) ".
                                "values ('".$get_vars["consult_id"]."', '$patient_id', '$value', sysdate(), '".$_SESSION["userid"]."')";
                     if ($result_lab = mysql_query($sql_lab)) {
@@ -953,9 +1035,76 @@ class ntp extends module {
                         $result_ntp = mysql_query($sql_ntp);
                     }
                 }
-                header("location: ".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=".$get_vars["ptmenu"]."&module=".$get_vars["module"].($get_vars["ntp_id"]?"&ntp_id=".$get_vars["ntp_id"]:""));
+                //header("location: ".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=".$get_vars["ptmenu"]."&module=".$get_vars["module"].($get_vars["ntp_id"]?"&ntp_id=".$get_vars["ntp_id"]:""."&ntp=LABS""));
             }
             break;
+            
+        case "Save TB Symptomatic":            
+                //echo 'no symptomatic record, therefore create';
+                list($xm,$xd,$xy) = explode('/',$_POST["date_referred_xray"]);
+                $xray_referred = $xy.'-'.$xm.'-'.$xd;
+                
+                list($ym,$yd,$yy) = explode('/',$_POST["date_received_xray"]);
+                $xray_received = $yy.'-'.$ym.'-'.$yd;                                            
+                
+                list($seen_m,$seen_d,$seen_y) = explode('/',$_POST["date_symptomatic"]);
+                $date_seen = $seen_y.'-'.$seen_m.'-'.$seen_d;
+                
+                $insert_symp = mysql_query("INSERT INTO m_consult_ntp_symptomatics SET ntp_id='$_POST[select_ntp_tx]',consult_id='$_GET[consult_id]',patient_id='$_POST[pxid]',sputum_diag1='$_POST[sputum_diag1]',sputum_diag2='$_POST[sputum_diag2]',xray_date_referred='$xray_referred',xray_date_received='$xray_received',xray_result='$_POST[xray_result]',remarks='$_POST[symptomatic_remarks]',symptomatic_flag='$_POST[sel_symp]',enroll_flag='$_POST[enroll_flag]',user_id='$_SESSION[useid]',date_updated=NOW(),date_seen='$date_seen'") or die("Cannot query: 1000 ".mysql_error()); 
+                
+                
+                echo "<script language='Javascript'>";
+                
+                if($insert_symp):
+                    echo "window.alert('Record for TB Symptomatic was successfully been saved!')";
+                else:
+                    echo "window.alert('Record for TB Symptomatic not saved. Kindly check the entries')";                
+                endif;
+                
+                
+                echo "</script>";                                        
+            break;
+            
+        case "Update TB Symptomatic":
+                list($xm,$xd,$xy) = explode('/',$_POST["date_referred_xray"]);
+                $xray_referred = $xy.'-'.$xm.'-'.$xd;
+                
+                list($ym,$yd,$yy) = explode('/',$_POST["date_received_xray"]);
+                $xray_received = $yy.'-'.$ym.'-'.$yd;                                            
+                
+                list($seen_m,$seen_d,$seen_y) = explode('/',$_POST["date_symptomatic"]);
+                $date_seen = $seen_y.'-'.$seen_m.'-'.$seen_d;
+                                                    
+                if($_POST["enroll_flag"]=='Y' && $_POST["select_ntp_tx"]==''):
+                    echo "<script language='Javascript'>";
+                    echo "window.alert('Upon enrollment of patient, do no forget to update LINK TO NTP TREATMENT by selecting the treatment date.')";
+                    echo "</script>";
+                endif;                                                        
+                
+                $update_symp = mysql_query("UPDATE m_consult_ntp_symptomatics SET ntp_id='$_POST[select_ntp_tx]',date_seen='$date_seen',sputum_diag1='$_POST[sputum_diag1]',sputum_diag2='$_POST[sputum_diag2]',xray_date_referred='$xray_referred',xray_date_received='$xray_received',xray_result='$_POST[xray_result]',remarks='$_POST[symptomatic_remarks]',symptomatic_flag='$_POST[sel_symp]',enroll_flag='$_POST[enroll_flag]' WHERE symptomatic_id='$_POST[sel_symp_rec]'") or die("Cannot query 998 ".mysql_error());
+                
+                echo "<script language='Javascript'>";
+                
+                if($update_symp):
+                    echo "window.alert('Update of TB Symptomatic record was successful!')";
+                else:
+                    echo "window.alert('Update of TB Symptomatic record was not successful. Please check entries.')";
+                endif;
+                
+                echo "</script>";
+            
+        case "View TB SYMP Record":
+            //print_r($_POST);            
+            break;
+        
+        case "Import Sputum Test":
+	    //print_r($_POST);
+	    $pxid = healthcenter::get_patient_id($_GET["consult_id"]);
+
+	    $q_import = mysql_query("INSERT into m_consult_ntp_labs_request SET consult_id='$_GET[consult_id]',patient_id='$pxid',ntp_id='$_GET[ntp_id]',request_id='$_POST[sel_import_ntp]',user_id='$_SESSION[userid]',request_timestamp='NOW()'") or die("Cannot query 1080 ".mysql_error());
+	    
+            break;
+        
         case "Print Referral":
             break;
         }
@@ -1013,6 +1162,200 @@ class ntp extends module {
         print "</table><br>";
     }
 
+    function form_ntp_symptomatic(){
+      if(func_num_args()>0):
+	$arg_list = func_get_args();
+        $menu_id = $arg_list[0];
+	$post_vars = $arg_list[1];
+	$get_vars = $arg_list[2];
+	$validuser = $arg_list[3];
+	$isadmin = $arg_list[4];
+      endif;
+      
+      $pxid = healthcenter::get_patient_id($_GET["consult_id"]);                
+      
+      if($_POST[sel_symp_rec]):
+          $q_symp_rec = mysql_query("SELECT symptomatic_id,ntp_id,date_format(date_seen,'%m/%d/%Y') as 'date_seen',sputum_diag1,sputum_diag2,date_format(xray_date_referred,'%m/%d/%Y') as 'xray_referred', date_format(xray_date_received,'%m/%d/%Y') as 'xray_received',xray_result,remarks,symptomatic_flag,enroll_flag FROM m_consult_ntp_symptomatics WHERE symptomatic_id='$_POST[sel_symp_rec]'") or die("Cannot query 1118: ".mysql_error());
+          $r_symp = mysql_fetch_array($q_symp_rec);         
+          //print_r($r_symp);
+          
+          $date_seen = (($r_symp[date_seen]=='00/00/0000')?'':$r_symp[date_seen]);
+          $xray_refer = (($r_symp[xray_referred]=='00/00/0000')?'':$r_symp[xray_referred]);
+          $xray_receive = (($r_symp[xray_received]=='00/00/0000')?'':$r_symp[xray_received]);
+          
+      endif;
+      
+      if($_POST[confirm_del]==1):          
+          $this->delete_symp_record($_GET,$_POST[sel_symp_rec]);
+      endif;
+        
+      echo "<a name='tb_symptomatic'>";
+
+      echo "<form action='$_SERVER[PHP_SELF]?page=$_GET[page]&menu_id=$_GET[menu_id]&consult_id=$_GET[consult_id]&ptmenu=$_GET[ptmenu]&module=$_GET[module]&ntp=$_GET[ntp]' name='form_symptomatic' method='POST'>";
+                 
+      echo "<input type='hidden' value='$pxid' name='pxid'></input>";
+      echo "<input type='hidden' name='confirm_del' value='0'></input>";
+      
+      echo "<table>";
+      echo "<tr><td>SELECT RECORD TO VIEW</td>";
+      
+      echo "<td>";      
+      $q_symp_rec = mysql_query("SELECT symptomatic_id,date_format(date_updated,'%Y-%m-%d') as 'symp_date',symptomatic_flag,date_format(date_seen,'%Y-%m-%d') as 'date_seen' FROM m_consult_ntp_symptomatics WHERE patient_id='$pxid' ORDER by 'date_seen' ASC") or die("Cannot query 1115: ".mysql_error());
+            
+      
+      if(mysql_num_rows($q_symp_rec)==0):
+          echo "No saved record for TB Symptomatic yet";
+      else:      
+          echo "<select name='sel_symp_rec' value='1'>";          
+          while(list($symp_id,$symp_date, $symp_flag, $date_seen) = mysql_fetch_array($q_symp_rec)){          
+              echo "<option value='$symp_id'>$date_seen / SYMP? $symp_flag</option>";
+          }
+          
+          echo "</select>&nbsp;&nbsp;";
+          echo "<input type='submit' name='submitntp' value='View TB SYMP Record'></input>";          
+      endif;
+      
+      echo "</td>";
+      
+      echo "<tr><td>PATIENT IS TB SYMPTOMATIC?</td>";
+      
+      if($r_symp[symptomatic_flag]=='N'):
+          $n = 'SELECTED';
+      else:
+          $y = 'SELECTED';
+      endif;
+      
+      
+      echo "<td><select name='sel_symp' size='1'>";
+      echo "<option value=''>Please Specify</option>";
+      echo "<option value='Y' $y>Yes</option>";
+      echo "<option value='N' $n>No</option>";
+      echo "</select></td><tr>";
+
+      $now = (!empty($r_symp[date_seen])?$r_symp[date_seen]:date('m/d/Y'));
+      echo "<tr><td>Date Patient Seen</td>";
+      echo "<td><input type='text' name='date_symptomatic' size='8' value='$now'></input>&nbsp;";
+      echo "<a href=\"javascript:show_calendar4('document.form_symptomatic.date_symptomatic', document.form_symptomatic.date_symptomatic.value);\"><img src='../images/cal.gif' width='16' height='16' border='0' alt='Click Here to Pick up the date'></a></input>";
+      echo "</td>";
+      echo "</tr>";
+
+      echo "<tr>";
+      echo "<td colspan='2'>SPUTUM EXAMINATION (before treatment)</td>";
+      echo "</tr>";
+      echo "<tr>";
+      
+      echo "<tr><td>1st</td><td>";
+      $this->show_sputum_test('sputum_diag1',$pxid,$r_symp[sputum_diag1]);
+      echo "</td></tr>";
+      
+      echo "<tr><td>2nd</td><td>";
+      $this->show_sputum_test('sputum_diag2',$pxid,$r_symp[sputum_diag2]);
+      echo "</td></tr>";
+
+      
+      
+      echo "<tr><td>Date Referred for X-Ray</td>";
+      echo "<td><input type='text' name='date_referred_xray' size='8' value='$xray_refer')></input>&nbsp;";
+      echo "<a href=\"javascript:show_calendar4('document.form_symptomatic.date_referred_xray', document.form_symptomatic.date_referred_xray.value);\"><img src='../images/cal.gif' width='16' height='16' border='0' alt='Click Here to Pick up the date'></a></input>";
+      echo "</td>";
+      echo "</tr>";
+
+      echo "<tr><td>Date X-Ray Received</td>";
+      echo "<td><input type='text' name='date_received_xray' size='8' value='$xray_receive'></input>&nbsp;";
+      echo "<a href=\"javascript:show_calendar4('document.form_symptomatic.date_received_xray', document.form_symptomatic.date_received_xray.value);\"><img src='../images/cal.gif' width='16' height='16' border='0' alt='Click Here to Pick up the date'></a></input>";
+      echo "</td>";
+      echo "</tr>";
+    
+      if($r_symp[xray_result]=='P'):
+          $p = 'SELECTED';
+      elseif($r_symp[xray_result]=='N'):
+          $n = 'SELECTED';
+      else:
+          $d = '';
+      endif;
+      
+      echo "<tr><td>X-ray Results</td>";
+      echo "<td><select name='xray_result' size='1'>";
+      echo "<option value='' $d>Select Result</option>";
+      echo "<option value='P' $p>Positive</option>";
+      echo "<option value='N' $n>Negative</option>";
+      echo "</select></td>";
+      echo "</tr>";
+      
+      echo "<tr><td>Additional Remarks</td>";
+      echo "<td>";
+      echo "<textarea cols='20' rows='5' name='symptomatic_remarks'>$r_symp[remarks]</textarea>";
+      echo "</td>";
+      echo "</tr>";      
+      
+      if($r_symp[enroll_flag]=='N'):
+          $n = 'SELECTED';
+      elseif($r_symp[enroll_flag]=='Y'):
+          $y = 'SELECTED';
+      else:
+          $d = 'SELECTED';
+      endif;
+
+
+      echo "<tr><td>Enroll Patient to NTP?</td>";
+      echo "<td>";
+      echo "<select name='enroll_flag' size='1'>";
+      echo "<option value='' $d>Select</option>";
+      echo "<option value='Y' $y>Yes</option>";
+      echo "<option value='N' $n>No</option>";
+      echo "</select></td>";
+      echo "</tr>";     
+      
+      echo "<tr><td>Link to NTP Treatment (if px underwent TX)</td>";
+      echo "<td valign='top'>";
+      
+      $q_ntp = mysql_query("SELECT ntp_id,date_format(ntp_consult_date,'%m/%d/%Y') as consult_date,intensive_start_date,maintenance_start_date,course_end_flag FROM m_patient_ntp WHERE patient_id='$pxid' ORDER by consult_date DESC") or die("Cannot query: 1132".mysql_error());
+      
+      if(mysql_num_rows($q_ntp)==0):
+          echo "<font color='red' size='2'>Patient has never underwent any NTP treatment.</font>";
+          echo "<input type='hidden' name='select_ntp_tx' value=''></input>";
+      else:
+          echo "<select name='select_ntp_tx' size='1'>";
+          echo "<option value=''>Start of TX (I:start of INTENSIVE,M:start of MAINTENANCE)</option>";
+          
+          while($r_ntp = mysql_fetch_array($q_ntp)){
+              if($r_symp[ntp_id]==$r_ntp[ntp_id]):
+                  echo "<option value='$r_ntp[ntp_id]' SELECTED>$r_ntp[consult_date] (I: $r_ntp[intensive_start_date], M: $r_ntp[maintenance_start_date])</option>";                  
+              else:          
+                  echo "<option value='$r_ntp[ntp_id]'>$r_ntp[consult_date] (I: $r_ntp[intensive_start_date], M: $r_ntp[maintenance_start_date])</option>";
+              endif;              
+          }
+          
+          echo "</select>";
+      endif;            
+      
+      echo "</td>";
+      echo "</tr>";      
+      
+      
+      echo "<tr align='center'>";
+      if($_POST[sel_symp_rec]):
+          echo "<td colspan='2'><input type='submit' name='submitntp' value='Update TB Symptomatic'></input>&nbsp;&nbsp;";
+          
+          if($_SESSION["priv_delete"]):
+            echo "<input type='button' name='deletesymp' value='Delete TB Symptomatic' onclick='delete_symp()'></input>&nbsp;&nbsp;";
+          endif;
+          
+          echo "<input type='button' name='cancel' value='Cancel Transaction' onclick='history.go(-1)'></input>&nbsp;&nbsp;";
+      else:      
+          echo "<td colspan='2'><input type='submit' name='submitntp' value='Save TB Symptomatic'></input>&nbsp;&nbsp;";
+      endif;
+      
+      
+      echo "<input type='reset' value='Clear' name='btn_submit'></input>";
+      echo "</td>";
+      echo "</tr>";
+      
+      echo "</table>";
+      
+      echo "</form>";
+    }
+
     function form_patient_ntp() {
     //
     // get ntp data for this visit1
@@ -1032,12 +1375,23 @@ class ntp extends module {
                    "region_id, body_weight, bcg_scar, tb_class, ".
                    "previous_treatment_flag, previous_treatment_duration, previous_treatment_drugs, ".
                    "treatment_category_id, contact_person, outcome_id, patient_type_id, ".
-                   "treatment_partner_id, course_end_flag ".
+                   "treatment_partner_id, course_end_flag, treatment_end_date,source_patient,refer_physician,tbdc_review ".
                    "from m_patient_ntp where ntp_id = '".$get_vars["ntp_id"]."'";
             if ($result = mysql_query($sql)) {
-                if (mysql_num_rows($result)) {
+                if (mysql_num_rows($result)) {                    
                     $ntp = mysql_fetch_array($result);
-                }
+                    
+                    list($y,$m,$d) = explode('-',$ntp["treatment_end_date"]);
+                    $date_outcome = ($ntp["treatment_end_date"]=='0000-00-00')?'':($m.'/'.$d.'/'.$y);
+                    
+                    if($ntp[source_patient]=='Public'):
+                        $public = 'SELECTED';
+                    elseif($ntp[source_patient]=='Private'):
+                        $private = 'SELECTED';
+                    else:
+                        $def = 'SELECTED';
+                    endif;
+                }                
             }
         }
         print "<a name='visit1_form'>";
@@ -1084,6 +1438,23 @@ class ntp extends module {
         }
         print "</select>";
         print "</td></tr>";
+        
+        
+        print "<tr valign='top'><td>";
+        print "<span class='boxtitle'>SOURCE OF PATIENT</span><br> ";
+        print "<select name='source_px'>";
+        print "<option value='' $def>Select Source</option>";
+        print "<option value='Public' $public>Public</option>";
+        print "<option value='Private' $private>Private</option>";
+        print "</select>";
+        print "</td></tr>";
+        
+        print "<tr valign='top'><td>";
+        print "<span class='boxtitle'>NAME OF REFERRING PHYSICIAN</span><br> ";
+        print "<input type='text' name='refer_physician' value='$ntp[refer_physician]' size='20'></input>";
+        print "</td></tr>";
+        
+        
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_BCG_SCAR."</span><br> ";
         print "<select name='bcg_scar'>";
@@ -1129,17 +1500,36 @@ class ntp extends module {
         print "<span class='boxtitle'>".LBL_TREATMENT_PARTNER."</span><br> ";
         print ntp::show_treatment_partners($ntp["treatment_partner_id"]);
         print "</td></tr>";
+        
+        print "<tr><td>";
+        print "<span class='boxtitle'>REVIEWED BY TBDC?</span><br> ";        
+        print "<select name='tbdc_review' size='1'>";
+        print "<option value='' ".($ntp["tbdc_review"]==""?"selected":"").">Select</option>";
+        print "<option value='Y' ".($ntp["tbdc_review"]=="Y"?"selected":"").">Yes</option>";
+        print "<option value='N' ".($ntp["tbdc_review"]=="N"?"selected":"").">No</option>";
+        print "</select>";
+        print "</td></tr>";
+        
         print "<tr valign='top'><td>";
         if (!$ntp["outcome_id"]) {
             $outcome = "TX";
         } else {
             $outcome = $ntp["outcome_id"];
         }
-        print "<span class='boxtitle'>".LBL_TREATMENT_OUTCOME."</span><br> ";
+        print "<br><span class='boxtitle'>".LBL_TREATMENT_OUTCOME."</span><br> ";
         print ntp::show_treatment_outcomes($outcome);
-        print "<br/><small>".INSTR_TREATMENT_OUTCOME."</small><br/>";
+        print "<br/><small>".INSTR_TREATMENT_OUTCOME."</small><br/>";                
+        print "</td></tr>";
+        
+        print "<tr><td>";        
+        print "<span class='boxtitle'>DATE FINAL OUTCOME RECORDED</span><br> ";
+        print "<input type='text' name='date_outcome' size='8' value='$date_outcome'></input>&nbsp;";
+        print "<a href=\"javascript:show_calendar4('document.form_ntp_visit1.date_outcome', document.form_ntp_visit1.date_outcome.value);\"><img src='../images/cal.gif' width='16' height='16' border='0' alt='Click Here to Pick up the date'></a><br>";        
         print "</td></tr>";
         print "<tr><td>";
+        
+        
+        
         if ($get_vars["ntp_id"]) {
             print "<input type='hidden' name='ntp_id' value='".$get_vars["ntp_id"]."'/>";
             if ($_SESSION["priv_update"] || $_SESSION["isadmin"]) {
@@ -1299,10 +1689,10 @@ class ntp extends module {
         print ntp::show_ntp_labs();
         print "</td></tr>";
         print "<tr><td><br />";
-        if ($_SESSION["priv_add"]) {
+        //if ($_SESSION["priv_add"]) {
             print "<input type='hidden' name='registry_id' value='".$get_vars["ntp_id"]."'/>";
             print "<input type='submit' value = 'Send Request' class='textbox' name='submitntp' style='border: 1px solid #000000'> ";
-        }
+        //}
         print "<br /></td></tr>";
         print "</form>";
         print "</table><br>";
@@ -1374,7 +1764,7 @@ class ntp extends module {
         if ($result_ntp = mysql_query($sql_ntp)) {
             if (mysql_num_rows($result_ntp)) {
                 while (list($nid, $pid, $regdate, $outcome) = mysql_fetch_array($result_ntp)) {
-                    print "<img src='../images/arrow_redwhite' border='0'/> REGISTRY NO: <font color='red'>".module::pad_zero($nid,7)."</font> ";
+                    print "<img src='../images/arrow_redwhite.gif' border='0'/> REGISTRY NO: <font color='red'>".module::pad_zero($nid,7)."</font> ";
                     print "<a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=".$get_vars["ptmenu"]."&module=".$get_vars["module"]."&ntp=VISIT1&ntp_id=$nid'>$regdate</a> ";
                     print ($outcome=="TX"?"<font color='green'>OPEN</font>":"<font color='red'>CLOSED</font>");
                     print "<br/>";
@@ -2877,7 +3267,211 @@ class ntp extends module {
         }
         print "</table><br>";
     }
+    
+    function show_sputum_test($form_name,$pxid, $sputum_id){
+    
+        
+        $q_sputum = mysql_query("SELECT request_id,sp1_collection_date,sp2_collection_date,sp3_collection_date,sp1_reading,sp2_reading,sp3_reading from m_consult_lab_sputum WHERE patient_id='$pxid' ORDER BY sp1_collection_date DESC,sp2_collection_date DESC, sp3_collection_date DESC") or die("Cannot query 3052:".mysql_error());
+        
+        if(mysql_num_rows($q_sputum)!=0):
+            echo "<select name='$form_name' size='1'>";
+            echo "<option value=''>Select Sputum Exam</option>";
+            
+            while($r_sputum=mysql_fetch_array($q_sputum)){
+                if($r_sputum[request_id]==$sputum_id):
+                    echo "<option value='$r_sputum[request_id]' SELECTED>(1) $r_sputum[sp1_collection_date]($r_sputum[sp1_reading]), (2) $r_sputum[sp2_collection_date]($r_sputum[sp2_reading]), (3) $r_sputum[sp3_collection_date]($r_sputum[sp3_reading])</option>";                
+                else:
+                    echo "<option value='$r_sputum[request_id]'>(1) $r_sputum[sp1_collection_date]($r_sputum[sp1_reading]), (2) $r_sputum[sp2_collection_date]($r_sputum[sp2_reading]), (3) $r_sputum[sp3_collection_date]($r_sputum[sp3_reading])</option>";
+                endif;
+            }            
+            
+            echo "</select>";
+        else:
+            echo"<font color='red' size='2'>No record for sputum exam. Please record SPUTUM RESULTS <a href='$_SERVER[SELF]?page=$_GET[page]&menu_id=$_GET[menu_id]&consult_id=$_GET[consult_id]&ptmenu=LABS'>here</a></font>";        
+        endif;
 
+        
+    }
+    
+    function delete_symp_record($get_vars,$symp_id){
+        $del_symp = mysql_query("DELETE FROM m_consult_ntp_symptomatics WHERE symptomatic_id='$symp_id'") or die("Cannot query 3195 ".mysql_error());
+                    
+        if($del_symp):
+            header("location: $_SERVER[PHP_SELF]?page=$get_vars[page]&menu_id=$get_vars[menu_id]&consult_id=$get_vars[consult_id]&ptmenu=$get_vars[ptmenu]&module=$get_vars[module]&ntp=$get_vars[ntp]");
+        else:
+            echo "<font color='red'>TB Symptomatic record was not deleted.</font>";
+        endif;
+        
+        
+        
+    }
+    
+    function form_pending_request(){
+        if(func_num_args()>0):
+            $arg_list = func_num_args();
+            $menu_id = $arg_list[0];
+            $post_vars = $arg_list[1];
+            $get_vars = $arg_list[2];
+            $validuser = $arg_list[3];
+            $isadmin = $arg_list[4];
+        endif;
+                                                                                                       
+    $pxid = healthcenter::get_patient_id($_GET["consult_id"]);
+    $s = new sputum();    
+    
+    
+    
+    //$q_sputum = mysql_query("SELECT a.request_id, date_format('%Y-%m-%d',a.lab_timestamp) as 'date_request',a.sp1_collection_date,a.lab_diagnosis,c.period_label FROM m_consult_lab_sputum a, m_consult_ntp_sputum b, m_lib_sputum_period c, m_consult_lab d WHERE a.request_id=d.request_id AND d.patient_id='$pxid' AND a.request_id=b.request_id AND b.ntp_id='$_GET[ntp_id]' AND a.sputum_period=c.period_code AND a.release_flag='N' ORDER by 'date_request' ASC") or die("CAnnot query 395 ".mysql_error());
+
+    $q_sputum = mysql_query("SELECT d.request_id, date_format(d.request_timestamp,'%Y-%m-%d') as 'date_request' FROM m_consult_ntp_labs_request b, m_consult_lab d WHERE d.request_id=b.request_id AND d.patient_id='$pxid' AND b.ntp_id='$_GET[ntp_id]' AND d.request_done='N' ORDER by 'date_request' ASC") or die("CAnnot query 395 ".mysql_error());    
+
+    echo "<br><table>";
+    echo "<tr><td colspan='5'>PENDING LAB REQUESTS</td></tr>";    
+    
+    if(mysql_num_rows($q_sputum)!=0):                
+        echo "<tr><td>Date Requested</td><td>Start of Sputum Exam</td><td>Final Diagnosis</td><td>View Details</td>";
+
+        while(list($lab_id,$date_request)=mysql_fetch_array($q_sputum)){
+            $q_sputum2 = mysql_query("SELECT date_format('%Y-%m-%d',a.lab_timestamp) as 'date_request2',a.sp1_collection_date,a.lab_diagnosis,c.period_label FROM m_consult_lab_sputum a, m_lib_sputum_period c WHERE a.request_id='$lab_id' AND a.sputum_period=c.period_code AND a.release_flag='N' ORDER by 'date_request' ASC") or die("Cannot query 395 ".mysql_error());
+            list($date_req,$first_sputum,$lab_diagnosis,$period_label) = mysql_fetch_array($q_sputum2);
+
+            $q_lab = mysql_query("SELECT b.request_id,a.lab_name,a.lab_module FROM m_lib_laboratory a, m_consult_lab b where a.lab_id=b.lab_id AND b.consult_id='$_GET[consult_id]'") or die("Cannot query 3246 ".mysql_error());
+            list($request_id,$lab_name, $mod) = mysql_fetch_array($q_lab);
+            
+            echo "<tr align='center'>";
+            echo "<td>$date_request</td>";
+            echo "<td>$first_sputum</td>";
+            echo "<td>$lab_diagnosis</td>";
+            echo "<td><a href='$_SERVER[PHP_SELF]?page=$_GET[page]&menu_id=$_GET[menu_id]&consult_id=$_GET[consult_id]&ptmenu=LABS&module=$mod&request_id=$lab_id#sputum_form' target='new'>View</a></td>";
+            echo "</tr>";
+        }
+        
+    else:
+        echo "<tr><td>No pending sputum exam yet</td></tr>";
+    endif;                                                                                                                             
+    
+    echo "</table>";
+    }
+    
+        
+    function form_completed_request(){
+        if(func_num_args()>0):
+            $arg_list = func_num_args();
+            $menu_id = $arg_list[0];
+            $post_vars = $arg_list[1];
+            $get_vars = $arg_list[2];
+            $validuser = $arg_list[3];
+            $isadmin = $arg_list[4];
+        endif;    
+        
+        $pxid = healthcenter::get_patient_id($_GET[consult_id]);
+        
+        $q_completed = mysql_query("SELECT a.request_id, date_format(a.request_timestamp,'%Y-%m-%d') as 'date_request',date_format(a.done_timestamp,'%Y-%m-%d') as 'date_done',b.lab_diagnosis FROM m_consult_lab a, m_consult_lab_sputum b, m_consult_ntp_labs_request c WHERE a.request_id=b.request_id AND b.request_id=c.request_id AND a.patient_id='$pxid' AND c.ntp_id='$_GET[ntp_id]' AND a.request_done='Y' ORDER by 'date_request' ASC") or die("CAnnot query 3291 ".mysql_error());
+
+
+        echo "<br><table>";
+        echo "<tr><td colspan='5'>COMPLETED SPUTUM EXAMS</td></tr>";        
+        if(mysql_num_rows($q_completed)!=0):                        
+            echo "<tr><td>Date Requested</td><td>Date Released</td><td>Final Diagnosis</td><td>View Details</td>";        
+            
+            while(list($request_id,$date_request,$date_release,$diag) = mysql_fetch_array($q_completed)){
+                echo "<tr>";
+                echo "<td>$date_request</td>";
+                echo "<td>$date_release</td>";
+                echo "<td>$diag</td>";
+                echo "<td><a href='$_SERVER[PHP_SELF]?page=$_GET[page]&menu_id=$_GET[menu_id]&consult_id=$_GET[consult_id]&ptmenu=LABS&module=sputum&request_id=$request_id#sputum_result' target='new'>View</a</td>";
+                echo "</tr>";
+            }
+        else:
+            echo "<tr><td>No completed sputum exam yet</td></tr>";  
+        endif;
+        
+        echo "</table>";        
+    }
+    
+    function check_before_dssm($ntp_id){
+        $q_sputum = mysql_query("SELECT symptomatic_id, sputum_diag1, sputum_diag2 FROM m_consult_ntp_symptomatics WHERE ntp_id='$ntp_id'") or die("Cannot query 3306 ".mysql_error());
+        
+        if(mysql_num_rows($q_sputum)!=0):
+            list($symp_id,$sputum1,$sputum2) = mysql_fetch_array($q_sputum);
+            
+            $q_sputum1 = mysql_query("SELECT date_format(sp1_collection_date,'%Y-%m-%d') as 'sp1',date_format(sp2_collection_date,'%Y-%m-%d') as 'sp2',date_format(sp3_collection_date,'%Y-%m-%d') as 'sp3',lab_diagnosis,release_flag FROM m_consult_lab_sputum WHERE request_id='$sputum1'") or die("Cannot query 3313 ".mysql_error());
+            list($first1,$sec1,$last1,$diag1,$rel1) = mysql_fetch_array($q_sputum1);
+            $ref1 = ($rel1=='Y')?'sputum_result':'sputum_form';
+            
+            $q_sputum2 = mysql_query("SELECT date_format(sp1_collection_date,'%Y-%m-%d') as 'sp1',date_format(sp2_collection_date,'%Y-%m-%d') as 'sp2',date_format(sp3_collection_date,'%Y-%m-%d') as 'sp3',lab_diagnosis,release_flag FROM m_consult_lab_sputum WHERE request_id='$sputum2'") or die("Cannot query 3316 ".mysql_error());
+            list($first2,$sec2,$last2,$diag2,$rel2) = mysql_fetch_array($q_sputum2);                        
+            $ref2 = ($rel2=='Y')?'sputum_result':'sputum_form';
+
+            echo "<br><table>";
+            echo "<tr><td colspan='5'>DSSM EXAM BEFORE TREATMENT</td></tr>";
+            echo "<tr><td></td><td>1st</td><td>2nd</td><td>3rd</td><td>Result</td><td>View Details</td></tr>";
+            
+            echo "<tr>";
+            echo "<td>1</td>";
+            echo "<td>$first1</td>";
+            echo "<td>$sec1</td>";            
+            echo "<td>$last1</td>";                                    
+            echo "<td>$diag1</td>";            
+            echo "<td><a href='$_SERVER[PHP_SELF]?page=$_GET[page]&menu_id=$_GET[menu_id]&consult_id=$_GET[consult_id]&ptmenu=LABS&module=sputum&request_id=$sputum1#$ref1' target='new'>View</a</td>";
+            
+            echo "<tr>";
+            echo "<td>2</td>";
+            echo "<td>$first2</td>";
+            echo "<td>$sec2</td>";            
+            echo "<td>$last2</td>";                                    
+            echo "<td>$diag2</td>";            
+            echo "<td><a href='$_SERVER[PHP_SELF]?page=$_GET[page]&menu_id=$_GET[menu_id]&consult_id=$_GET[consult_id]&ptmenu=LABS&module=sputum&request_id=$sputum2#$ref2' target='new'>View</a</td>";
+            echo "</table><br>";
+        
+        else:
+            echo "<br><font color='red'>No DSSM Before Treatment Recorded or the DSSM is not yet tagged to the NTP treatment in TB Symptomatic menu.</font><br>";
+        endif;
+    }
+    
+    function form_ntp_import(){
+        if(func_num_args()>0):
+            $arg_list = func_num_args();
+            $menu_id = $arg_list[0];
+            $post_vars = $arg_list[1];
+            $get_vars = $arg_list[2];
+            $validuser = $arg_list[3];
+            $isadmin = $arg_list[4];
+        endif;
+        
+        $pxid = healthcenter::get_patient_id($_GET["consult_id"]);
+        
+        $q_ntp = mysql_query("SELECT request_id,sp1_collection_date,sp2_collection_date,sp3_collection_date,sp1_reading,sp2_reading,sp3_reading FROM m_consult_lab_sputum WHERE patient_id='$pxid' ORDER by sp1_collection_date DESC") or die("Cannot query: 3366 ".mysql_error());
+        
+        if(mysql_num_rows($q_ntp)!=0):
+	    echo "<form action='$_SERVER[PHP_SELF]?page=$_GET[page]&menu_id=$_GET[menu_id]&consult_id=$_GET[consult_id]&ptmenu=$_GET[ptmenu]&module=$_GET[module]&ntp=$_GET[ntp]&ntp_id=$_GET[ntp_id]' method='POST'>";
+            echo "<p>The following are sputum tests done for the patient yet need to be imported</p>";
+            
+            echo "<select name='sel_import_ntp' size='1'>";
+            
+            while(list($request_id,$sp1,$sp2,$sp3,$sp1_read,$sp2_read,$sp3_read)=mysql_fetch_array($q_ntp)){
+                //echo $request_id.'<br>';
+                                
+                $q_ntp_req = mysql_query("SELECT ntp_id, request_id FROM m_consult_ntp_labs_request WHERE request_id ='$request_id'") or die("Cannot query 3373: ".mysql_error());
+                                
+                if(mysql_num_rows($q_ntp_req)==0):
+		    $q_symp = mysql_query("SELECT symptomatic_id FROM m_consult_ntp_symptomatics WHERE sputum_diag1='$request_id' OR sputum_diag2='$request_id' AND patient_id='$pxid'") or die("Cannot query 3393 ".mysql_error());
+
+		    if(mysql_num_rows($q_symp)==0):
+                    	echo "<option value='$request_id'>(1)$sp1($sp1_read), (2)$sp2($sp2_read), (3)$sp3($sp3_read)</option>";
+		    endif;		
+                endif;
+            }
+            
+            echo "</select>";
+            echo "<input type='submit' name='submitntp' value='Import Sputum Test'></input>";
+	    echo "</form>";
+            echo "<br>";
+        else:
+        
+        endif;                
+    }
+        
 // end of class
 }
 ?>

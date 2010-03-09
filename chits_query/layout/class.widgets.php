@@ -100,7 +100,7 @@
 
 		echo "<tr><td>Start Date (yyyy-mm-dd)</td>";
 		echo "<td><input name=\"sdate\" type=\"text\" size=\"12\" maxlength=\"10\" value=\"$psdate\" readonly></input>";		
-		echo "<a href=\"javascript:show_calendar4('document.form_query.sdate', document.form_query.sdate.value);\"><img src='../images/cal.gif' width='16' height='16' border='0' alt='Click Here to Pick up the date'></a>";				
+		echo "<a href=\"javascript:show_calendar4('document.form_query.sdate', document.form_query.sdate.value);\"><img src='../images/cal.gif' width='16' height='16' border='0' alt='Click Here to Pick up the date'></a>";
 		echo "</td></tr>";
                 echo "<tr><td>End Date (yyyy-mm-dd)</td>";
                 echo "<td><input name=\"edate\" type=\"text\" size=\"12\" maxlength=\"10\" value=\"$pedate\" readonly>";
@@ -130,6 +130,10 @@
 		        $this->disp_filter_quarterly($query_brgy);
                 elseif($set_filter=='4'):
                         $this->disp_filter_monthly($query_brgy);
+                elseif($set_filter=='5'):
+                        $this->disp_filter_weekly($query_brgy);
+                elseif($set_filter=='6'):
+                        $this->disp_filter_annual($query_brgy);
 		else:
 			$this->disp_filter_form2($query_brgy);
 		endif;
@@ -158,12 +162,17 @@
                         $_SESSION[filter] = 3;
                 elseif($report_type=='M'):
                         $_SESSION[filter] = 4;
+                elseif($report_type=='W'):
+                        $_SESSION[filter] = 5;
+                elseif($report_type=='A'):
+                        $_SESSION[filter] = 6;
 		else:
 			$_SESSION[filter] = 1;
 		endif;
 		
                 return $_SESSION[filter];	
 	}
+
 
 	function disp_filter_form2($q_brgy){
 		$buwan_label = array('01'=>'January','02'=>'February','03'=>'March','04'=>'April','05'=>'May','06'=>'June',07=>'July','08'=>'August','09'=>'September','10'=>'October','11'=>'November','12'=>'December');
@@ -203,22 +212,8 @@
 			endif;
 		}
 		echo "</select></td></tr>";
-
 		
-		
-		echo "<tr><td valign='top'>Barangay</td><td>";
-		
-		echo "<input type='checkbox' name='brgy[]' value='all' checked>All</input>&nbsp;";
-		$counter = 1;
-		while(list($brgyid,$brgyname)=mysql_fetch_array($q_brgy)){
-			echo "<input type='checkbox' name='brgy[]' value='$brgyid'>$brgyname</input>&nbsp;";
-			$counter++;
-			if(($counter%4)==0):
-				echo "<br>";
-			endif;
-		}
-		echo "</td></tr>";
-
+                $this->checkbox_brgy($q_brgy);				
 	}
 	
 	function additional_filter($ques_id,$label){
@@ -236,19 +231,8 @@
                         echo "</select></td>";
                         echo "</tr>";
                         
-                        /*echo "<tr><td>Year</td>";
-                        echo "<td><select name='year' size='1'>";
-
-                                for($i = (date('Y')-5);$i< (date('Y')+5);$i++){					
-                                        if($i==date('Y')):
-                                                echo "<option value='$i' selected>$i</option>";
-                                        else:
-                                                echo "<option value='$i'>$i</option>";
-                                        endif;
-                                }
-                        echo "</tr>";
-                        */
-		echo "</select></td></tr>";                                                
+                        $this->show_year();
+                        
                 endif;
                 
         
@@ -265,29 +249,9 @@
 	                                
 	                echo "</select></td></tr>";
 	                
-	                echo "<tr><td>Year</td>";
-                        echo "<td><select name='year' size='1'>";
-                                for($i = (date('Y')-5);$i< (date('Y')+5);$i++){					
-                                        if($i==date('Y')):
-                                                echo "<option value='$i' selected>$i</option>";
-                                        else:
-                                                echo "<option value='$i'>$i</option>";
-                                        endif; 
-                                }
-                        echo "</tr>";
-                        
-                        echo "<tr><td>Barangay</td><td>";
-                        echo "<input type='checkbox' name='brgy[]' value='all' checked>All</input>&nbsp;";
-                        $counter = 1;
-                        while(list($brgyid,$brgyname)=mysql_fetch_array($q_brgy)){
-			        echo "<input type='checkbox' name='brgy[]' value='$brgyid'>$brgyname</input>&nbsp;";
-			        $counter++;
-			        if(($counter%4)==0):
-				        echo "<br>";
-                                endif;
-                        }                        
+	                $this->show_year();	                
+                        $this->checkbox_brgy($q_brgy);
                                                 
-                        echo "</td></tr>";
 	}
 	
 	function disp_filter_monthly($q_brgy){
@@ -306,24 +270,37 @@
 		echo "</select>";
 		echo "</td></tr>";
 
+		$this->show_year();		
+		$this->checkbox_brgy($q_brgy);		
+	}
+	
+	function disp_filter_weekly($q_brgy){
+	        $this->disp_week();
+	        $this->show_year();
+	        $this->checkbox_brgy($q_brgy);	        	        
+	}
 		
+	
+	function disp_week(){
+	        echo "<tr><td>Week</td>";
+                echo "<td><select name='sel_week' value='1'>";
+	        
+	        for($i=1;$i<53;$i++){
+	                echo "<option value='$i'>$i</option>";
+	        }
+	        
+	        echo "</select></td></tr>";
+	}
+	
+	function disp_filter_annual($q_brgy){
+	        $this->show_year();
+                $this->checkbox_brgy($q_brgy);
+	}
 
-		echo "<tr><td>Year</td>";
-		
-		echo "<td><select name='year' size='1'>";
-
-		for($i = (date('Y')-5);$i< (date('Y')+5);$i++){					
-			if($i==date('Y')):
-				echo "<option value='$i' selected>$i</option>";
-			else:
-				echo "<option value='$i'>$i</option>";
-			endif;
-		}
-		echo "</select></td></tr>";
-
-		
-		
-		echo "<tr><td valign='top'>Barangay</td><td>";
+	
+	function checkbox_brgy($q_brgy){
+	        
+	        echo "<tr><td valign='top'>Barangay</td><td>";
 		
 		echo "<input type='checkbox' name='brgy[]' value='all' checked>All</input>&nbsp;";
 		$counter = 1;
@@ -334,7 +311,23 @@
 				echo "<br>";
 			endif;
 		}
-		echo "</td></tr>";	
-	}     
+		echo "</td></tr>";			
+	}
+	
+
+	function show_year(){
+	        echo "<tr><td>Year</td>";
+		
+		echo "<td><select name='year' size='1'>";
+
+		for($i = (date('Y')-5);$i< (date('Y')+5);$i++){					
+			if($i==date('Y')):
+				echo "<option value='$i' selected>$i</option>";
+			else:
+				echo "<option value='$i'>$i</option>";
+			endif;
+		}
+		echo "</select></td></tr>";			
+	}
   }
 ?>
