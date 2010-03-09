@@ -24,11 +24,12 @@ Feature: Manage Patients
 		And I fill in "patient_mother" with "Maria"
 		And I fill in "patient_cellphone" with "09191234567"
 		And I press "Add Patient"
-		And I click in the javascript alert box
-		And I should see "Bonifacio, Andres"
-		And I am on the old patient form
+    And Debug
+#		And I should see "Bonifacio, Andres"
+#		And I am on the old patient form
 		And I fill in "first" with "Andres"
 		And I fill in "last" with "Bonifacio"
+		And I press "Search"
 		Then I should see "Found 1 Record: Andres Bonifacio"
 
 	@reset_users
