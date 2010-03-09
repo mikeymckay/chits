@@ -210,7 +210,12 @@
 			for($i=0;$i<count($arr_indicators);$i++) {
 				$brgy_pop = $this->get_brgy_pop(); //get population of brgy/s
 				$target_perc = $this->get_target($i); //get the percentage of targets
-				$target = round(($brgy_pop * $target_perc)); //get the population target
+				if($target_perc == 0) {
+					$target = '';
+				}
+				else {
+					$target = round(($brgy_pop * $target_perc)); //get the population target
+				}
 				$header = array(30,18,9,9,9,9,9,9,8,7,9,9,9,9,9,9,8,7,9,9,9,9,9,9,8,7,9,9,9,9,9,9,8,7,9,9);
 				$disp_arr = array();
 				
@@ -502,8 +507,8 @@
 		
 		
 		function get_target($criteria){
-			if($criteria>=0 && $criteria<=2):
-				$perc = '0.027';
+			if($criteria == 0):
+				$perc = '0.0001';
 			else:
 				
 			endif;

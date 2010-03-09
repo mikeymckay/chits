@@ -241,7 +241,7 @@
 					default:
 						break;
 				}
-				$dental_contents = array($indicator, round($col2), $col3, $col4, $col5, $col6, '', '');
+				$dental_contents = array("\n".$indicator."\n\n\n", "\n".round($col2)."\n\n\n", "\n".$col3."\n\n\n", "\n".$col4."\n\n\n", "\n".$col5."\n\n\n", "\n".$col6."\n\n\n", '', '');
 				$this->Row($dental_contents);
 			}
 		} // end of function

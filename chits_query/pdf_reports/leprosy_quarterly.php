@@ -140,9 +140,7 @@
 		
 		
 		function Header() {
-			$q_pop = mysql_query("SELECT SUM(population) FROM m_lib_population WHERE population_year='$_SESSION[year]'") 
-				or die("Cannot query: 123". mysql_error());
-			list($population)= mysql_fetch_array($q_pop);
+			$population = $this->get_brgy_pop();
 			
 			$this->q_report_header($population);
 			$this->Ln(10);
@@ -176,12 +174,9 @@
 		
 		
 		function show_leprosy_quarterly(){
-			//$w = array(76,28,28,26,28,28,63,63);
 			$w = array(80,30,30,30,30,70,70);
 			$str_brgy = $this->get_brgy();    
-			$q_pop = mysql_query("SELECT SUM(population) FROM m_lib_population WHERE population_year='$_SESSION[year]'") 
-				or die("Cannot query: 123". mysql_error());
-			list($population)= mysql_fetch_array($q_pop);
+			$population = $this->get_brgy_pop();
 
 			for($indicator_ctr = 1; $indicator_ctr <= 5; $indicator_ctr++) {
 				$col2 = $this->get_data($_SESSION[sdate2], $_SESSION[edate2],
@@ -206,15 +201,38 @@
 					case 2:
 						$start = $_SESSION[sdate2];
 						$end = $_SESSION[edate2];
+						/*
+						scenario:
+							May 2009, patient 'x' was diagnosed.
+							Jan 2010, patient 'x' was cured.
+							Feb 2010, two new patients: 'y' and 'z'.
+						questions:
+							I want to print out all leprosy cases
+							during the period Jan - Apr 2010. How many 
+							leprosy cases do i have? What is the cure 
+							rate?
+
+						solution: if the leprosy cases is 4 and the cure rate 
+							is 1/3, use the following query.
+						*/
+						$query = "SELECT a.patient_id FROM m_leprosy_post_treatment a ".
+							"INNER JOIN m_family_members b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_family_address c ON b.family_id = c.family_id ".
+							"WHERE ((a.patient_cured = 'Undergoing Treatment') OR ".
+							"((a.patient_cured = 'Completed') AND ".
+							"(a.upon_tc_date >= '$start' AND a.upon_tc_date <= '$end'))) AND ".
+							"c.barangay_id IN ($str_brgy) ";
+						/*
 						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
+							"INNER JOIN m_family_members b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_family_address c ON b.family_id = c.family_id ".
 							"WHERE (a.date_of_diagnosis >= '$start' AND ".
-							"a.date_of_diagnosis <= '$end') ";
-						$result = mysql_query($query)
-							or die("Couldn't execute query.");
+							"a.date_of_diagnosis <= '$end') AND ".
+							"c.barangay_id IN ($str_brgy) ";
+						*/
+						$result = mysql_query($query) or die("Couldn't execute query.".mysql_error());
 						$leprosy_cases = mysql_num_rows($result);
 
-						$col5 = $col4." / ".$leprosy_cases;
-						
 						if(($col4 == 0) || ($leprosy_cases == 0)) {
 							$col5 = 0;
 						}
@@ -247,9 +265,36 @@
 					case 5:
 						$start = $_SESSION[sdate2];
 						$end = $_SESSION[edate2];
-						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
+						/*
+						scenario:
+							May 2009, patient 'x' was diagnosed.
+							Jan 2010, patient 'x' was cured.
+							Feb 2010, two new patients: 'y' and 'z'.
+						questions:
+							I want to print out all leprosy cases
+							during the period Jan - Apr 2010. How many 
+							leprosy cases do i have? What is the cure 
+							rate?
+
+						solution: if the leprosy cases is 4 and the cure rate 
+							is 1/3, use the following query.
+						*/
+						$query = "SELECT a.patient_id FROM m_leprosy_post_treatment a ".
+							"INNER JOIN m_family_members b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_family_address c ON b.family_id = c.family_id ".
+							"WHERE ((a.patient_cured = 'Undergoing Treatment') OR ".
+							"((a.patient_cured = 'Completed') AND ".
+							"(a.upon_tc_date >= '$start' AND a.upon_tc_date <= '$end'))) AND ".
+							"c.barangay_id IN ($str_brgy) ";
+						/*
+						$query = "SELECT a.patient_id FROM ".
+							"m_leprosy_diagnosis a INNER JOIN m_family_members b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
+							"INNER JOIN m_family_address d ON c.family_id = d.family_id ".
 							"WHERE (a.date_of_diagnosis >= '$start' AND ".
-							"a.date_of_diagnosis <= '$end') ";
+							"a.date_of_diagnosis <= '$end') AND ".
+							"d.barangay_id IN ($str_brgy) ";
+						*/
 						$result = mysql_query($query)
 							or die("Couldn't execute query.");
 						$leprosy_cases = mysql_num_rows($result);
@@ -287,10 +332,28 @@
 						break;
 				}
 
-				$leprosy_contents = array($indicator, $col2, $col3, $col4, $col5, '', '');
+				$leprosy_contents = array("\n\n".$indicator."\n\n\n", "\n\n".$col2."\n\n\n", "\n\n".$col3."\n\n\n", "\n\n".$col4."\n\n\n", "\n\n".$col5."\n\n\n", '', '');
 				$this->Row($leprosy_contents);
 			}
 		}
+
+
+
+		function get_brgy_pop() {
+                        list($taon,$buwan,$araw) = explode('-',$_SESSION[edate2]);
+                        if(in_array('all',$_SESSION[brgy])):
+                                $q_brgy_pop = mysql_query("SELECT SUM(population) FROM m_lib_population WHERE population_year='$taon'") or die("Cannot query: 286");
+                        else:
+                                $str = implode(',',$_SESSION[brgy]);
+                                $q_brgy_pop = mysql_query("SELECT SUM(population) FROM m_lib_population WHERE population_year='$taon' AND barangay_id IN ($str)") or die("Cannot query: 372");
+                        endif;
+
+                        if(mysql_num_rows($q_brgy_pop)!=0):
+                                list($populasyon) = mysql_fetch_array($q_brgy_pop);
+                        endif;
+
+                        return $populasyon;
+                }
 		
 		
 		
@@ -339,11 +402,37 @@
 					// Indicator #1: Leprosy Cases. 
 					// Note: code finalized
 					if($indicator == '1') {
+						/*
+						scenario:
+							May 2009, patient 'x' was diagnosed.
+							Jan 2010, patient 'x' was cured.
+							Feb 2010, two new patients: 'y' and 'z'.
+						questions:
+							I want to print out all leprosy cases
+							during the period Jan - Apr 2010. How many 
+							leprosy cases do i have?  
+
+						solution: if the leprosy cases are 3 use the following query.
+						*/
+						$query = "SELECT a.patient_id FROM m_leprosy_post_treatment a ".
+							"INNER JOIN m_patient b on a.patient_id = b.patient_id ".
+							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
+							"INNER JOIN m_family_address d ON c.family_id = d.family_id ".
+							"WHERE b.patient_gender = 'M' AND ".
+							"((a.patient_cured = 'Undergoing Treatment') OR ".
+							"(a.patient_cured = 'Completed' AND ".
+							"(a.upon_tc_date >= '$start' AND a.upon_tc_date <= '$end'))) AND ".
+							"d.barangay_id IN ($brgy) "; 
+						/*
 						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
 							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
+							"INNER JOIN m_family_address d ON c.family_id = d.family_id ".
 							"WHERE b.patient_gender = 'M' AND ".
 							"(date_of_diagnosis >= '$start' AND ".
-							"date_of_diagnosis <= '$end') ";
+							"date_of_diagnosis <= '$end') AND ".
+							"d.barangay_id IN ($brgy) ";
+						*/
 						$result = mysql_query($query)
 							or die("Couldn't execute query.");
 						return mysql_num_rows($result);
@@ -353,12 +442,41 @@
 					// Indicator #2: Leprosy cases below 15 yrs old?
 					// Note: code finalized
 					if($indicator == '2') {
+						/*
+						scenario:
+							May 2009, patient 'x' was diagnosed.
+							Jan 2010, patient 'x' was cured.
+							Feb 2010, two new patients: 'y' and 'z'.
+							x, y, and z are all less than 15 years old.
+						questions:
+							I want to print out all leprosy cases
+							during the period Jan - Apr 2010. How many 
+							leprosy cases do i have?  
+
+						solution: if the leprosy cases are 3 use the following query.
+						*/
+						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
+							"INNER JOIN m_leprosy_post_treatment b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_patient c ON b.patient_id = c.patient_id ".
+							"INNER JOIN m_family_members d ON c.patient_id = d.patient_id ".
+							"INNER JOIN m_family_address e ON d.family_id = e.family_id ".
+							"WHERE c.patient_gender = 'M' AND ".
+							"a.patient_age < 15 AND ".
+							"((b.patient_cured = 'Undergoing Treatment') OR ".
+							"(b.patient_cured = 'Completed' AND ".
+							"(b.upon_tc_date >= '$start' AND b.upon_tc_date <= '$end'))) AND ".
+							"e.barangay_id IN ($brgy) ";
+						/*
 						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
 							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
+							"INNER JOIN m_family_address d ON c.family_id = d.family_id ".
 							"WHERE b.patient_gender = 'M' AND ".
 							"a.patient_age < 15 AND ".
 							"(a.date_of_diagnosis >= '$start' AND ".
-							"a.date_of_diagnosis <= '$end') ";
+							"a.date_of_diagnosis <= '$end') AND ".
+							"d.barangay_id IN ($brgy) ";
+						*/
 						$result = mysql_query($query)
 							or die("Couldn't execute query.");
 						return mysql_num_rows($result);
@@ -370,10 +488,13 @@
 					if($indicator == '3') {
 						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
 							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
+							"INNER JOIN m_family_address d ON c.family_id = d.family_id ".
 							"WHERE b.patient_gender = 'M' AND ".
 							"a.patient_case = 'New Case' AND ".
 							"(a.date_of_diagnosis >= '$start' AND ".
-							"a.date_of_diagnosis <= '$end') ";
+							"a.date_of_diagnosis <= '$end') AND ".
+							"d.barangay_id IN ($brgy) ";
 						$result = mysql_query($query)
 							or die("Couldn't execute query. ");
 						return mysql_num_rows($result);
@@ -386,6 +507,8 @@
 						$query = "SELECT b.patient_id FROM m_patient a ".
 							"INNER JOIN m_leprosy_diagnosis b ON a.patient_id = b.patient_id ".
 							"INNER JOIN m_leprosy_who_disability_grade c ON b.consult_id = c.consult_id ".
+							"INNER JOIN m_family_members d ON b.patient_id = d.patient_id ".
+							"INNER JOIN m_family_address e ON d.family_id = e.family_id ".
 							"WHERE b.patient_case = 'New Case' AND ".
 							"a.patient_gender = 'M' AND ".
 							"((c.who_disability = 'Maximum Grade' AND ".
@@ -393,7 +516,8 @@
                                                         "(c.who_disability = 'Maximum Grade' AND ".
                                                         "c.upon_dx_left = '2')) AND ".
 							"(b.date_of_diagnosis >= '$start' AND ".
-							"b.date_of_diagnosis <= '$end')";
+							"b.date_of_diagnosis <= '$end') AND ".
+							"e.barangay_id IN ($brgy) ";
 						$result = mysql_query($query)
 							or die("Couldn't execute query.");
 						return mysql_num_rows($result);
@@ -402,44 +526,124 @@
 					// Indicator #5: Case cured?
 					// Note: code finalized
 					if($indicator == '5') {
+						/*
+						scenario:
+							May 2009, patient 'x' was diagnosed.
+							Jan 2010, patient 'x' was cured.
+							Feb 2010, two new patients: 'y' and 'z'.
+						questions:
+							I want to print out all leprosy cases
+							during the period Jan - Apr 2010. What is the
+							cure rate? 
+
+						solution: if the cure rate is 1/3, use the following codes:
+						*/
+						$query = "SELECT a.patient_id FROM m_leprosy_post_treatment a ".
+							"INNER JOIN m_patient b on a.patient_id = b.patient_id ".
+							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
+							"INNER JOIN m_family_address d ON c.family_id = d.family_id ".
+							"WHERE b.patient_gender = 'M' AND ".
+							"a.patient_cured = 'Completed' AND ".
+							"(a.upon_tc_date >= '$start' AND ".
+							"a.upon_tc_date <= '$end') AND ".
+							"d.barangay_id IN ($brgy) ";
+						/*
 						$query = "SELECT b.patient_id FROM m_patient a ".
                                                         "INNER JOIN m_leprosy_diagnosis b ON a.patient_id = b.patient_id ".
                                                         "INNER JOIN m_leprosy_post_treatment c ON b.consult_id = c.consult_id ".
+							"INNER JOIN m_family_members d ON b.patient_id = d.patient_id ".
+							"INNER JOIN m_family_address e ON d.family_id = e.family_id ".
                                                         "WHERE c.patient_cured = 'Completed' AND ".
                                                         "a.patient_gender = 'M' AND ".
-							"(b.date_of_diagnosis >= '$start' AND ".
-							"b.date_of_diagnosis <= '$end') ";
+							"(c.upon_tc_date >= '$start' AND ".
+							"c.upon_tc_date <= '$end') AND ".
+							"e.barangay_id IN ($brgy) ";
+						*/
+						$result = mysql_query($query) or die("Couldn't execute query.");
+						return mysql_num_rows($result);
+						break;
+					}
+				case '3':
+					// Indicator #1: Leprosy Cases. 
+					// Note: code finalized
+					if($indicator == '1') {
+						/*
+						scenario:
+							May 2009, patient 'x' was diagnosed.
+							Jan 2010, patient 'x' was cured.
+							Feb 2010, two new patients: 'y' and 'z'.
+						questions:
+							I want to print out all leprosy cases
+							during the period Jan - Apr 2010. How many 
+							leprosy cases do i have? What is the cure 
+							rate?
+
+						solution: if the leprosy cases is 4 and the cure rate 
+							is 1/3, use the following query.
+						*/
+						$query = "SELECT a.patient_id FROM m_leprosy_post_treatment a ".
+							"INNER JOIN m_patient b on a.patient_id = b.patient_id ".
+							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
+							"INNER JOIN m_family_address d ON c.family_id = d.family_id ".
+							"WHERE b.patient_gender = 'F' AND ".
+							"((a.patient_cured = 'Undergoing Treatment') OR ".
+							"(a.patient_cured = 'Completed' AND ".
+							"(a.upon_tc_date >= '$start' AND a.upon_tc_date <= '$end'))) AND ".
+							"d.barangay_id IN ($brgy) "; 
+						/*
+						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
+							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
+							"INNER JOIN m_family_address d ON c.family_id = d.family_id ".
+							"WHERE b.patient_gender = 'F' AND ".
+							"(date_of_diagnosis >= '$start' AND ".
+							"date_of_diagnosis <= '$end') AND ".
+							"d.barangay_id IN ($brgy) ";
+						*/
 						$result = mysql_query($query)
 							or die("Couldn't execute query.");
 						return mysql_num_rows($result);
 						break;
 					}
-				case '3':
-					// Indicator #1: Leprosy Cases
-					// Note: code finalized
-					if($indicator == '1') {
-						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
-							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
-							"WHERE b.patient_gender = 'F' AND ".
-							"(a.date_of_diagnosis >= '$start' AND ".
-							"a.date_of_diagnosis <= '$end') ";
-
-					$result = mysql_query($query)
-						or die("Couldn't execute query.");
-					return mysql_num_rows($result);
-
-					break;
-					}
-
+					
 					// Indicator #2: Leprosy cases below 15 yrs old?
 					// Note: code finalized
 					if($indicator == '2') {
+						/*
+						scenario:
+							May 2009, patient 'x' was diagnosed.
+							Jan 2010, patient 'x' was cured.
+							Feb 2010, two new patients: 'y' and 'z'.
+							x, y, and z are all less than 15 years old.
+						questions:
+							I want to print out all leprosy cases
+							during the period Jan - Apr 2010. How many 
+							leprosy cases do i have?  
+
+						solution: if the leprosy cases are 3 use the following query.
+						*/
+						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
+							"INNER JOIN m_leprosy_post_treatment b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_patient c ON b.patient_id = c.patient_id ".
+							"INNER JOIN m_family_members d ON c.patient_id = d.patient_id ".
+							"INNER JOIN m_family_address e ON d.family_id = e.family_id ".
+							"WHERE c.patient_gender = 'F' AND ".
+							"a.patient_age < 15 AND ".
+							"((b.patient_cured = 'Undergoing Treatment') OR ".
+							"(b.patient_cured = 'Completed' AND ".
+							"(b.upon_tc_date >= '$start' AND b.upon_tc_date <= '$end'))) AND ".
+							"e.barangay_id IN ($brgy) ";
+						/*
 						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
 							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
+							"INNER JOIN m_family_address d ON c.family_id = d.family_id ".
 							"WHERE b.patient_gender = 'F' AND ".
 							"a.patient_age < 15 AND ".
-							"(date_of_diagnosis >= '$start' AND ".
-							"date_of_diagnosis <= '$end') ";
+							"(a.date_of_diagnosis >= '$start' AND ".
+							"a.date_of_diagnosis <= '$end') AND ".
+							"d.barangay_id IN ($brgy) ";
+						*/
 						$result = mysql_query($query)
 							or die("Couldn't execute query.");
 						return mysql_num_rows($result);
@@ -451,12 +655,15 @@
 					if($indicator == '3') {
 						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
 							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
+							"INNER JOIN m_family_address d ON c.family_id = d.family_id ".
 							"WHERE b.patient_gender = 'F' AND ".
 							"a.patient_case = 'New Case' AND ".
 							"(a.date_of_diagnosis >= '$start' AND ".
-							"a.date_of_diagnosis <= '$end') ";
+							"a.date_of_diagnosis <= '$end') AND ".
+							"d.barangay_id IN ($brgy) ";
 						$result = mysql_query($query)
-							or die("Couldn't execute query.");
+							or die("Couldn't execute query. ");
 						return mysql_num_rows($result);
 						break;
 					}
@@ -467,6 +674,8 @@
 						$query = "SELECT b.patient_id FROM m_patient a ".
 							"INNER JOIN m_leprosy_diagnosis b ON a.patient_id = b.patient_id ".
 							"INNER JOIN m_leprosy_who_disability_grade c ON b.consult_id = c.consult_id ".
+							"INNER JOIN m_family_members d ON b.patient_id = d.patient_id ".
+							"INNER JOIN m_family_address e ON d.family_id = e.family_id ".
 							"WHERE b.patient_case = 'New Case' AND ".
 							"a.patient_gender = 'F' AND ".
 							"((c.who_disability = 'Maximum Grade' AND ".
@@ -474,24 +683,50 @@
                                                         "(c.who_disability = 'Maximum Grade' AND ".
                                                         "c.upon_dx_left = '2')) AND ".
 							"(b.date_of_diagnosis >= '$start' AND ".
-							"b.date_of_diagnosis <= '$end')";
+							"b.date_of_diagnosis <= '$end') AND ".
+							"e.barangay_id IN ($brgy) ";
 						$result = mysql_query($query)
-							or die("Couldn't execute query. ".mysql_error());
+							or die("Couldn't execute query.");
 						return mysql_num_rows($result);
 						break;
 					}
 					// Indicator #5: Case cured?
 					// Note: code finalized
 					if($indicator == '5') {
+						/*
+						scenario:
+							May 2009, patient 'x' was diagnosed.
+							Jan 2010, patient 'x' was cured.
+							Feb 2010, two new patients: 'y' and 'z'.
+						questions:
+							I want to print out all leprosy cases
+							during the period Jan - Apr 2010. What is the
+							cure rate? 
+
+						solution: if the cure rate is 1/3, use the following codes:
+						*/
+						$query = "SELECT a.patient_id FROM m_leprosy_post_treatment a ".
+							"INNER JOIN m_patient b on a.patient_id = b.patient_id ".
+							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
+							"INNER JOIN m_family_address d ON c.family_id = d.family_id ".
+							"WHERE b.patient_gender = 'F' AND ".
+							"a.patient_cured = 'Completed' AND ".
+							"(a.upon_tc_date >= '$start' AND ".
+							"a.upon_tc_date <= '$end') AND ".
+							"d.barangay_id IN ($brgy) ";
+						/*
 						$query = "SELECT b.patient_id FROM m_patient a ".
                                                         "INNER JOIN m_leprosy_diagnosis b ON a.patient_id = b.patient_id ".
                                                         "INNER JOIN m_leprosy_post_treatment c ON b.consult_id = c.consult_id ".
+							"INNER JOIN m_family_members d ON b.patient_id = d.patient_id ".
+							"INNER JOIN m_family_address e ON d.family_id = e.family_id ".
                                                         "WHERE c.patient_cured = 'Completed' AND ".
                                                         "a.patient_gender = 'F' AND ".
-							"(b.date_of_diagnosis >= '$start' AND ".
-							"b.date_of_diagnosis <= '$end') ";
-						$result = mysql_query($query)
-							or die("Couldn't execute query.");
+							"(c.upon_tc_date >= '$start' AND ".
+							"c.upon_tc_date <= '$end') AND ".
+							"e.barangay_id IN ($brgy) ";
+						*/
+						$result = mysql_query($query) or die("Couldn't execute query.");
 						return mysql_num_rows($result);
 						break;
 					}

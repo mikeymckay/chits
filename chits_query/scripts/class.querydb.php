@@ -285,9 +285,9 @@ class querydb{
 		elseif($quesno==63):
 			$this->process_dhc_tcl();
 		elseif($quesno==66):
-			$this->process_leprosy_summary();
-		elseif($quesno==67):
 			$this->process_leprosy_quarterly();
+		elseif($quesno==67):
+			$this->process_leprosy_summary();
 		elseif($quesno==68):
 			$this->process_leprosy_tcl();
 		else:
