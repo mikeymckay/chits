@@ -266,32 +266,17 @@
 					// Note: code finalized
 					for($sex = 0; $sex < count($arr_gender); $sex++) {
 						$month_stat = array(1=>0, 2=>0, 3=>0, 4=>0, 5=>0, 6=>0, 7=>0, 8=>0, 9=>0, 10=>0, 11=>0, 12=>0);
-						/* 
-						scenario:
-						pxid 1 comes in the rhu.
-						pxid 1 wasn't able to finish treatment.
-						after some tiem, pxid 1 comes in rhu again.
-						question: how many leprosy cases must be recorded?
-						if answer is 1, use the following:
-						$query = "SELECT DISTINCT a.diagnosis.patient_id, a.date_of_diagnosis FROM m_leprosy_diagnosis a".
-							"INNER JOIN m_patient b ON a.patient_id = b.patient_id WHERE ".
-							"b.patient_gender = '$arr_gender[$sex]' ";
-						if answer is 2, use the following:
-						$query = "SELECT a.diagnosis.patient_id, a.date_of_diagnosis FROM m_leprosy_diagnosis a".
-							"INNER JOIN m_patient b ON a.patient_id = b.patient_id WHERE ".
-							"b.patient_gender = '$arr_gender[$sex]' ";
-						*/
+
 						$query = "SELECT m_leprosy_diagnosis.patient_id, m_leprosy_diagnosis.date_of_diagnosis ".
 							"FROM m_leprosy_diagnosis INNER JOIN m_patient ON ".
 							"m_leprosy_diagnosis.patient_id = m_patient.patient_id WHERE ".
 							"m_patient.patient_gender = '$arr_gender[$sex]' ";
-						$result = mysql_query($query)
-							or die("Couldn't execute query. ".mysql_error() );
+						$result = mysql_query($query) or die("Couldn't execute query.");
 						
 						while(list($patient_id, $date_of_diagnosis) = mysql_fetch_array($result)) {
-							list($staon,$sbuwan,$sdate) = explode('-',$_SESSION[sdate2]);
-							list($etaon,$ebuwan,$edate) = explode('-',$_SESSION[edate2]);
-							list($ctaon,$cbuwan,$cdate) = explode('-',$date_of_diagnosis);
+								list($staon,$sbuwan,$sdate) = explode('-',$_SESSION[sdate2]);
+								list($etaon,$ebuwan,$edate) = explode('-',$_SESSION[edate2]);
+								list($ctaon,$cbuwan,$cdate) = explode('-',$date_of_diagnosis); 
 						
 							$start = mktime(0,0,0,$sbuwan,$sdate,$staon);
 							$end = mktime(0,0,0,$ebuwan,$edate,$etaon);

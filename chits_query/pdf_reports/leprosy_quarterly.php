@@ -212,9 +212,9 @@
 							leprosy cases do i have? What is the cure 
 							rate?
 
-						solution: if the leprosy cases is 4 and the cure rate 
+						solution: if the leprosy cases is 3 and the cure rate 
 							is 1/3, use the following query.
-						*/
+
 						$query = "SELECT a.patient_id FROM m_leprosy_post_treatment a ".
 							"INNER JOIN m_family_members b ON a.patient_id = b.patient_id ".
 							"INNER JOIN m_family_address c ON b.family_id = c.family_id ".
@@ -222,14 +222,13 @@
 							"((a.patient_cured = 'Completed') AND ".
 							"(a.upon_tc_date >= '$start' AND a.upon_tc_date <= '$end'))) AND ".
 							"c.barangay_id IN ($str_brgy) ";
-						/*
+						*/
 						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
 							"INNER JOIN m_family_members b ON a.patient_id = b.patient_id ".
 							"INNER JOIN m_family_address c ON b.family_id = c.family_id ".
 							"WHERE (a.date_of_diagnosis >= '$start' AND ".
 							"a.date_of_diagnosis <= '$end') AND ".
 							"c.barangay_id IN ($str_brgy) ";
-						*/
 						$result = mysql_query($query) or die("Couldn't execute query.".mysql_error());
 						$leprosy_cases = mysql_num_rows($result);
 
@@ -278,7 +277,6 @@
 
 						solution: if the leprosy cases is 4 and the cure rate 
 							is 1/3, use the following query.
-						*/
 						$query = "SELECT a.patient_id FROM m_leprosy_post_treatment a ".
 							"INNER JOIN m_family_members b ON a.patient_id = b.patient_id ".
 							"INNER JOIN m_family_address c ON b.family_id = c.family_id ".
@@ -286,7 +284,7 @@
 							"((a.patient_cured = 'Completed') AND ".
 							"(a.upon_tc_date >= '$start' AND a.upon_tc_date <= '$end'))) AND ".
 							"c.barangay_id IN ($str_brgy) ";
-						/*
+						*/
 						$query = "SELECT a.patient_id FROM ".
 							"m_leprosy_diagnosis a INNER JOIN m_family_members b ON a.patient_id = b.patient_id ".
 							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
@@ -294,7 +292,6 @@
 							"WHERE (a.date_of_diagnosis >= '$start' AND ".
 							"a.date_of_diagnosis <= '$end') AND ".
 							"d.barangay_id IN ($str_brgy) ";
-						*/
 						$result = mysql_query($query)
 							or die("Couldn't execute query.");
 						$leprosy_cases = mysql_num_rows($result);
@@ -413,17 +410,18 @@
 							leprosy cases do i have?  
 
 						solution: if the leprosy cases are 3 use the following query.
+
+						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
+							"INNER JOIN m_leprosy_post_treatment b ON a.consult_id = b.consult_id ".
+							"INNER JOIN m_patient c on b.patient_id = c.patient_id ".
+							"INNER JOIN m_family_members d ON c.patient_id = d.patient_id ".
+							"INNER JOIN m_family_address e ON d.family_id = e.family_id ".
+							"WHERE c.patient_gender = 'M' AND ".
+							"((b.patient_cured = 'Undergoing Treatment') OR ".
+							"(b.patient_cured = 'Completed' AND ".
+							"(b.upon_tc_date >= '$start' AND b.upon_tc_date <= '$end'))) AND ".
+							"e.barangay_id IN ($brgy) ";
 						*/
-						$query = "SELECT a.patient_id FROM m_leprosy_post_treatment a ".
-							"INNER JOIN m_patient b on a.patient_id = b.patient_id ".
-							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
-							"INNER JOIN m_family_address d ON c.family_id = d.family_id ".
-							"WHERE b.patient_gender = 'M' AND ".
-							"((a.patient_cured = 'Undergoing Treatment') OR ".
-							"(a.patient_cured = 'Completed' AND ".
-							"(a.upon_tc_date >= '$start' AND a.upon_tc_date <= '$end'))) AND ".
-							"d.barangay_id IN ($brgy) "; 
-						/*
 						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
 							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
 							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
@@ -432,9 +430,7 @@
 							"(date_of_diagnosis >= '$start' AND ".
 							"date_of_diagnosis <= '$end') AND ".
 							"d.barangay_id IN ($brgy) ";
-						*/
-						$result = mysql_query($query)
-							or die("Couldn't execute query.");
+						$result = mysql_query($query) or die("Couldn't execute query.");
 						return mysql_num_rows($result);
 						break;
 					}
@@ -454,9 +450,9 @@
 							leprosy cases do i have?  
 
 						solution: if the leprosy cases are 3 use the following query.
-						*/
+
 						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
-							"INNER JOIN m_leprosy_post_treatment b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_leprosy_post_treatment b ON a.consult_id = b.consult_id ".
 							"INNER JOIN m_patient c ON b.patient_id = c.patient_id ".
 							"INNER JOIN m_family_members d ON c.patient_id = d.patient_id ".
 							"INNER JOIN m_family_address e ON d.family_id = e.family_id ".
@@ -466,7 +462,7 @@
 							"(b.patient_cured = 'Completed' AND ".
 							"(b.upon_tc_date >= '$start' AND b.upon_tc_date <= '$end'))) AND ".
 							"e.barangay_id IN ($brgy) ";
-						/*
+						*/
 						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
 							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
 							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
@@ -476,7 +472,6 @@
 							"(a.date_of_diagnosis >= '$start' AND ".
 							"a.date_of_diagnosis <= '$end') AND ".
 							"d.barangay_id IN ($brgy) ";
-						*/
 						$result = mysql_query($query)
 							or die("Couldn't execute query.");
 						return mysql_num_rows($result);
@@ -537,7 +532,6 @@
 							cure rate? 
 
 						solution: if the cure rate is 1/3, use the following codes:
-						*/
 						$query = "SELECT a.patient_id FROM m_leprosy_post_treatment a ".
 							"INNER JOIN m_patient b on a.patient_id = b.patient_id ".
 							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
@@ -547,7 +541,7 @@
 							"(a.upon_tc_date >= '$start' AND ".
 							"a.upon_tc_date <= '$end') AND ".
 							"d.barangay_id IN ($brgy) ";
-						/*
+						*/
 						$query = "SELECT b.patient_id FROM m_patient a ".
                                                         "INNER JOIN m_leprosy_diagnosis b ON a.patient_id = b.patient_id ".
                                                         "INNER JOIN m_leprosy_post_treatment c ON b.consult_id = c.consult_id ".
@@ -558,7 +552,6 @@
 							"(c.upon_tc_date >= '$start' AND ".
 							"c.upon_tc_date <= '$end') AND ".
 							"e.barangay_id IN ($brgy) ";
-						*/
 						$result = mysql_query($query) or die("Couldn't execute query.");
 						return mysql_num_rows($result);
 						break;
@@ -580,17 +573,18 @@
 
 						solution: if the leprosy cases is 4 and the cure rate 
 							is 1/3, use the following query.
+						
+						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
+							"INNER JOIN m_leprosy_post_treatment b ON a.consult_id = b.consult_id ".
+							"INNER JOIN m_patient c on b.patient_id = c.patient_id ".
+							"INNER JOIN m_family_members d ON c.patient_id = d.patient_id ".
+							"INNER JOIN m_family_address e ON d.family_id = e.family_id ".
+							"WHERE c.patient_gender = 'F' AND ".
+							"((b.patient_cured = 'Undergoing Treatment') OR ".
+							"(b.patient_cured = 'Completed' AND ".
+							"(b.upon_tc_date >= '$start' AND b.upon_tc_date <= '$end'))) AND ".
+							"e.barangay_id IN ($brgy) ";
 						*/
-						$query = "SELECT a.patient_id FROM m_leprosy_post_treatment a ".
-							"INNER JOIN m_patient b on a.patient_id = b.patient_id ".
-							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
-							"INNER JOIN m_family_address d ON c.family_id = d.family_id ".
-							"WHERE b.patient_gender = 'F' AND ".
-							"((a.patient_cured = 'Undergoing Treatment') OR ".
-							"(a.patient_cured = 'Completed' AND ".
-							"(a.upon_tc_date >= '$start' AND a.upon_tc_date <= '$end'))) AND ".
-							"d.barangay_id IN ($brgy) "; 
-						/*
 						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
 							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
 							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
@@ -599,7 +593,6 @@
 							"(date_of_diagnosis >= '$start' AND ".
 							"date_of_diagnosis <= '$end') AND ".
 							"d.barangay_id IN ($brgy) ";
-						*/
 						$result = mysql_query($query)
 							or die("Couldn't execute query.");
 						return mysql_num_rows($result);
@@ -621,9 +614,9 @@
 							leprosy cases do i have?  
 
 						solution: if the leprosy cases are 3 use the following query.
-						*/
+						
 						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
-							"INNER JOIN m_leprosy_post_treatment b ON a.patient_id = b.patient_id ".
+							"INNER JOIN m_leprosy_post_treatment b ON a.consult_id = b.consult_id ".
 							"INNER JOIN m_patient c ON b.patient_id = c.patient_id ".
 							"INNER JOIN m_family_members d ON c.patient_id = d.patient_id ".
 							"INNER JOIN m_family_address e ON d.family_id = e.family_id ".
@@ -633,7 +626,7 @@
 							"(b.patient_cured = 'Completed' AND ".
 							"(b.upon_tc_date >= '$start' AND b.upon_tc_date <= '$end'))) AND ".
 							"e.barangay_id IN ($brgy) ";
-						/*
+						*/
 						$query = "SELECT a.patient_id FROM m_leprosy_diagnosis a ".
 							"INNER JOIN m_patient b ON a.patient_id = b.patient_id ".
 							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
@@ -643,7 +636,6 @@
 							"(a.date_of_diagnosis >= '$start' AND ".
 							"a.date_of_diagnosis <= '$end') AND ".
 							"d.barangay_id IN ($brgy) ";
-						*/
 						$result = mysql_query($query)
 							or die("Couldn't execute query.");
 						return mysql_num_rows($result);
@@ -704,7 +696,7 @@
 							cure rate? 
 
 						solution: if the cure rate is 1/3, use the following codes:
-						*/
+						
 						$query = "SELECT a.patient_id FROM m_leprosy_post_treatment a ".
 							"INNER JOIN m_patient b on a.patient_id = b.patient_id ".
 							"INNER JOIN m_family_members c ON b.patient_id = c.patient_id ".
@@ -714,7 +706,7 @@
 							"(a.upon_tc_date >= '$start' AND ".
 							"a.upon_tc_date <= '$end') AND ".
 							"d.barangay_id IN ($brgy) ";
-						/*
+						*/
 						$query = "SELECT b.patient_id FROM m_patient a ".
                                                         "INNER JOIN m_leprosy_diagnosis b ON a.patient_id = b.patient_id ".
                                                         "INNER JOIN m_leprosy_post_treatment c ON b.consult_id = c.consult_id ".
@@ -725,7 +717,6 @@
 							"(c.upon_tc_date >= '$start' AND ".
 							"c.upon_tc_date <= '$end') AND ".
 							"e.barangay_id IN ($brgy) ";
-						*/
 						$result = mysql_query($query) or die("Couldn't execute query.");
 						return mysql_num_rows($result);
 						break;
