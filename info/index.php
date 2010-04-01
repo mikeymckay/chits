@@ -132,6 +132,8 @@ small { font-family: verdana, sans serif}
 <script language="JavaScript" src="../ts_picker4.js"></script>
 <script language="JavaScript" src="../js/functions.js"></script>
 
+<script language="JavaScript" src="../js/jquery.min.js"></script>
+<script language="JavaScript" src="../js/jquery.validate.min.js"></script>
 
 <body text="black" bgcolor="#FFFFCC" link="black" vlink="black">
 <? 
