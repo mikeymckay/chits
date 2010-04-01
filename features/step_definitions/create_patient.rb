@@ -10,4 +10,5 @@ When /I create a sample patient/ do
 	And "I fill in \"patient_mother\" with \"Maria\""
 	And "I fill in \"patient_cellphone\" with \"09191234567\""
 	And "I press \"Add Patient\""
+        And "Debug"
 end
