@@ -18038,11 +18038,13 @@ CREATE TABLE IF NOT EXISTS `m_dental_patient_ohc` (`ohc_id` float NOT NULL auto_
 CREATE TABLE IF NOT EXISTS `m_dental_services` (`service_id` float NOT NULL auto_increment,`patient_id` float NOT NULL,`consult_id` float NOT NULL,`tooth_number` int(11) NOT NULL,`service_provided` varchar(5) collate swe7_bin NOT NULL,`date_of_service` date NOT NULL,`dentist` float NOT NULL,PRIMARY KEY  (`service_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
+DROP TABLE IF EXISTS `m_lib_dental_tooth_condition`;
 CREATE TABLE IF NOT EXISTS `m_lib_dental_tooth_condition` (`legend` varchar(5) collate swe7_bin NOT NULL COMMENT 'condition legend',`status` varchar(50) collate swe7_bin NOT NULL COMMENT 'tooth status Perma/Tempo',`condition` varchar(50) NOT NULL COMMENT 'condition description',PRIMARY KEY  (`legend`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 INSERT INTO `m_lib_dental_tooth_condition` (`legend`, `status`, `condition`) VALUES ('D', 'Permanent', 'Decayed'),('F', 'Permanent', 'Filled'),('JC', 'Permanent', 'Jacket Crown'),('M', 'Permanent', 'Missing'),('P', 'Permanent', 'Pontic'),('S', 'Permanent', 'Supernumerary Tooth'),('Un', 'Permanent', 'Unerupted'),('X', 'Permanent', 'Indicated for Extraction'),('Y', 'Permanent', 'Sound/Sealed'),('d', 'Temporary', 'Decayed'),('e', 'Temporary', 'Missing'),('f', 'Temporary', 'Filled'),('jc', 'Temporary', 'Jacket Crown'),('p', 'Temporary', 'Pontic'),('s', 'Temporary', 'Supernumerary Tooth'),('un', 'Temporary', 'Unerupted'),('x', 'Temporary', 'Indicated for Extraction'),('y', 'Temporary', 'Sound/Sealed');
 
+DROP TABLE IF EXISTS `m_lib_dental_services`;
 CREATE TABLE IF NOT EXISTS `m_lib_dental_services` (`legend` varchar(5) collate swe7_bin NOT NULL COMMENT 'service legend',`service` varchar(50) NOT NULL COMMENT 'service description',PRIMARY KEY  (`legend`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 

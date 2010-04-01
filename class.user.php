@@ -713,21 +713,27 @@ class User {
     function authenticate () {
         print
         "<table width='160' style='border: 1px solid black' bgcolor='#FFFFCC' cellspacing='0' cellpadding='5'>".
-        "<form action = '".$_SERVER["PHP_SELF"]."' name='form_auth' method='post'>".
+        "<form id='sign_in' action = '".$_SERVER["PHP_SELF"]."' name='form_auth' method='post'>".
         "<tr bgcolor='#CCCC00'><td>".
         "<b>".LBL_SIGN_IN."</b>".
         "</td></tr>".
         "<tr><td>".
         "<span class='tiny'>".LBL_LOGIN_NAME."</span><br>".
-        "<input type='text' size='8' class='textbox' name='login' style='border: 1px solid #000000'><br>".
+        "<input type='text' size='8' class='textbox required' name='login' style='border: 1px solid #000000'><br>".
         "</td></tr>".
         "<tr><td>".
         "<span class='tiny'>".LBL_PASSWORD."</span><br>".
-        "<input type='password' size='8' class='textbox' name='passwd' style='border: 1px solid #000000'><br>".
+        "<input type='password' size='8' class='textbox required' name='passwd' style='border: 1px solid #000000'><br>".
         "</td></tr>".
         "<tr><td>".
         "<input type='submit' value = 'Login' class='textbox' name='submitlogin' style='border: 1px solid #000000'><br>".
         "</td></tr>".
+        "<script type='text/javascript'>
+          jQuery(document).ready(function($){
+            $('#sign_in').validate();
+          });
+        </script>".
+
         "</form></table>";
     }
 

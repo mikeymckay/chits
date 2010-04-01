@@ -21,4 +21,5 @@ AUTOSSH_PORT=27554
 
 # Ensures that autossh keeps trying to connect
 AUTOSSH_GATETIME=0
+export AUTOSSH_GATETIME AUTOSSH_PORT
 su -c "autossh -f -N -R *:${PORT_MIDDLEMAN_WILL_LISTEN_ON}:localhost:22 ${MIDDLEMAN_SERVER_AND_USERNAME} -oLogLevel=error  -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no" $USER_TO_SSH_IN_AS

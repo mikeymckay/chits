@@ -559,7 +559,7 @@ class patient extends module{
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_FIRST_NAME."</span><font style='color:red; font-weight: bold'>&nbsp;*</font><br> ";
         //print "<input type='text' class='textbox' name='patient_firstname' value='".($patient["patient_firstname"]?$patient["patient_firstname"]:$post_vars["patient_firstname"])."' style='border: 1px solid #000000'><br>";
-		print "<input type='text' class='textbox' name='patient_firstname' value='".($patient["patient_firstname"]?$patient["patient_firstname"]:"")."' style='border: 1px solid #000000'><br>";
+		print "<input type='text' class='textbox required' name='patient_firstname' value='".($patient["patient_firstname"]?$patient["patient_firstname"]:"")."' style='border: 1px solid #000000'><br>";
         print "</td></tr>";
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_MIDDLE_NAME."</span><br> ";
@@ -569,7 +569,7 @@ class patient extends module{
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_LAST_NAME."</span><font style='color:red; font-weight: bold'>&nbsp;*</font><br> ";
         //print "<input type='text' class='textbox' name='patient_lastname' value='".($patient["patient_lastname"]?$patient["patient_lastname"]:$post_vars["patient_lastname"])."' style='border: 1px solid #000000'><br>";
-		print "<input type='text' class='textbox' name='patient_lastname' value='".($patient["patient_lastname"]?$patient["patient_lastname"]:"")."' style='border: 1px solid #000000'><br>";
+		print "<input type='text' class='textbox required' name='patient_lastname' value='".($patient["patient_lastname"]?$patient["patient_lastname"]:"")."' style='border: 1px solid #000000'><br>";
         print "</td></tr>";
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_PATIENT_DOB."</span><font style='color:red; font-weight: bold'>&nbsp;*</font><br> ";
@@ -581,7 +581,7 @@ class patient extends module{
         //print "<input type='text' size='10' maxlength='10' class='textbox' name='patient_dob' value='".($dob?$dob:$post_vars["patient_dob"])."' style='border: 1px solid #000000'><br>";
         //print "<input type='text' size='10' maxlength='10' class='textbox' name='patient_dob' value='".($dob?$dob:"")."' style='border: 1px solid #000000'>";
         
-        print "<input type='text' size='10' maxlength='10' class='textbox' name='patient_dob' value='".($dob?$dob:"")."' style='border: 1px solid #000000'>&nbsp;"; 
+        print "<input type='text' size='10' maxlength='10' class='textbox required date' name='patient_dob' value='".($dob?$dob:"")."' style='border: 1px solid #000000'>&nbsp;"; 
 
         print "<a href=\"javascript:show_calendar4('document.form_patient.patient_dob', document.form_patient.patient_dob.value);\"><img src='../images/cal.gif' width='16' height='16' border='0' alt='Click Here to Pick up the date'></a></input>";              
         
@@ -589,7 +589,7 @@ class patient extends module{
 
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_GENDER."</span><font style='color:red; font-weight: bold'>&nbsp;*</font><br> ";
-        print "<select name='patient_gender' ".($get_vars["patient_id"]?'':'')." class='textbox'>";
+        print "<select name='patient_gender' ".($get_vars["patient_id"]?'':'')." class='textbox required'>";
         print "<option ".($patient["patient_gender"]=='M'?'selected':'')." value='M'>Male</option>";
         print "<option ".($patient["patient_gender"]=='F'?'selected':'')." value='F'>Female</option>";
         print "<option ".($patient["patient_gender"]=='I'?'selected':'')." value='I'>Indeterminate</option>";
@@ -598,7 +598,7 @@ class patient extends module{
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_MOTHERS_NAME."</span><font style='color:red; font-weight: bold'>&nbsp;*</font><br> ";
         //print "<input type='text' size='30' class='textbox' ".($_SESSION["isadmin"]||!$get_vars["patient_id"]?"":"disabled")." name='patient_mother' value='".($patient["patient_mother"]?$patient["patient_mother"]:$post_vars["patient_mother"])."' style='border: 1px solid #000000'><br>";
-		print "<input type='text' size='30' class='textbox' name='patient_mother' value='".($patient["patient_mother"]?$patient["patient_mother"]:"")."' style='border: 1px solid #000000'><br>";
+		print "<input type='text' size='30' class='textbox required' name='patient_mother' value='".($patient["patient_mother"]?$patient["patient_mother"]:"")."' style='border: 1px solid #000000'><br>";
         print "</td></tr>";
                 
         //if ($patient["patient_gender"]) {
@@ -632,6 +632,12 @@ class patient extends module{
         }
         print "</td></tr>";
         print "</form>";
+        print "<script></script>
+        <script type='text/javascript'>
+          jQuery(document).ready(function($){
+            $('form[name=form_patient]').validate();
+          });
+        </script>".
         print "</table><br>";
     }
 
