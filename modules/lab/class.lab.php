@@ -143,7 +143,8 @@ class lab extends module {
         }
         $l = new lab;
         
-        
+        mysql_query("ALTER TABLE `m_consult_lab` DROP PRIMARY KEY , ADD PRIMARY KEY (`request_id`)");
+                
         
         print "<table width='600'>";
         print "<tr><td>";
@@ -241,6 +242,9 @@ class lab extends module {
             $isadmin = $arg_list[4];
             //print_r($arg_list);
         }
+        
+        $pxid = healthcenter::get_patient_id($_GET[consult_id]);
+        
         // delete routine
         if ($get_vars["delete_id"]) {
             if (module::confirm_delete($menu_id, $post_vars, $get_vars)) {
@@ -255,7 +259,7 @@ class lab extends module {
             }
         }
         print "<b>".FTITLE_PENDING_LAB_REQUESTS."</b><br/><br/>";
-        $sql = "select c.request_id, l.lab_name, l.lab_module, date_format(c.request_timestamp, '%a %d %b %Y, %h:%i%p') from m_lib_laboratory l, m_consult_lab c where l.lab_id = c.lab_id and c.consult_id ='$get_vars[consult_id]' and c.done_timestamp = '0000-00-00' AND request_done='N'";
+        $sql = "select c.request_id, l.lab_name, l.lab_module, date_format(c.request_timestamp, '%a %d %b %Y, %h:%i%p') from m_lib_laboratory l, m_consult_lab c where l.lab_id = c.lab_id and c.done_timestamp = '0000-00-00' AND request_done='N' AND patient_id='$pxid'";
                
         
         if ($result = mysql_query($sql)) {
@@ -288,7 +292,7 @@ class lab extends module {
         }
         print "<br/>";
         print "<b>".FTITLE_COMPLETED_LAB_REQUESTS."</b><br/><br/>";
-        $sql = "select c.request_id, l.lab_name, l.lab_module, date_format(c.request_timestamp, '%a %d %b %Y, %h:%i%p') from m_lib_laboratory l, m_consult_lab c where l.lab_id = c.lab_id and c.consult_id = '$get_vars[consult_id]' and c.done_timestamp <> '0000-00-00' and c.request_done='Y'";
+        $sql = "select c.request_id, l.lab_name, l.lab_module, date_format(c.request_timestamp, '%a %d %b %Y, %h:%i%p') from m_lib_laboratory l, m_consult_lab c where l.lab_id = c.lab_id and c.done_timestamp <> '0000-00-00' and c.request_done='Y' AND patient_id='$pxid'";
         
         if ($result = mysql_query($sql)) {                
             if (mysql_num_rows($result)) {

@@ -145,6 +145,7 @@ class family_planning extends module{
 				  `type_last_delivery` varchar(50) NOT NULL,
 				  `age_menarch` int(11) NOT NULL,
 				  `past_menstrual_date` date NOT NULL,
+				  `last_menstrual_period` date NOT NULL,
 				  `duration_bleeding` int(4) NOT NULL,
 				  `date_encoded` date NOT NULL,
 				  `user_id` int(11) NOT NULL
@@ -252,7 +253,7 @@ class family_planning extends module{
 
 		//m_lib_fp_methods -- populate contents
 		
-		module::execsql("INSERT INTO `m_lib_fp_methods` (`method_id`, `method_name`, `method_gender`, `fhsis_code`, `report_order`, `unit`) VALUES ('PILLS', 'Pills', 'F', 'PILLS', 3, 'set'),('CONDOM', 'Condom', 'M', 'CON', 11, 'pack'),('IUD', 'IUD', 'F', 'IUD', 4, 'set'),('NFPLAM', 'NFP Lactational amenorrhea', 'F', 'NFP-LAM', 8, ''),('DMPA', 'Depot Medroxyprogesterone Acetate', 'F', 'DMPA', 5, 'vial'),('NFPBBT', 'NFP Basal Body Temperature', 'F', 'NFP-BBT', 7, ''),('NFPCM', 'NFP Cervical Mucus Method', 'F', 'NFP-CM', 6, ''),('NFPSTM', 'NFP Sympothermal Method', 'F', 'NFP-STM', 10, ''),('NFPSDM', 'NFP Standard Days Method', 'F', 'NFP-SDM', 9, ''),('FSTRBTL', 'Female Sterilization /Bilateral Tubal Ligation', 'F', 'FSTR/BTL', 1, ''),('MSV', 'Male Sterilization /Vasectomy', 'M', 'MSTR/Vasec', 2, '');");
+		module::execsql("INSERT INTO `m_lib_fp_methods` (`method_id`, `method_name`, `method_gender`, `fhsis_code`, `report_order`, `unit`) VALUES ('PILLS', 'Pills', 'F', 'PILLS', 3, 'set'),('CONDOM', 'Condom', 'M', 'CON', 11, 'pack'),('IUD', 'IUD', 'F', 'IUD', 4, 'set'),('NFPLAM', 'NFP Lactational amenorrhea', 'F', 'NFP-LAM', 8, ''),('DMPA', 'Injectables', 'F', 'DMPA', 5, 'vial'),('NFPBBT', 'NFP Basal Body Temperature', 'F', 'NFP-BBT', 7, ''),('NFPCM', 'NFP Cervical Mucus Method', 'F', 'NFP-CM', 6, ''),('NFPSTM', 'NFP Sympothermal Method', 'F', 'NFP-STM', 10, ''),('NFPSDM', 'NFP Standard Days Method', 'F', 'NFP-SDM', 9, ''),('FSTRBTL', 'Female Sterilization /Bilateral Tubal Ligation', 'F', 'FSTR/BTL', 1, ''),('MSV', 'Male Sterilization /Vasectomy', 'M', 'MSTR/Vasec', 2, '');");
 
 
 		/*module::execsql("INSERT INTO `m_lib_fp_methods` (`method_id`,`method_name`,`method_gender`,`fhsis_code`) VALUES ('PILLS', 'Pills','F','PILLS')");
@@ -427,7 +428,26 @@ class family_planning extends module{
 		module::execsql("INSERT INTO `m_lib_fp_pelvic` SET `pelvic_name`='Normal',`pelvic_cat`='ADNEXA'");
 		module::execsql("INSERT INTO `m_lib_fp_pelvic` SET `pelvic_name`='Mass',`pelvic_cat`='ADNEXA'");
 		module::execsql("INSERT INTO `m_lib_fp_pelvic` SET `pelvic_name`='Tenderness',`pelvic_cat`='ADNEXA'");
+		
+
+
+
+		module::execsql("CREATE TABLE IF NOT EXISTS `m_lib_fp_client` (`client_id` int(7) NOT NULL AUTO_INCREMENT,`client_code` varchar(2) NOT NULL,
+		            `client_text` text NOT NULL,`client_class` set('CU','NA') NOT NULL, PRIMARY KEY (`client_id`)
+		            ) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1");
+                                              
+          
+                module::execsql("INSERT INTO `m_lib_fp_client` (`client_id`, `client_code`, `client_text`, `client_class`) VALUES
+                (1, 'CU', 'Current User (Continuing User)', 'CU'),
+                (2, 'NA', 'New Acceptor', 'NA'),
+                (3, 'CM', 'Changing Method', 'CU'),
+                (4, 'CC', 'Changing Clinic', 'CU'),
+                (5, 'RS', 'Restart', 'CU')");
+          
+		
 	}
+
+
 
 
 
@@ -477,6 +497,13 @@ class family_planning extends module{
 		$fp = new family_planning;
 		$fp->fp_menu($_GET["menu_id"],$_POST,$_GET,$_SESSION["validuser"],$_SESSION["isadmin"]);
 		//$fp->form_fp($menu_id,$post_vars,$get_vars,$isadmin);
+		
+		
+                mysql_query("ALTER TABLE `m_patient_fp_dropout` DROP PRIMARY KEY, ADD PRIMARY KEY(`dropout_id`)");
+                mysql_query("ALTER TABLE `m_patient_fp_method` DROP PRIMARY KEY, ADD PRIMARY KEY(`fp_px_id`)");   
+                mysql_query("ALTER TABLE `m_patient_fp_method_service` DROP PRIMARY KEY, ADD PRIMARY KEY(`fp_service_id`)");
+                mysql_query("ALTER TABLE `m_patient_fp` DROP PRIMARY KEY, ADD PRIMARY KEY(`fp_id`)");  
+		
 
 		if($_POST["submit_fp"]):
 			//print_r($_POST);
@@ -1192,7 +1219,11 @@ class family_planning extends module{
 		$q_gender =  mysql_query("SELECT patient_gender FROM m_patient WHERE patient_id='$pxid'") or die("Cannot query: 158");
 		list($gender) = mysql_fetch_array($q_gender);
 
-		$q_methods = mysql_query("SELECT method_id,method_name FROM m_lib_fp_methods WHERE method_gender='$gender' ORDER by method_name ASC") or die("Cannot query: 268");
+                if($gender=='M'):
+		    $q_methods = mysql_query("SELECT method_id,method_name FROM m_lib_fp_methods WHERE method_gender='$gender' ORDER by method_name ASC") or die("Cannot query: 1196");
+                else:
+                    $q_methods = mysql_query("SELECT method_id,method_name FROM m_lib_fp_methods ORDER by method_name ASC") or die("Cannot query: 1198");                
+                endif;
 
 		if(mysql_num_rows($q_methods)!=0):
 			echo "<select name='$form_name'>";
@@ -1337,6 +1368,13 @@ class family_planning extends module{
 
 						if(mysql_num_rows($q_fp)!=0):
 						
+						
+						$sel_obgyn = mysql_query("SELECT fpal,date_format(date_last_delivery,'%m/%d/%Y') as date_delivery,type_last_delivery,date_format(past_menstrual_date,'%m/%d/%Y') as past_mens, duration_bleeding,date_format(last_menstrual_period,'%m/%d/%Y') as lmp FROM m_patient_fp_obgyn_details WHERE fp_id='$fp_id'") or die("Cannot query : 1371".mysql_error());
+						
+						if(mysql_num_rows($sel_obgyn)!=0):
+						    list($fpal,$delivery_date,$outcome_name,$past_mens,$duration_bleeding,$patient_lmp) = mysql_fetch_array($sel_obgyn);
+						else:
+						
 						//check if the patient has a maternal record in CHITS
                                                 echo "<p align='justify'><font size='3' class='boxtitle'>Note: This form is connected to the Maternal Care record of the patient. Default values here are based on most recent MC record entered for this patient.</font>";
 						$q_mc = mysql_query("SELECT obscore_fpal, date_format(delivery_date,'%m/%d/%Y'), outcome_id, date_format(patient_lmp,'%m/%d/%Y') FROM m_patient_mc a WHERE a.patient_id='$pxid' ORDER by patient_lmp DESC LIMIT 1") or die("Cannot query 1303: ".mysql_error());
@@ -1346,7 +1384,7 @@ class family_planning extends module{
                                                 
 						if(mysql_num_rows($q_mc)!=0):
 						    list($fpal,$delivery_date,$outcome_id, $patient_lmp) = mysql_fetch_array($q_mc);						    						    
-						
+						    
 						
 						    if($delivery_date=='0000-00-00'):
 						        $delivery_date = '';
@@ -1365,12 +1403,15 @@ class family_planning extends module{
 						endif;
 						
 						$q_outcome = mysql_query("SELECT outcome_name FROM m_lib_mc_outcome WHERE outcome_id='$outcome_id'") or die("Cannot query 1315".mysql_error());
-						if(mysql_num_rows($q_outcome)!=0):
-						    list($outcome_name) = mysql_fetch_array($q_outcome);
-						else:
-						    $outcome_name = '';
-						endif;
+						    if(mysql_num_rows($q_outcome)!=0):
+						        list($outcome_name) = mysql_fetch_array($q_outcome);
+                                                    else:
+						        $outcome_name = '';
+                                                    endif;
 
+
+						endif;
+						
 						echo "<form action='$_SERVER[PHP_SELF]?page=$_GET[page]&menu_id=$_GET[menu_id]&consult_id=$_GET[consult_id]&ptmenu=$_GET[ptmenu]&module=$_GET[module]&fp=OBS#obs' method='POST' name='form_fp_obs'>";
 						echo "<input type='hidden' name='fp_id' value='$fp_id'></input>";
 						echo "<a name='obs'></a>";
@@ -1380,18 +1421,18 @@ class family_planning extends module{
 						echo "<tr><td class='boxtitle'>Number of Pregnancies (FPAL)</td>";
 						echo "<td class='boxtitle'><input type='text' name='txt_fp_fpal' size='3' maxlength='4' value='$fpal'></td></tr>";
 
-						echo "<tr><td class='boxtitle'>Date of Last Delivery</td><td><input type='text' name='txt_last_delivery' size='7' maxlength='11' value='$delivery_date'>";
+						echo "<tr><td class='boxtitle'>Date of Last Delivery</td><td><input type='text' name='txt_last_delivery' size='8' maxlength='11' value='$delivery_date'>";
 
 						echo "<a href=\"javascript:show_calendar4('document.form_fp_obs.txt_last_delivery', document.form_fp_obs.txt_last_delivery.value);\"><img src='../images/cal.gif' width='16' height='16' border='0' alt='Click here to pick up date'></a>";
 						echo "</input></td></tr>";
 
 						echo "<tr><td class='boxtitle'>TYPE OF LAST DELIVERY</td><td><input type='text' name='txt_type_delivery' size='20' value='$outcome_name'></td></tr>";
 
-						echo "<tr><td class='boxtitle'>PAST MENSTRUAL PERIOD</td><td><input type='text' name='txt_past_mens' size='7' maxlength='11' value='$past_mens'>";
+						echo "<tr><td class='boxtitle'>PAST MENSTRUAL PERIOD</td><td><input type='text' name='txt_past_mens' size='8' maxlength='11' value='$past_mens'>";
 						echo "<a href=\"javascript:show_calendar4('document.form_fp_obs.txt_past_mens', document.form_fp_obs.txt_past_mens.value);\"><img src='../images/cal.gif' width='16' height='16' border='0' alt='Click here to pick up date'></a>";
 						echo "</input></td></tr>";
 
-						echo "<tr><td class='boxtitle'>LAST MENSTRUAL PERIOD</td><td><input type='text' name='txt_last_mens' size='7' maxlength='11' value='$patient_lmp'>";
+						echo "<tr><td class='boxtitle'>LAST MENSTRUAL PERIOD</td><td><input type='text' name='txt_last_mens' size='8' maxlength='11' value='$patient_lmp'>";
 						echo "<a href=\"javascript:show_calendar4('document.form_fp_obs.txt_last_mens', document.form_fp_obs.txt_last_mens.value);\"><img src='../images/cal.gif' width='16' height='16' border='0' alt='Click here to pick up date'></a>";
 						echo "</input></td></tr>";
 
@@ -1779,16 +1820,18 @@ class family_planning extends module{
 	    $pxid = healthcenter::get_patient_id($_GET[consult_id]);
 	    list($del_m,$del_d,$del_y) = explode('/',$_POST[txt_last_delivery]);
 	    list($past_m,$past_d,$past_y) = explode('/',$_POST[txt_past_mens]);
+	    list($lmp_m,$lmp_d,$lmp_y) = explode('/',$_POST[txt_last_mens]);
 	    
 	    $delivery_date = $del_y.'-'.$del_m.'-'.$del_d;
 	    $past_date = $past_y.'-'.$past_m.'-'.$past_d;
+	    $lmp = $lmp_y.'-'.$lmp_m.'-'.$lmp_d;
 	    
 	    $q_fp_id = mysql_query("SELECT fp_id FROM m_patient_fp_obgyn_details WHERE fp_id='$_POST[fp_id]'") or die("Cannot query 1737: ".mysql_error());
 	    
 	    if(mysql_num_rows($q_fp_id)!=0):
-                $update_obs = mysql_query("UPDATE m_patient_fp_obgyn_details SET fpal='$_POST[txt_fp_fpal]',date_last_delivery='$delivery_date',type_last_delivery='$_POST[txt_type_delivery]',past_menstrual_date='$past_date',date_encoded=NOW(),user_id='$_SESSION[userid]',duration_bleeding='$_POST[txt_mens_bleed]' WHERE fp_id='$_POST[fp_id]'") or die("Cannot query 1743 ".mysql_error());
+                $update_obs = mysql_query("UPDATE m_patient_fp_obgyn_details SET fpal='$_POST[txt_fp_fpal]',date_last_delivery='$delivery_date',type_last_delivery='$_POST[txt_type_delivery]',past_menstrual_date='$past_date',date_encoded=NOW(),user_id='$_SESSION[userid]',duration_bleeding='$_POST[txt_mens_bleed]',last_menstrual_period='$lmp' WHERE fp_id='$_POST[fp_id]'") or die("Cannot query 1743 ".mysql_error());
             else:
-                $update_obs = mysql_query("INSERT INTO m_patient_fp_obgyn_details SET fp_id='$_POST[fp_id]',patient_id='$pxid',fpal='$_POST[txt_fp_fpal]',date_last_delivery='$delivery_date',type_last_delivery='$_POST[txt_type_delivery]',past_menstrual_date='$past_date',date_encoded=NOW(),user_id='$_SESSION[userid]',duration_bleeding='$_POST[txt_mens_bleed]'") or die("Cannot query 1745 ".mysql_error());
+                $update_obs = mysql_query("INSERT INTO m_patient_fp_obgyn_details SET fp_id='$_POST[fp_id]',patient_id='$pxid',fpal='$_POST[txt_fp_fpal]',date_last_delivery='$delivery_date',type_last_delivery='$_POST[txt_type_delivery]',past_menstrual_date='$past_date',date_encoded=NOW(),user_id='$_SESSION[userid]',duration_bleeding='$_POST[txt_mens_bleed]',last_menstrual_period='$lmp'") or die("Cannot query 1745 ".mysql_error());
             endif;
             
             if($update_obs):
