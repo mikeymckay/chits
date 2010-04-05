@@ -1,7 +1,7 @@
 <?
 // BEGIN SERVER CODE: DO NOT EDIT
 // Server generated code
-// Generated 2010-01-13 18:11:37
+// Generated 2010-03-15 13:06:36
 // Module: _module.php
 // Author: Herman Tolentino MD
 //
@@ -258,6 +258,17 @@ if (file_exists('../modules/language/class.language.php')) {
 		$language->init_help();
 	}
 }
+if (file_exists('../modules/leprosy/class.leprosy.php')) {
+	include '../modules/leprosy/class.leprosy.php';
+	$leprosy = new leprosy;
+	if (!$module->activated('leprosy') && $initmod) {
+		$leprosy->init_sql();
+		$leprosy->init_menu();
+		$leprosy->init_deps();
+		$leprosy->init_lang();
+		$leprosy->init_help();
+	}
+}
 if (file_exists('../modules/mc/class.mc.php')) {
 	include '../modules/mc/class.mc.php';
 	$mc = new mc;
@@ -476,6 +487,17 @@ if (file_exists('../modules/vaccine/class.vaccine.php')) {
 		$vaccine->init_deps();
 		$vaccine->init_lang();
 		$vaccine->init_help();
+	}
+}
+if (file_exists('../modules/weekly_calendar/class.weekly_calendar.php')) {
+	include '../modules/weekly_calendar/class.weekly_calendar.php';
+	$weekly_calendar = new weekly_calendar;
+	if (!$module->activated('weekly_calendar') && $initmod) {
+		$weekly_calendar->init_sql();
+		$weekly_calendar->init_menu();
+		$weekly_calendar->init_deps();
+		$weekly_calendar->init_lang();
+		$weekly_calendar->init_help();
 	}
 }
 if (file_exists('../modules/wtforage/class.wtforage.php')) {

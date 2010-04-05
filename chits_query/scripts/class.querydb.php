@@ -36,9 +36,9 @@ class querydb{
       elseif($frage>$toage):
         echo "Start age should be lower than end age.";	  
       elseif($diff < 0):
-		echo 'End month should be on or after the start month';
-	  elseif(empty($brgy)):
-		echo 'Please select one or more barangays.';
+	echo 'End month should be on or after the start month';
+      elseif(empty($brgy)):
+	echo 'Please select one or more barangays.';
       else:
 
       echo "<br><table border=\"1\">";
@@ -51,7 +51,7 @@ class querydb{
 	$_SESSION[edate_orig] = $edate_orig;
 	
 	$_SESSION[fp_method] = (isset($misc))?$misc:0; //assign fp method to a session if it exists from the form, otherwise place 0
-	
+
 	$this->stat_table($q,$_SESSION[ques]);
       
       endif;
@@ -163,7 +163,7 @@ class querydb{
 			$res = mysql_fetch_array($query);
 
 		elseif($quesno==34): //prenatal TCL
-
+			
 		
 		else:
 			//echo "No available query for this indicator.";
@@ -257,7 +257,7 @@ class querydb{
 		elseif($quesno==35):
 			$this->process_postpartum();
 
-		elseif($quesno==36):
+		elseif($quesno==36 || $quesno==80 || $quesno==81):
 			$this->process_mc_indicators();
 
 		elseif($quesno==37):
@@ -265,8 +265,7 @@ class querydb{
 
 		elseif($quesno==38):
 			$this->process_sickchild();
-		
-		elseif($quesno==39):
+		elseif($quesno==39 || $quesno==50 || $quesno==51):
 			$this->process_ccdev_summary();
 		elseif($quesno==40): //FP TCL
 			$this->process_fp_tcl();
@@ -282,6 +281,14 @@ class querydb{
 			$this->process_dhc_pho();
 		elseif($quesno==62):
 			$this->process_dhc_summary();
+		elseif($quesno==63):
+			$this->process_dhc_tcl();			
+		elseif($quesno>=66 && $quesno<70):		
+			$this->process_leprosy($quesno);		
+		elseif($quesno>=70 && $quesno<=73):			
+			$this->process_morbidity($quesno);
+		elseif($quesno>=90 && $quesno<=99):
+			$this->process_tb($quesno);		
 		else:
 			echo "No available query for this indicator.";
 		endif;
@@ -595,10 +602,14 @@ class querydb{
 
 	function process_prenatal(){
 		
-		if($_SESSION[brgy]=='all'):
+		
+		if($_SESSION[brgy]=='all'):		
 			$check_query = mysql_query("SELECT a.patient_id,b.prenatal_date, a.mc_id FROM m_patient_mc a,m_consult_mc_prenatal b where a.patient_id=b.patient_id AND a.end_pregnancy_flag='N' AND b.visit_sequence='1' AND b.prenatal_date BETWEEN '$_SESSION[sdate]' AND '$_SESSION[edate]' ORDER by b.prenatal_date ASC") or die(mysql_error());
+			//$check_query = mysql_query("SELECT a.patient_id,b.prenatal_date, a.mc_id FROM m_patient_mc a,m_consult_mc_prenatal b,m_family_members c, m_family_address d,m_lib_barangay e where a.patient_id=b.patient_id AND a.patient_id=c.patient_id AND c.family_id=d.family_id AND d.barangay_id=e.barangay_id AND a.end_pregnancy_flag='N' AND b.prenatal_date BETWEEN '$_SESSION[sdate]' AND '$_SESSION[edate]' AND b.mc_id <> '0' ORDER by b.prenatal_date ASC") or die("Cannot query 603 ".mysql_error());
+			
 		else:
-			$check_query = mysql_query("SELECT a.patient_id,b.prenatal_date, a.mc_id FROM m_patient_mc a,m_consult_mc_prenatal b,m_family_members c,m_family_address d where a.patient_id=b.patient_id AND a.end_pregnancy_flag='N' AND b.visit_sequence='1' AND b.prenatal_date BETWEEN '$_SESSION[sdate]' AND '$_SESSION[edate]' AND a.patient_id=c.patient_id AND c.family_id=d.family_id AND d.barangay_id=$_SESSION[brgy] ORDER by b.prenatal_date ASC") or die(mysql_error());			
+			//$check_query = mysql_query("SELECT a.patient_id,b.prenatal_date, a.mc_id FROM m_patient_mc a,m_consult_mc_prenatal b,m_family_members c,m_family_address d where a.patient_id=b.patient_id AND a.end_pregnancy_flag='N' AND b.visit_sequence='1' AND b.prenatal_date BETWEEN '$_SESSION[sdate]' AND '$_SESSION[edate]' AND a.patient_id=c.patient_id AND c.family_id=d.family_id AND d.barangay_id='$_SESSION[brgy]' ORDER by b.prenatal_date ASC") or die(mysql_error());			
+			$check_query = mysql_query("SELECT a.patient_id,b.prenatal_date, a.mc_id FROM m_patient_mc a,m_consult_mc_prenatal b,m_family_members c,m_family_address d where a.patient_id=b.patient_id AND a.end_pregnancy_flag='N' AND b.prenatal_date BETWEEN '$_SESSION[sdate]' AND '$_SESSION[edate]' AND a.patient_id=c.patient_id AND c.family_id=d.family_id AND d.barangay_id='$_SESSION[brgy]' AND b.mc_id <> '0' ORDER by b.prenatal_date ASC") or die(mysql_error());						
 		endif;
 
 
@@ -649,7 +660,23 @@ class querydb{
 	}
 
 	function process_mc_indicators(){
-		echo "<a href='./pdf_reports/mc_summary.php' target='new'>Show Maternal Care Summary Table</a>";
+		switch($_SESSION[ques]){
+			
+			case 36:
+				$report_name = 'Summary Table';
+				break;
+			case 80:
+				$report_name = 'Monthly Report';
+				break;
+			case 81:
+				$report_name = 'Quarterly Report';
+				break;
+			default:
+				$report_name = '';
+				break;						
+		}
+		
+		echo "<a href='./pdf_reports/mc_summary.php' target='new'>Show Maternal Care $report_name</a>";
 	}
 
 	function process_underone(){
@@ -721,7 +748,19 @@ class querydb{
 	}	
 
 	function process_ccdev_summary(){
-		echo "<a href='./pdf_reports/ccdev_summary.php'>Show Child Care Summary Table</a>";
+		switch($_SESSION[ques]){		
+			case 39:
+				echo "<a href='./pdf_reports/ccdev_summary.php'>Show Child Care Summary Table</a>";
+				break;
+			case 50:
+				echo "<a href='./pdf_reports/ccdev_summary.php'>Show Child Care Monthly Report</a>";
+				break;
+			case 51:
+				echo "<a href='./pdf_reports/ccdev_summary.php'>Show Child Care Quarterly Report</a>";
+				break;
+			default:			
+				break;		
+		}
 	}
 	
 	function process_fp_tcl(){
@@ -779,6 +818,79 @@ class querydb{
 	
 	function process_dhc_summary(){
 		echo "<a href='./pdf_reports/dental_summary.php'>Show Dental Summary Table</a>";
+	}
+	
+	function process_dhc_tcl(){
+		echo "<a href='./pdf_reports/dental_tcl.php'>Show Dental Master List / TCL.</a>";
+	}
+	
+	
+	
+	function process_morbidity($quesno){		
+		$q_morb = mysql_query("SELECT ques_label FROM question WHERE ques_id=$quesno");
+		if(mysql_num_rows($q_morb)!=0):
+			list($ques_label) = mysql_fetch_array($q_morb);
+			echo "<a href='./pdf_reports/morbidity_report.php'>Show $ques_label</a>";
+		endif;
+	}
+	
+	function process_tb($quesno){			
+		$q_tb = mysql_query("SELECT ques_label FROM question WHERE ques_id='$quesno'") or die("Cannot query 824 ".mysql_error());
+		if(mysql_num_rows($q_tb)!=0):
+			list($ques_label) = mysql_fetch_array($q_tb);
+			if($quesno=='92' || $quesno=='93'):
+				echo "<a href='./pdf_reports/tb_summary.php'>Show $ques_label</a>";
+			elseif($quesno==94):
+				echo "<a href='./pdf_reports/tb_summary.php'>Show $ques_label</a>";
+			elseif($quesno==95): //tb register
+				if($_SESSION[brgy]=='all'):					
+					$q_register = mysql_query("SELECT patient_id,ntp_id FROM m_patient_ntp WHERE intensive_start_date BETWEEN '$_SESSION[sdate2]' AND '$_SESSION[edate2]' AND patient_id<>0 ORDER by intensive_start_date ASC") or die("Cannot query 836 ".mysql_error());
+				else:
+					$q_register = mysql_query("SELECT a.patient_id,a.ntp_id FROM m_patient_ntp a, m_family_members b, m_family_address c WHERE a.intensive_start_date BETWEEN '$_SESSION[sdate2]' AND '$_SESSION[edate2]' AND a.patient_id<>0 AND a.patient_id=b.patient_id AND b.family_id=c.family_id AND c.barangay_id='$_SESSION[brgy]'  ORDER by a.intensive_start_date ASC") or die("Cannot query 839 ".mysql_error());
+				endif;
+				
+				if(mysql_num_rows($q_register)!=0):
+					$arr_ntp_px = array();
+					$arr_ntp_id = array();
+					
+					while(list($pxid,$ntpid)=mysql_fetch_array($q_register)){
+						array_push($arr_ntp_px,$pxid);
+						array_push($arr_ntp_id,$ntpid);
+					}
+					$_SESSION[ntp_px] = $arr_ntp_px;
+					$_SESSION[ntp_id] = $arr_ntp_id;
+					
+					echo "Show $ques_label: <a href='./pdf_reports/tb_register.php?page=1'>Page 1</a>&nbsp;&nbsp;<a href='./pdf_reports/tb_register.php?page=2'>Page 2</a>";
+				
+				else:
+					echo "<font color='red'>No result/s found.</font>";
+				endif;
+			
+			elseif($quesno==90): //tb symptomatics
+				echo "<a href='./pdf_reports/tb_symptomatics.php'>Show $ques_label</a>";
+			elseif($quesno==91): //ntp lab register
+				echo "<a href='./pdf_reports/tb_symptomatics.php'>Show $ques_label</a>";
+			else:
+				
+			endif;
+			
+		endif;	
+	}
+	
+	function process_leprosy($queryno){
+		switch($queryno){
+			case 66:
+				echo "<a href='./pdf_reports/leprosy_summary.php'>Show Leprosy Summary Table</a>";				
+				break;
+			case 67:
+				echo "<a href='./pdf_reports/leprosy_quarterly.php'>Show Leprosy Quarterly Table</a>";				
+				break;			
+			case 68:
+				echo "<a href='./pdf_reports/leprosy_quarterly.php'>Show Leprosy Target Client List</a>";				
+				break;							
+			default:			
+				break;		
+		}	
 	}
 
 }
