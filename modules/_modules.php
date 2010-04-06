@@ -1,7 +1,7 @@
 <?
 // BEGIN SERVER CODE: DO NOT EDIT
 // Server generated code
-// Generated 2010-03-02 12:18:36
+// Generated 2010-03-29 11:43:02
 // Module: _module.php
 // Author: Herman Tolentino MD
 //
@@ -432,6 +432,17 @@ if (file_exists('../modules/reminder/class.reminder.php')) {
 		$reminder->init_deps();
 		$reminder->init_lang();
 		$reminder->init_help();
+	}
+}
+if (file_exists('../modules/sanitation/class.sanitation.php')) {
+	include '../modules/sanitation/class.sanitation.php';
+	$sanitation = new sanitation;
+	if (!$module->activated('sanitation') && $initmod) {
+		$sanitation->init_sql();
+		$sanitation->init_menu();
+		$sanitation->init_deps();
+		$sanitation->init_lang();
+		$sanitation->init_help();
 	}
 }
 if (file_exists('../modules/smoking/class.smoking.php')) {
