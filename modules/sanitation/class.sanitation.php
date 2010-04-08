@@ -29,6 +29,9 @@
 			$this->version = '0.1-'.date('Y-m-d');
 			$this->module = 'sanitation';
 			$this->description = 'CHITS Module - Environmental Sanitation Program';  
+
+			$this->members_info = array();
+			$this->household_number;
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		
@@ -93,12 +96,31 @@
     
 		// Comment date: Oct 7, 2009, JVTolentino
 		// The init_sql() function starts here.
-		// This function will initialize the tables for the Leprosy Module in Chits DB.
+		// This function will initialize the tables for the Sanitation Module in Chits DB.
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function init_sql() {
 			if (func_num_args()>0) {
 			$arg_list = func_get_args();
 			}
+
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_sanitation_household` (".
+				"`record_number` float NOT NULL AUTO_INCREMENT,".
+				"`household_number` float NOT NULL,".
+				"`family_id` float NOT NULL,".
+				"`water_supply` char(25) COLLATE swe7_bin NOT NULL,".
+				"`sanitary_toilet` char(25) COLLATE swe7_bin NOT NULL,".
+				"`disposal_of_solid_waste` char(25) COLLATE swe7_bin NOT NULL,".
+				"`user_id` float NOT NULL,".
+				"PRIMARY KEY (`record_number`)".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
+
+
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_sanitation_household_list` (".
+				"`household_number` float NOT NULL AUTO_INCREMENT,".
+				"`user_id` float NOT NULL,".
+				"`date_updated` date NOT NULL,".
+				"PRIMARY KEY (`household_number`)".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
 			
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -112,6 +134,8 @@
 		//    the tables associated with this module.
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function drop_tables() {
+			module::execsql("DROP TABLE `m_sanitation_household`");
+			module::execsql("DROP TABLE `m_sanitation_hosuehold_list`");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -134,7 +158,11 @@
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function init_primary_keys() {
+			$query = "ALTER TABLE `m_sanitation_household` DROP PRIMARY KEY, ADD PRIMARY KEY(`record_number`)";
+	                $result = mysql_query($query) or die("Couldn't execute query.");
 
+			$query = "ALTER TABLE `m_sanitation_household_list` DROP PRIMARY KEY, ADD PRIMARY KEY(`household_number`)";
+                        $result = mysql_query($query) or die("Couldn't execute query.");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -189,7 +217,12 @@
                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
-
+		// Comment date: April 8, 2010, JVTolentino
+		// This function will return an array, of which the values are in this order: 
+		//	- patient lastname
+		//	- patient firstname
+		//	- family id
+		//	- family role
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function search_household_members() {
 			if(($_POST['household_member_lastname'] == '') && ($_POST['household_member_firstname'] == '')) return;
@@ -232,14 +265,17 @@
 					print "<th colspan='2' align='left' bgcolor='CC9900'>SELECT HOUSEHOLD MEMBER</th>";
 				print "</tr>";
 
-				if($_POST['submit_button'] == 'Search') {
-					$members_info = array();
-					$members_info = $this->search_household_members();
-				}
-
-				for($i=0; $i<count($members_info); $i=$i+4) {
+				if(count($this->members_info)>0) {
 					print "<tr>";
-						print "<td><input type='radio' name='household_member' value='".$members_info[$i+2]."'>".$members_info[$i].", ".$members_info[$i+1]." (".$members_info[$i+3].")</input></td>";
+						print "<td colspan='2'>";
+						for($i=0; $i<count($this->members_info); $i=$i+4) {
+							print "<input type='radio' name='household_member' value='".$this->members_info[$i+2]."'>".$this->members_info[$i].", ".$this->members_info[$i+1]." (".$this->members_info[$i+3].")</input><br>";
+						}
+						print "</td>";
+					print "</tr>";
+
+					print "<tr>";
+						print "<td colspan='2' align='center'>To <i><b>edit a household</b></i>, select a family member and then click the 'Edit Household' button.&nbsp;<input type='submit' name='submit_button' value='Edit Household'></input></td>";
 					print "</tr>";
 				}
                         print "</table>";
@@ -281,24 +317,105 @@
 
 
 
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function create_household_number() {
+			$userid = $_SESSION['userid'];
+			list($month, $day, $year) = explode("/", date("m/d/Y"));
+                        $current_date = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($day, 2, "0", STR_PAD_LEFT);
+
+			$query1 = "INSERT INTO m_sanitation_household_list (user_id, date_updated) VALUES($userid, '$current_date')";
+			$result1 = mysql_query($query1) or die("Couldn't execute query.");
+
+			$query2 = "SELECT household_number FROM m_sanitation_household_list ORDER BY household_number DESC";
+			$result2 = mysql_query($query2) or die("Couldn't execute query.");
+
+			if($row = mysql_fetch_assoc($result2)) {
+				return $row['household_number'];
+			}	
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function create_household() {
+			$household_number = $this->create_household_number();
+			$family_id = $_POST['household_member'];
+			$userid = $_SESSION['userid'];
+
+			$query = "INSERT INTO m_sanitation_household (household_number, family_id, user_id) ".
+				"VALUES($household_number, $family_id, $userid)";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// Comment date: Apr 8, 2010, JVTolentino
+		// This function will get the household number of a family
+		// 	based on their family id.
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function get_household_number() {
+			if($_POST['household_member'] == '') {
+				return;
+			}
+			else {
+				$family_id = $_POST['household_member'];
+			}
+
+			$query = "SELECT household_number FROM m_sanitation_household ".
+				"WHERE family_id = $family_id ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			if(mysql_num_rows($result)) {
+				$row = mysql_fetch_assoc($result);
+				return $row['household_number'];
+			}
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function submit_button_clicked() {
+			switch($_POST['submit_button']) {
+				case 'Search':
+					$this->members_info = $this->search_household_members();
+					break;
+				case 'Edit Household':
+					$this->household_number = $this-get_household_number();
+					break;
+				case 'Create Household':
+					if($_POST['household_member'] != '') {
+						$this->create_household();
+					}
+					break;
+			}
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
 		// Comment date: Nov 04, '09, JVTolentino
-		// This is the main function for the leprosy module.
+		// This is the main function for the sanitation module.
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function _consult_sanitation() {
 			print "<form name='form_sanitation' action='$_POST[PHP_SELF]' method='POST'>";
 				$sanitation = new sanitation;
 
 				if(@$_POST['h_save_flag'] == 'GO') {
+					$sanitation->submit_button_clicked();
+
 					$sanitation->show_household_member();
 
 					print "&nbsp;";
-					$sanitation->household();
+					//$sanitation->household();
 				}
 				else {
 					$sanitation->show_household_member();
 
 					print "&nbsp;";
-					$sanitation->household();
+					//$sanitation->household();
 				}
 
 				echo "<input type='hidden' name='h_save_flag' value='GO'></input>";
