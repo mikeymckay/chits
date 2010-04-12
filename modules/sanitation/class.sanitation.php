@@ -31,7 +31,9 @@
 			$this->description = 'CHITS Module - Environmental Sanitation Program';  
 
 			$this->members_info = array();
+			$this->family_id;
 			$this->household_number;
+			$this->selected_household = 0;
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		
@@ -246,7 +248,7 @@
 
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		function show_household_member() {
+		function show_search_household_member() {
 			print "<table border=3 bordercolor='black' align='center' width=600>";
                                 print "<tr>";
                                         print "<th colspan='2' align='left' bgcolor='CC9900'>SEARCH HOUSEHOLD MEMBER</th>";
@@ -309,8 +311,35 @@
 
 
 
+		// Comment date: Apr 12, 2010, JVTolentino
+		// This function will create a household table based on 
+		// $this->household_number.
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function show_household_control() {
+			if($this->family_id == '') return;
+			print "<table border=3 bordercolor='black' align='center' width=600>";
+                                print "<tr>";
+						print "<th align='left' bgcolor='CC9900'>HOUSEHOLD (Family ID {$this->family_id} / Household ID {$this->household_number})</th>";
+				print "</tr>";
+
+				print "<tr>";
+				if($this->household_number == '') {
+					print "<td align='center'>To <b><i>create a household</i></b> for this family, click the 'Create a Household' button. &nbsp;<input type='submit' name='submit_button' value='Create a Household'></input></td>";
+				}
+				else {
+					print "<td align='center'>To <b><i>select this household</i></b> for editing, click the 'Select This Household' button. &nbsp;<input type='submit' name='submit_button' value='Select This Household'></input></td>";
+				}
+
+			print "</table>";
+		}
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function household() {
+			$this->show_household_control();
+			print "&nbsp;";
 			$this->show_household_sanitation();
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -357,14 +386,15 @@
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function get_household_number() {
 			if($_POST['household_member'] == '') {
-				return;
+				$this->household_number = '';
+				$this->family_id = '';
 			}
 			else {
-				$family_id = $_POST['household_member'];
+				$this->family_id = $_POST['household_member'];
 			}
 
 			$query = "SELECT household_number FROM m_sanitation_household ".
-				"WHERE family_id = $family_id ";
+				"WHERE family_id = {$this->family_id} ";
 			$result = mysql_query($query) or die("Couldn't execute query.");
 
 			if(mysql_num_rows($result)) {
@@ -383,7 +413,7 @@
 					$this->members_info = $this->search_household_members();
 					break;
 				case 'Edit Household':
-					$this->household_number = $this-get_household_number();
+					$this->household_number = $this->get_household_number();
 					break;
 				case 'Create Household':
 					if($_POST['household_member'] != '') {
@@ -406,22 +436,22 @@
 				if(@$_POST['h_save_flag'] == 'GO') {
 					$sanitation->submit_button_clicked();
 
-					$sanitation->show_household_member();
+					$sanitation->show_search_household_member();
 
 					print "&nbsp;";
-					//$sanitation->household();
+					$sanitation->household();
 				}
 				else {
-					$sanitation->show_household_member();
+					$sanitation->show_search_household_member();
 
 					print "&nbsp;";
-					//$sanitation->household();
+					$sanitation->household();
 				}
 
 				echo "<input type='hidden' name='h_save_flag' value='GO'></input>";
+				print "<input type='hidden' name='h_selected_household' value='".$this->selected_household."'></input>";
 
 			print "</form>";
-
 
 
 
