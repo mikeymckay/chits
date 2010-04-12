@@ -466,6 +466,10 @@ class healthcenter extends module{
         if ($exitinfo = $this->missing_dependencies('healthcenter')) {
             return print($exitinfo);
         }
+        
+        mysql_query("ALTER TABLE `m_consult` DROP PRIMARY KEY , ADD PRIMARY KEY (`consult_id`)");
+        
+        
         if (func_num_args()>0) {
             $arg_list = func_get_args();
             $menu_id = $arg_list[0];
@@ -499,8 +503,8 @@ class healthcenter extends module{
             //   an existing patient in today's consult list
             if ($post_vars["submitconsult"] || $get_vars["enter_consult"] || $post_vars["confirm_add_consult"]) {
                 //$post_vars["consult_id"] = $get_vars["enter_consult"];
-                // confirms consult for found patients
-                $this->process_consult($menu_id, $post_vars, $get_vars);
+                // confirms consult for found patients		                
+		$this->process_consult($menu_id, $post_vars, $get_vars);
             }
             if ($post_vars["submitsearch"]) {
                 // lists down search results for patient
@@ -719,6 +723,8 @@ class healthcenter extends module{
                     }
                 }
             }
+            
+            
         }
         $sql = "select user_id, vitals_weight, vitals_temp, vitals_systolic, vitals_diastolic, vitals_heartrate, vitals_resprate,vitals_height,vitals_pulse ".
                "from m_consult_vitals where consult_id = '".$get_vars["consult_id"]."' and vitals_timestamp = '".$get_vars["timestamp"]."'";
@@ -748,9 +754,10 @@ class healthcenter extends module{
 		print healthcenter::compute_bmi($ht,$wt);
                 print "</td></tr>";
                 print "<tr><td colspan='2'>";
-                if ($_SESSION["priv_delete"]) {
-                    print "<input type='submit' name='submitvitals' value='Delete' class='tinylight' style='border: 1px solid black'/>";
-                }
+                //if ($_SESSION["priv_delete"]) {
+                print "<input type='submit' name='submitvitals' value='Update' class='tinylight' style='border: 1px solid black'/>&nbsp;&nbsp;";
+                print "<input type='submit' name='submitvitals' value='Delete' class='tinylight' style='border: 1px solid black'/>";
+                //}
                 print "</td></tr>";
                 print "</table>";
                 print "</form>";
@@ -769,10 +776,12 @@ class healthcenter extends module{
             $isadmin = $arg_list[4];
             //print_r($arg_list);
         }
+        
+        
+            
         switch($post_vars["submitvitals"]) {
         case "Save Vital Signs":			
 			
-
 			if ($post_vars["bloodpressure"]) {
 				list($systolic, $diastolic) = explode("/", $post_vars["bloodpressure"]);
 			}
@@ -786,6 +795,20 @@ class healthcenter extends module{
 				header("location: ".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=VITALS");
 			}
 			break;
+			
+        case "Update Vital Signs":
+            if($post_vars["bloodpressure"]):
+                list($systolic,$diastolic) = explode("/",$post_vars["bloodpressure"]);
+            endif;    
+            
+            $pxid = healthcenter::get_patient_id($_GET[consult_id]);
+            
+            $update_vitals = mysql_query("UPDATE m_consult_vitals SET vitals_weight='$post_vars[bodyweight]',vitals_temp='$post_vars[bodytemp]',vitals_systolic='$systolic',vitals_diastolic='$diastolic',vitals_heartrate='$post_vars[heartrate]',vitals_resprate='$post_vars[resprate]',vitals_height='$post_vars[pxheight]',vitals_pulse='$post_vars[pxpulse]' WHERE consult_id='$get_vars[consult_id]'") or die("Cannot query: 802 ".mysql_error());
+            
+            if($update_vitals):
+                header("location: ".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=VITALS");                            
+            endif;
+        
 	}
 		
     }
@@ -801,6 +824,13 @@ class healthcenter extends module{
             $isadmin = $arg_list[4];
             //print_r($arg_list);
         }
+        
+        if($post_vars["submitvitals"]=="Update"):
+                $q_vitals = mysql_query("SELECT vitals_weight,vitals_temp,vitals_systolic,vitals_diastolic,vitals_heartrate,vitals_resprate,vitals_height,vitals_pulse FROM m_consult_vitals WHERE consult_id='$get_vars[consult_id]' AND vitals_timestamp='$get_vars[timestamp]'") or die("Cannot query 724 ".mysql_error());                
+                list($wt,$temp,$sys,$dias,$heart,$resp,$ht,$pulse) = mysql_fetch_array($q_vitals);            
+                $bp = $sys.'/'.$dias;
+        endif;                
+        
         print "<table width='300'>";
         print "<form action = '".$_SERVER["SELF"]."?page=".$get_vars["page"]."&menu_id=$menu_id&consult_id=".$get_vars["consult_id"]."&ptmenu=VITALS' name='form_vitalsigns' method='post'>";
         print "<tr valign='top'><td>";
@@ -808,40 +838,46 @@ class healthcenter extends module{
         print "</td></tr>";
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_BLOODPRESSURE."</span><br> ";
-        print "<input type='text' class='textbox' size='10' maxlength='7' name='bloodpressure' value='".($anes_eval["eval_bloodpressure"]?$anes_eval["eval_bloodpressure"]:$post_vars["bloodpressure"])."' style='border: 1px solid #000000'><br>";
+        print "<input type='text' class='textbox' size='10' maxlength='7' name='bloodpressure' value='$bp' style='border: 1px solid #000000'><br>";
         print "<small>Example: 100/90, 160/100</small><br/>";
         print "</td></tr>";
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_HEARTRATE."</span><br> ";
-        print "<input type='text' class='textbox' size='10' maxlength='7' name='heartrate' value='".($anes_eval["eval_heartrate"]?$anes_eval["eval_heartrate"]:$post_vars["heartrate"])."' style='border: 1px solid #000000'><br>";
+        print "<input type='text' class='textbox' size='10' maxlength='7' name='heartrate' value='$heart' style='border: 1px solid #000000'><br>";
         print "</td></tr>";
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_RESPRATE."</span><br> ";
-        print "<input type='text' class='textbox' size='10' maxlength='7' name='resprate' value='".($anes_eval["eval_resprate"]?$anes_eval["eval_resprate"]:$post_vars["resprate"])."' style='border: 1px solid #000000'><br>";
+        print "<input type='text' class='textbox' size='10' maxlength='7' name='resprate' value='$resp' style='border: 1px solid #000000'><br>";
         print "</td></tr>";
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_WEIGHT."</span><br> ";
-        print "<input type='text' class='textbox' size='10' maxlength='7' name='bodyweight' value='".($anes_eval["eval_weight"]?$anes_eval["eval_weight"]:$post_vars["bodyweight"])."' style='border: 1px solid #000000'><br>";
+        print "<input type='text' class='textbox' size='10' maxlength='7' name='bodyweight' value='$wt' style='border: 1px solid #000000'><br>";
         print "</td></tr>";
 
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>PULSE RATE (beats per minute)</span><br> ";
-        print "<input type='text' class='textbox' size='10' maxlength='7' name='pxpulse' value='$post_vars[pulserate]' style='border: 1px solid #000000'><br>";
+        print "<input type='text' class='textbox' size='10' maxlength='7' name='pxpulse' value='$pulse' style='border: 1px solid #000000'><br>";
         print "</td></tr>";
 
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>HEIGHT (CM)</span><br> ";
-        print "<input type='text' class='textbox' size='10' maxlength='7' name='pxheight' value='".($anes_eval["eval_weight"]?$anes_eval["eval_weight"]:$post_vars["pxheight"])."' style='border: 1px solid #000000'><br>";
+        print "<input type='text' class='textbox' size='10' maxlength='7' name='pxheight' value='$ht' style='border: 1px solid #000000'><br>";
         print "</td></tr>";
 
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_BODYTEMP."</span><br> ";
-        print "<input type='text' class='textbox' size='10' maxlength='7' name='bodytemp' value='".($anes_eval["eval_temp"]?$anes_eval["eval_temp"]:$post_vars["bodytemp"])."' style='border: 1px solid #000000'><br>";
+        print "<input type='text' class='textbox' size='10' maxlength='7' name='bodytemp' value='$temp' style='border: 1px solid #000000'><br>";
         print "</td></tr>";
         print "<tr><td>";
-        if ($_SESSION["priv_add"]) {
-            print "<br><input type='submit' value = 'Save Vital Signs' class='textbox' name='submitvitals' style='border: 1px solid #000000'><br>";
-        }
+        //if ($_SESSION["priv_add"]) {
+        
+        if($post_vars["submitvitals"]=="Update"):
+            print "<br><input type='submit' value = 'Update Vital Signs' class='textbox' name='submitvitals' style='border: 1px solid #000000'><br>";                    
+        else:
+            print "<br><input type='submit' value = 'Save Vital Signs' class='textbox' name='submitvitals' style='border: 1px solid #000000'><br>";        
+        endif;
+        
+        //}
         print "</td></tr>";
         print "</form>";
         print "</table><br>";
@@ -1227,6 +1263,8 @@ class healthcenter extends module{
             $isadmin = $arg_list[4];
             //print_r($arg_list);
         }
+	
+
         // make sure you catch where patient_id is coming from
         if ($post_vars["consult_patient_id"]) {
             $patient_id = $post_vars["consult_patient_id"];
@@ -1266,8 +1304,10 @@ class healthcenter extends module{
                 }
             }
         } else {
+
             // insert into consult table if there are no
             //   possible duplicate entries
+
             $sql = "insert into m_consult (patient_id, user_id, healthcenter_id, consult_date) ".
                    "values ('$patient_id', '".$_SESSION["userid"]."', '".$_SESSION["datanode"]["code"]."', sysdate())";
             if ($result = mysql_query($sql)) {
@@ -1299,7 +1339,7 @@ class healthcenter extends module{
             $arg_list = func_get_args();
             $systolic = $arg_list[0];
             $diastolic = $arg_list[1];
-			$edad = $arg_list[2];
+            $edad = $arg_list[2];
         }
 		
 		if($edad >= 18):
@@ -1378,6 +1418,7 @@ class healthcenter extends module{
             $arg_list = func_get_args();
             $patient_id = $arg_list[0];
         }
+
         $date = date("Y-m-d");
         $sql = "select patient_id from m_consult ".
              "where consult_end = '0000-00-00 00:00:00' and ".

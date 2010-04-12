@@ -8,7 +8,7 @@
 DATABASE_TO_REPLICATE=chits_live
 SLAVE_USERNAME=replication_user
 #SERVER_IP_ADDRESS=192.168.2.2
-SERVER_IP_ADDRESS=192.168.1.100
+SERVER_IP_ADDRESS=192.168.0.1
 
 if [ -z "$SUDO_USER" ]; then
     echo "$0 must be called from sudo. Try: 'sudo ${0}'"
@@ -29,7 +29,7 @@ set_mysql_root_password () {
 }
 if [ ! "$MYSQL_ROOT_PASSWORD" ]; then set_mysql_root_password; fi
 
-echo "Enter mysql password for user ${SLAVE_USERNAME}"
+echo "Enter mysql password for user ${SLAVE_USERNAME} (this user will be created)"
 read SLAVE_PASSWORD
 
 echo "Checking that ${DATABASE_TO_REPLICATE} database exists"
@@ -124,5 +124,5 @@ for slave in $SLAVE_IPS
     su -c "scp my.cnf.slave $slave:" $SUDO_USER
     su -c "ssh $slave \"sudo -S cp my.cnf.slave /etc/mysql/my.cnf; sudo /etc/init.d/mysql restart\"" $SUDO_USER
     su -c "scp /tmp/slave_setup.mysql $slave:" $SUDO_USER
-    su -c "ssh $slave \"cat slave_setup.mysql | mysql -u root -p$MYSQL_ROOT_PASSWORD\"" $SUDO_USER
+    su -c "ssh $slave \"cat slave_setup.mysql | mysql -u root -p$SLAVE_PASSWORD\"" $SUDO_USER
 done
