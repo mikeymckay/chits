@@ -30,7 +30,7 @@
 			$this->module = 'sanitation';
 			$this->description = 'CHITS Module - Environmental Sanitation Program';  
 
-			$this->members_info = array();
+			$this->family_members_info = array();
 			$this->family_id;
 			$this->household_number;
 			$this->selected_household = 0;
@@ -219,6 +219,7 @@
                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
+
 		// Comment date: April 8, 2010, JVTolentino
 		// This function will return an array, of which the values are in this order: 
 		//	- patient lastname
@@ -226,7 +227,7 @@
 		//	- family id
 		//	- family role
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		function search_household_members() {
+		function search_family_members() {
 			if(($_POST['household_member_lastname'] == '') && ($_POST['household_member_firstname'] == '')) return;
 			$ln = $_POST['household_member_lastname'];
 			$fn = $_POST['household_member_firstname'];
@@ -248,10 +249,10 @@
 
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		function show_search_household_member() {
+		function show_search_family_member() {
 			print "<table border=3 bordercolor='black' align='center' width=600>";
                                 print "<tr>";
-                                        print "<th colspan='2' align='left' bgcolor='CC9900'>SEARCH HOUSEHOLD MEMBER</th>";
+                                        print "<th colspan='2' align='left' bgcolor='CC9900'>SEARCH FAMILY MEMBER</th>";
                                 print "</tr>";
 
                                 print "<tr>";
@@ -264,14 +265,14 @@
 				print "</tr>";
 
 				print "<tr>";
-					print "<th colspan='2' align='left' bgcolor='CC9900'>SELECT HOUSEHOLD MEMBER</th>";
+					print "<th colspan='2' align='left' bgcolor='CC9900'>SELECT FAMILY MEMBER</th>";
 				print "</tr>";
 
-				if(count($this->members_info)>0) {
+				if(count($this->family_members_info)>0) {
 					print "<tr>";
 						print "<td colspan='2'>";
-						for($i=0; $i<count($this->members_info); $i=$i+4) {
-							print "<input type='radio' name='household_member' value='".$this->members_info[$i+2]."'>".$this->members_info[$i].", ".$this->members_info[$i+1]." (".$this->members_info[$i+3].")</input><br>";
+						for($i=0; $i<count($this->family_members_info); $i=$i+4) {
+							print "<input type='radio' name='family_id' value='".$this->family_members_info[$i+2]."'>".$this->family_members_info[$i].", ".$this->family_members_info[$i+1]." (".$this->family_members_info[$i+3].")</input><br>";
 						}
 						print "</td>";
 					print "</tr>";
@@ -311,6 +312,25 @@
 
 
 
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function search_household_members() {
+			$household_members = array();
+			if($this->selected_household == '') return $household_members;
+
+			$query = "SELECT c.patient_lastname, c.patient_firstname, b.family_role FROM m_sanitation_household a INNER JOIN m_family_members b ON a.family_id = b.family_id INNER JOIN m_patient c ON b.patient_id = c.patient_id WHERE a.household_number = ".$this->selected_household." AND b.family_role = 'Head'";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			while(list($patient_lastname, $patient_firstname, $family_role) = mysql_fetch_array($result)) {
+				array_push($household_members, $patient_lastname);
+				array_push($household_members, $patient_firstname);
+				array_push($household_members, $family_role);
+			}
+			return $household_members;
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
 		// Comment date: Apr 12, 2010, JVTolentino
 		// This function will create a household table based on 
 		// $this->household_number.
@@ -328,6 +348,18 @@
 				}
 				else {
 					print "<td align='center'>To <b><i>select this household</i></b> for editing, click the 'Select This Household' button. &nbsp;<input type='submit' name='submit_button' value='Select This Household'></input></td>";
+				}
+
+				$household_members = array();
+				$household_members = $this->search_household_members();
+				if(count($household_members)>0) {
+					print "<tr>";
+						print "<td>";
+							for($i=0; $i<count($household_members()); $i+=3) {
+								print "".$household_members($i).", ".$household_members($i+1)."(".$household_members($i+2).")";
+							}
+						print "</td>";
+					print "</tr>";
 				}
 
 			print "</table>";
@@ -383,19 +415,13 @@
 		// Comment date: Apr 8, 2010, JVTolentino
 		// This function will get the household number of a family
 		// 	based on their family id.
+		// Comment date: Apr 13, 2010, JVTolentino
+		// Simplified this function.
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		function get_household_number() {
-			if($_POST['household_member'] == '') {
-				$this->household_number = '';
-				$this->family_id = '';
-			}
-			else {
-				$this->family_id = $_POST['household_member'];
-			}
-
+		function get_household_number($family_id) {
 			$query = "SELECT household_number FROM m_sanitation_household ".
-				"WHERE family_id = {$this->family_id} ";
-			$result = mysql_query($query) or die("Couldn't execute query.");
+				"WHERE family_id = $family_id ";
+			$result = mysql_query($query) or die("Couldn't execute query.".mysql_error());
 
 			if(mysql_num_rows($result)) {
 				$row = mysql_fetch_assoc($result);
@@ -410,17 +436,70 @@
 		function submit_button_clicked() {
 			switch($_POST['submit_button']) {
 				case 'Search':
-					$this->members_info = $this->search_household_members();
+					$this->family_members_info = $this->search_family_members();
 					break;
 				case 'Edit Household':
-					$this->household_number = $this->get_household_number();
+					if($_POST['family_id'] == '') {
+						break;
+					}
+					else {
+						$household_number = $this->get_household_number($_POST['family_id']);
+						print $household_number."<br>".$_POST['family_id'];
+					}
 					break;
+				/*
 				case 'Create Household':
-					if($_POST['household_member'] != '') {
+					if($_POST['family_member'] != '') {
 						$this->create_household();
 					}
 					break;
+				case 'Select This Household':
+					print "<input type='hidden' name='h_selected_household' value='".$this->household."'></input>";
+					//print "<input type='hidden' name='h_family_id' value='".$this->family_id."'></input>";
+					break;
+				*/
+				default:
+					break;
 			}
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// Comment date: Apr 13, 2010, JVTolentino
+		// This function is created to make the whole sanitation household
+		//	process be broken down into several stages.
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function sanitation_household() {
+			switch($_POST['h_household_process_stage']) {
+				case 'Editing A Household':
+
+					print "Editing a household stage";
+					break;
+				
+				default:
+					$this->show_search_family_member();
+					break;
+			}
+
+
+
+				/*
+						if(@$_POST['h_save_flag'] == 'GO') {
+							$sanitation->submit_button_clicked();
+
+							$sanitation->show_search_family_member();
+
+					//print "&nbsp;";
+					//$sanitation->household();
+						}
+				else {
+					$sanitation->show_search_family_member();
+
+					//print "&nbsp;";
+					//$sanitation->household();
+				}
+				*/
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -433,24 +512,10 @@
 			print "<form name='form_sanitation' action='$_POST[PHP_SELF]' method='POST'>";
 				$sanitation = new sanitation;
 
-				if(@$_POST['h_save_flag'] == 'GO') {
-					$sanitation->submit_button_clicked();
+				$sanitation->submit_button_clicked();
+				$sanitation->sanitation_household();
 
-					$sanitation->show_search_household_member();
-
-					print "&nbsp;";
-					$sanitation->household();
-				}
-				else {
-					$sanitation->show_search_household_member();
-
-					print "&nbsp;";
-					$sanitation->household();
-				}
-
-				echo "<input type='hidden' name='h_save_flag' value='GO'></input>";
-				print "<input type='hidden' name='h_selected_household' value='".$this->selected_household."'></input>";
-
+				//echo "<input type='hidden' name='h_save_flag' value='GO'></input>";
 			print "</form>";
 
 
