@@ -66,10 +66,10 @@ if ($user->check_users()) {
 // do not edit or delete
 include "../modules/_modules.php";
 
-<<<<<<< HEAD:info/index.php
 
 
-=======
+
+
 /*mysql_query("ALTER TABLE `m_patient` DROP PRIMARY KEY , ADD PRIMARY KEY (`patient_id`)");
 mysql_query("ALTER TABLE `m_consult` DROP PRIMARY KEY , ADD PRIMARY KEY (`consult_id`)");
 mysql_query("ALTER TABLE `m_family` DROP PRIMARY KEY , ADD PRIMARY KEY (`family_id`)");
@@ -91,7 +91,7 @@ mysql_query("ALTER TABLE `m_dental_patient_ohc` DROP PRIMARY KEY, ADD PRIMARY KE
 mysql_query("ALTER TABLE `m_dental_patient_ohc_table_a` DROP PRIMARY KEY, ADD PRIMARY KEY(`ohc_table_id`)");
 mysql_query("ALTER TABLE `m_dental_services` DROP PRIMARY KEY, ADD PRIMARY KEY(`service_id`)");
 */
->>>>>>> c61492602f429d3000c3e5c76bb3210250a99be1:info/index.php
+
 ?>
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">

@@ -85,6 +85,12 @@ When /^I check "([^\"]*)"$/ do |field|
   check(field) 
 end
 
+When /^I check by value "([^\"]*)"$/ do |value|
+  xpath = "//input[@value='#{value}']"
+  check(field_by_xpath(xpath))
+end
+
+
 When /^I uncheck "([^\"]*)"$/ do |field|
   uncheck(field) 
 end
