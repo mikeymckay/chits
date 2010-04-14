@@ -33,7 +33,7 @@
 			$this->family_members_info = array();
 			$this->family_id;
 			$this->household_number;
-			$this->selected_household = 0;
+			//$this->selected_household = 0;
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		
@@ -333,21 +333,42 @@
 
 		// Comment date: Apr 12, 2010, JVTolentino
 		// This function will create a household table based on 
-		// $this->household_number.
+		// 	household_number.
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function show_household_control() {
-			if($this->family_id == '') return;
 			print "<table border=3 bordercolor='black' align='center' width=600>";
                                 print "<tr>";
 						print "<th align='left' bgcolor='CC9900'>HOUSEHOLD (Family ID {$this->family_id} / Household ID {$this->household_number})</th>";
 				print "</tr>";
 
-				print "<tr>";
-				if($this->household_number == '') {
-					print "<td align='center'>To <b><i>create a household</i></b> for this family, click the 'Create a Household' button. &nbsp;<input type='submit' name='submit_button' value='Create a Household'></input></td>";
+				if($this->family_id == '') {
+					print "<tr><td align='center'>Please select a family first to continue...</td></tr>";
 				}
-				else {
-					print "<td align='center'>To <b><i>select this household</i></b> for editing, click the 'Select This Household' button. &nbsp;<input type='submit' name='submit_button' value='Select This Household'></input></td>";
+				elseif(($this->family_id != '') && ($this->household_number == '')) {
+					print "<tr>";
+						print "<td align='center'>Click this button if you're done editing. &nbsp;".
+							"<input type='submit' name='submit_button' value='Done Editing'></input>".
+							"</td>";
+					print "</tr>";
+
+					print "<tr>";
+						print "<td align='center'>To <b><i>create a household</i></b> for this family, ".
+							"click the 'Create a Household' button. &nbsp;".
+							"<input type='submit' name='submit_button' value='Create a Household'></input></td>";
+					print "</tr>";
+				}
+				elseif(($this->family_id != '') && ($this->household_number != '')) {
+					print "<tr>";
+						print "<td align='center'>Click this button if you're done editing. &nbsp;".
+							"<input type='submit' name='submit_button' value='Done Editing'></input>".
+                                                        "</td>";
+                                        print "</tr>";
+
+					print "<tr>";
+                                                print "<td align='center'>To <b><i>select this household</i></b> for editing, ".
+                                                        "click the 'Select This Household' button. &nbsp;".
+                                                        "<input type='submit' name='submit_button' value='Select This Household'></input></td>";
+                                        print "</tr>";
 				}
 
 				$household_members = array();
@@ -365,16 +386,6 @@
 			print "</table>";
 		}
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-
-
-		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		function household() {
-			$this->show_household_control();
-			print "&nbsp;";
-			$this->show_household_sanitation();
-		}
-		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 
@@ -399,9 +410,8 @@
 
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		function create_household() {
-			$household_number = $this->create_household_number();
-			$family_id = $_POST['household_member'];
+		function create_household($household_number) {
+			$family_id = $this->family_id;
 			$userid = $_SESSION['userid'];
 
 			$query = "INSERT INTO m_sanitation_household (household_number, family_id, user_id) ".
@@ -436,31 +446,41 @@
 		function submit_button_clicked() {
 			switch($_POST['submit_button']) {
 				case 'Search':
+					if(($this->family_id != '') && ($this->household_number == '')) break;
+					if(($this->family_id != '') && ($this->household_number != '')) break;
 					$this->family_members_info = $this->search_family_members();
 					break;
+				case 'Done Editing':
+					$this->family_id = '';
+					$this->household_number = '';
+					break;
 				case 'Edit Household':
-					if($_POST['family_id'] == '') {
-						break;
-					}
-					else {
-						$household_number = $this->get_household_number($_POST['family_id']);
-						print $household_number."<br>".$_POST['family_id'];
+					if($_POST['family_id'] != '') {
+						$this->family_id = $_POST['family_id'];
+						$this->household_number = $this->get_household_number($this->family_id);
 					}
 					break;
-				/*
-				case 'Create Household':
-					if($_POST['family_member'] != '') {
-						$this->create_household();
-					}
+				case 'Create a Household':
+					$this->household_number = $this->create_household_number();
+					$this->create_household($this->household_number);
 					break;
-				case 'Select This Household':
-					print "<input type='hidden' name='h_selected_household' value='".$this->household."'></input>";
-					//print "<input type='hidden' name='h_family_id' value='".$this->family_id."'></input>";
-					break;
-				*/
 				default:
 					break;
 			}
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// Comment date: Apr 14, 2010, JVTolentino
+		// In order to maintain the values of all global variables after every submits,
+		// 	this function needs to be called (first) every time a new instance
+		//	of the module is created. The hidden inputs must be given their values 
+		// 	before the new instance is created (at the end of sanitation_household()).
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function init_global_var() {
+			$this->family_id = $_POST['h_family_id'];
+			$this->household_number = $_POST['h_household_number'];
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -471,35 +491,15 @@
 		//	process be broken down into several stages.
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function sanitation_household() {
-			switch($_POST['h_household_process_stage']) {
-				case 'Editing A Household':
+				$this->init_global_var();
+				$this->submit_button_clicked();
+				$this->show_search_family_member();
 
-					print "Editing a household stage";
-					break;
-				
-				default:
-					$this->show_search_family_member();
-					break;
-			}
+				print "&nbsp;";
+				$this->show_household_control();
 
-
-
-				/*
-						if(@$_POST['h_save_flag'] == 'GO') {
-							$sanitation->submit_button_clicked();
-
-							$sanitation->show_search_family_member();
-
-					//print "&nbsp;";
-					//$sanitation->household();
-						}
-				else {
-					$sanitation->show_search_family_member();
-
-					//print "&nbsp;";
-					//$sanitation->household();
-				}
-				*/
+				print "<input type='hidden' name='h_family_id' value='".$this->family_id."'></input>";
+				print "<input type='hidden' name='h_household_number' value='".$this->household_number."'></input>";
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -512,10 +512,9 @@
 			print "<form name='form_sanitation' action='$_POST[PHP_SELF]' method='POST'>";
 				$sanitation = new sanitation;
 
-				$sanitation->submit_button_clicked();
+				$sanitation->init_primary_keys();
 				$sanitation->sanitation_household();
 
-				//echo "<input type='hidden' name='h_save_flag' value='GO'></input>";
 			print "</form>";
 
 
