@@ -33,7 +33,7 @@
 			$this->family_members_info = array();
 			$this->family_id;
 			$this->household_number;
-			//$this->selected_household = 0;
+			$this->selected_household;
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		
@@ -250,6 +250,9 @@
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function show_search_family_member() {
+			if(($this->family_id != '') && ($this->household_number == '') && ($this->selected_household == '')) return;
+			if(($this->family_id != '') && ($this->household_number != '') && ($this->selected_household == '')) return;
+			if($this->selected_household != '') return;
 			print "<table border=3 bordercolor='black' align='center' width=600>";
                                 print "<tr>";
                                         print "<th colspan='2' align='left' bgcolor='CC9900'>SEARCH FAMILY MEMBER</th>";
@@ -341,10 +344,10 @@
 						print "<th align='left' bgcolor='CC9900'>HOUSEHOLD (Family ID {$this->family_id} / Household ID {$this->household_number})</th>";
 				print "</tr>";
 
-				if($this->family_id == '') {
+				if(($this->family_id == '') && ($this->selected_household == '')) {
 					print "<tr><td align='center'>Please select a family first to continue...</td></tr>";
 				}
-				elseif(($this->family_id != '') && ($this->household_number == '')) {
+				elseif(($this->family_id != '') && ($this->household_number == '') && ($this->selected_household == '')) {
 					print "<tr>";
 						print "<td align='center'>Click this button if you're done editing. &nbsp;".
 							"<input type='submit' name='submit_button' value='Done Editing'></input>".
@@ -357,7 +360,7 @@
 							"<input type='submit' name='submit_button' value='Create a Household'></input></td>";
 					print "</tr>";
 				}
-				elseif(($this->family_id != '') && ($this->household_number != '')) {
+				elseif(($this->family_id != '') && ($this->household_number != '') && ($this->selected_household == '')) {
 					print "<tr>";
 						print "<td align='center'>Click this button if you're done editing. &nbsp;".
 							"<input type='submit' name='submit_button' value='Done Editing'></input>".
@@ -370,18 +373,32 @@
                                                         "<input type='submit' name='submit_button' value='Select This Household'></input></td>";
                                         print "</tr>";
 				}
+				elseif($this->selected_household != '') {
+					print "<tr>";
+                                                print "<td align='center'>Click this button if you're done editing. &nbsp;".
+                                                        "<input type='submit' name='submit_button' value='Done Editing'></input>".
+                                                        "</td>";
+                                        print "</tr>";
 
+                                        print "<tr>";
+                                                print "<td align='center'>{$this->selected_household}</td>";
+                                        print "</tr>";
+				}
+
+				/*
 				$household_members = array();
 				$household_members = $this->search_household_members();
 				if(count($household_members)>0) {
 					print "<tr>";
 						print "<td>";
-							for($i=0; $i<count($household_members()); $i+=3) {
-								print "".$household_members($i).", ".$household_members($i+1)."(".$household_members($i+2).")";
+							for($i=0; $i<count($household_members); $i+=3) {
+								print "{$household_members(0)}";
+								//print "".$household_members($i).", ".$household_members($i+1)."(".$household_members($i+2).")";
 							}
 						print "</td>";
 					print "</tr>";
 				}
+				*/
 
 			print "</table>";
 		}
@@ -446,13 +463,12 @@
 		function submit_button_clicked() {
 			switch($_POST['submit_button']) {
 				case 'Search':
-					if(($this->family_id != '') && ($this->household_number == '')) break;
-					if(($this->family_id != '') && ($this->household_number != '')) break;
 					$this->family_members_info = $this->search_family_members();
 					break;
 				case 'Done Editing':
 					$this->family_id = '';
 					$this->household_number = '';
+					$this->selected_household = '';
 					break;
 				case 'Edit Household':
 					if($_POST['family_id'] != '') {
@@ -463,6 +479,9 @@
 				case 'Create a Household':
 					$this->household_number = $this->create_household_number();
 					$this->create_household($this->household_number);
+					break;
+				case 'Select This Household':
+					$this->selected_household = $this->household_number;
 					break;
 				default:
 					break;
@@ -481,6 +500,7 @@
 		function init_global_var() {
 			$this->family_id = $_POST['h_family_id'];
 			$this->household_number = $_POST['h_household_number'];
+			$this->selected_household = $_POST['h_selected_household'];
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -500,6 +520,7 @@
 
 				print "<input type='hidden' name='h_family_id' value='".$this->family_id."'></input>";
 				print "<input type='hidden' name='h_household_number' value='".$this->household_number."'></input>";
+				print "<input type='hidden' name='h_selected_household' value='".$this->selected_household."'></input>";
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
