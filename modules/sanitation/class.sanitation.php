@@ -250,9 +250,13 @@
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function show_search_family_member() {
-			if(($this->family_id != '') && ($this->household_number == '') && ($this->selected_household == '')) return;
-			if(($this->family_id != '') && ($this->household_number != '') && ($this->selected_household == '')) return;
-			if($this->selected_household != '') return;
+			if($this->selected_household == '') {
+				if(($this->family_id != '') && ($this->household_number == '')) return;
+				if(($this->family_id != '') && ($this->household_number != '')) return;
+			}
+			else {
+				//if($this->selected_household != '') return;
+			}
 			print "<table border=3 bordercolor='black' align='center' width=600>";
                                 print "<tr>";
                                         print "<th colspan='2' align='left' bgcolor='CC9900'>SEARCH FAMILY MEMBER</th>";
@@ -281,7 +285,16 @@
 					print "</tr>";
 
 					print "<tr>";
-						print "<td colspan='2' align='center'>To <i><b>edit a household</b></i>, select a family member and then click the 'Edit Household' button.&nbsp;<input type='submit' name='submit_button' value='Edit Household'></input></td>";
+						if($this->selected_household == '') {
+							print "<td colspan='2' align='center'>".
+								"To <i><b>edit a household</b></i>, ".
+								"select a family member and then click the 'Edit Household' button. ".
+								"<input type='submit' name='submit_button' value='Edit Household'></input></td>";
+						}
+						else {
+							print "<td colspan='2' align='center'>".
+								"<input type='submit' name='submit_button' value='Add Family To Household'></input></td>";
+						}
 					print "</tr>";
 				}
                         print "</table>";
@@ -293,9 +306,9 @@
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function show_household_sanitation() {
 			print "<table border=3 bordercolor='black' align='center' width=600>";
-				print "<tr>";
-					print "<th align='left' bgcolor=#CC9900#>HOUSEHOLD SANITATION</th>";
-				print "</tr>";
+				//print "<tr>";
+					//print "<th align='left' bgcolor=#CC9900#>HOUSEHOLD SANITATION</th>";
+				//print "</tr>";
 
 				print "<tr>";
 					print "<td>";
@@ -320,15 +333,43 @@
 			$household_members = array();
 			if($this->selected_household == '') return $household_members;
 
-			$query = "SELECT c.patient_lastname, c.patient_firstname, b.family_role FROM m_sanitation_household a INNER JOIN m_family_members b ON a.family_id = b.family_id INNER JOIN m_patient c ON b.patient_id = c.patient_id WHERE a.household_number = ".$this->selected_household." AND b.family_role = 'Head'";
+			$query = "SELECT c.patient_lastname, c.patient_firstname, b.family_role, b.family_id ".
+				"FROM m_sanitation_household a INNER JOIN m_family_members b ON a.family_id = b.family_id ".
+				"INNER JOIN m_patient c ON b.patient_id = c.patient_id ".
+				"WHERE a.household_number = ".$this->selected_household." AND b.family_role = 'Head' ORDER BY c.patient_lastname";
 			$result = mysql_query($query) or die("Couldn't execute query.");
 
-			while(list($patient_lastname, $patient_firstname, $family_role) = mysql_fetch_array($result)) {
+			while(list($patient_lastname, $patient_firstname, $family_role, $family_id) = mysql_fetch_array($result)) {
 				array_push($household_members, $patient_lastname);
 				array_push($household_members, $patient_firstname);
 				array_push($household_members, $family_role);
+				array_push($household_members, $family_id);
 			}
 			return $household_members;
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function delete_household_member($household_number, $family_id) {
+			if(($household_number == '') || ($family_id == '')) return;
+
+			$query = "DELETE FROM m_sanitation_household WHERE household_number = $household_number AND family_id = $family_id ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function household_members_count($household_number) {
+			if($household_number == '')  return;
+
+			$query = "SELECT household_number FROM m_sanitation_household WHERE household_number = $household_number ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			return mysql_num_rows($result);
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -380,25 +421,28 @@
                                                         "</td>";
                                         print "</tr>";
 
-                                        print "<tr>";
-                                                print "<td align='center'>{$this->selected_household}</td>";
-                                        print "</tr>";
-				}
+					$household_members = array();
+					$household_members = $this->search_household_members();
+					if(count($household_members)>0) {
+                                        	print "<tr>";
+							print "<td>";
+								for($i=0; $i<count($household_members); $i+=4) {
+									print "<input type='radio' name='household_member' value='".$household_members[$i+3]."'>".
+										$household_members[$i].", ".$household_members[$i+1]." (".
+										$household_members[$i+2].")</input><br>";;
+								}
+							print "<br>To <b><i>delete a family</i></b> from this household, click this button ".
+								"<input type='submit' name='submit_button' value='Delete This Family'></input>";
+							print "</td>";
+                                        	print "</tr>";
+					}
 
-				/*
-				$household_members = array();
-				$household_members = $this->search_household_members();
-				if(count($household_members)>0) {
 					print "<tr>";
 						print "<td>";
-							for($i=0; $i<count($household_members); $i+=3) {
-								print "{$household_members(0)}";
-								//print "".$household_members($i).", ".$household_members($i+1)."(".$household_members($i+2).")";
-							}
+							$this->show_household_sanitation();
 						print "</td>";
 					print "</tr>";
 				}
-				*/
 
 			print "</table>";
 		}
@@ -425,10 +469,13 @@
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
-
+		// Comment date: Apr 19, 2010. JVTolentino
+		// Made a minor adjustment to this function, instead of getting the family id from
+		// 	$this->family_id, it will be passed as an argument to this function.
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		function create_household($household_number) {
-			$family_id = $this->family_id;
+		function create_household($household_number, $family_id) {
+			if(($household_number == '') || ($family_id == '')) return;
+			//$family_id = $this->family_id;
 			$userid = $_SESSION['userid'];
 
 			$query = "INSERT INTO m_sanitation_household (household_number, family_id, user_id) ".
@@ -478,10 +525,25 @@
 					break;
 				case 'Create a Household':
 					$this->household_number = $this->create_household_number();
-					$this->create_household($this->household_number);
+					$this->create_household($this->household_number, $this->family_id);
 					break;
 				case 'Select This Household':
 					$this->selected_household = $this->household_number;
+					break;
+				case 'Add Family To Household':
+					//print $_POST['family_id'];
+					if(($this->selected_household == '') || ($_POST['family_id'] == '')) return;
+					$this->create_household($this->selected_household, $_POST['family_id']);
+					break;
+				case 'Delete This Family':
+					if (($this->selected_household == '') || ($_POST['household_member'] == '')) return;
+					$this->delete_household_member($this->selected_household, $_POST['household_member']);
+
+					if($this->household_members_count($this->selected_household) == 0) {
+						$this->household_number = '';
+						$this->family_id = '';
+						$this->selected_household = '';
+					}
 					break;
 				default:
 					break;
