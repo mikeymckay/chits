@@ -172,9 +172,9 @@
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 function show_water_supply() {
-			print "<table border=1 align='left'>";
+			print "<table border='1' align='left'>";
                         	print "<tr>";
-                                	print "<td align='left' colspan=2 bgcolor='CC9900'><i><b>Access to Improved or Safe Water Supply</i></b></td>";
+                                	print "<td align='left' colspan='2'><i><b>Access to Improved or Safe Water Supply</i></b></td>";
                           	print "</tr>";
 
 				print "<tr>";
@@ -199,9 +199,9 @@
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 function show_sanitary_toilets() {
-			print "<table border=1 align='left'>";
+			print "<table border='1' align='left'>";
                                 print "<tr>";
-                                        print "<td align='left' colspan=2 bgcolor='CC9900'><i><b>Sanitary Toilets</i></b></td>";
+                                        print "<td align='left' colspan='2'><i><b>Sanitary Toilets</i></b></td>";
                                 print "</tr>";
 
 				print "<tr>";
@@ -216,6 +216,25 @@
 			print "</table>";
 
 		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function show_disposal_of_solid_waste() {
+			print "<table border='1' align='left'>";
+                                print "<tr>";
+                                        print "<td align='left' colspan='2'><i><b>Disposal of Solid Waste</i></b></td>";
+                                print "</tr>";
+
+                                print "<tr>";
+                                        print "<td><input type='checkbox' name='disposal_of_solid_waste' value='yes'>".
+						"With Satisfactory Disposal of Solid Waste</input></td>";
+                                        print "<td>Satisfactory disposal of solid waste refers to households with garbage disposal through composting, burying, city/municipal system.</td>";
+                                print "</tr>";
+                        print "</table>";
+
+                }
                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
@@ -431,16 +450,55 @@
 										$household_members[$i].", ".$household_members[$i+1]." (".
 										$household_members[$i+2].")</input><br>";;
 								}
-							print "<br>To <b><i>delete a family</i></b> from this household, click this button ".
-								"<input type='submit' name='submit_button' value='Delete This Family'></input>";
-							print "</td>";
+						print "</tr>";
+
+						print "<tr>";
+							print "<td align='center'>To <b><i>delete a family</i></b> from this household, select a family and ".
+								"then click the 'Delete This Family' button. ".
+								"<input type='submit' name='submit_button' value='Delete This Family'></input></td>";
                                         	print "</tr>";
 					}
 
 					print "<tr>";
+						print "<th align='left' bgcolor='CC9900'>INDICATORS</th>";
+				print "</tr>";
+
+					print "<tr>";
+						list($month, $day, $year) = explode("/", date("m/d/Y"));
+						$current_year = $year;
+						print "<td><select name='select_year'>".
+							"<option value='".($current_year-3)."'>".($current_year-3)."</option>".
+							"<option value='".($current_year-2)."'>".($current_year-2)."</option>".
+							"<option value='".($current_year-1)."'>".($current_year-1)."</option>".
+							"<option value='$current_year' selected>$current_year</option>".
+							"<option value='".($current_year+1)."'>".($current_year+1)."</option>".
+							"<option value='".($current_year+2)."'>".($current_year+2)."</option>".
+							"<option value='".($current_year+3)."'>".($current_year+3)."</option>".
+							"</select></td>";
+					print "</tr>";
+
+					print "<tr>";
 						print "<td>";
-							$this->show_household_sanitation();
+							//$this->show_household_sanitation();
+							$this->show_water_supply();
 						print "</td>";
+					print "</tr>";
+
+					print "<tr>";
+						print "<td>";
+							$this->show_sanitary_toilets();
+						print "</td>";
+					print "</tr>";
+
+					print "<tr>";
+                                                print "<td>";
+                                                        $this->show_disposal_of_solid_waste();
+                                                print "</td>";
+                                        print "</tr>";
+
+					print "<tr>";
+						print "<td align='center'><input type='submit' name='submit_button' value='Save Household Sanitation'>".
+							"</input></td>";
 					print "</tr>";
 				}
 
