@@ -109,9 +109,6 @@
 				"`record_number` float NOT NULL AUTO_INCREMENT,".
 				"`household_number` float NOT NULL,".
 				"`family_id` float NOT NULL,".
-				"`water_supply` char(25) COLLATE swe7_bin NOT NULL,".
-				"`sanitary_toilet` char(25) COLLATE swe7_bin NOT NULL,".
-				"`disposal_of_solid_waste` char(25) COLLATE swe7_bin NOT NULL,".
 				"`user_id` float NOT NULL,".
 				"PRIMARY KEY (`record_number`)".
 				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
@@ -123,7 +120,23 @@
 				"`date_updated` date NOT NULL,".
 				"PRIMARY KEY (`household_number`)".
 				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
-			
+
+
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_sanitation_water_supply` (".
+  				"`household_number` float NOT NULL,".
+  				"`water_supply_level` int(11) NOT NULL,".
+  				"`year_inspected` int(11) NOT NULL,".
+  				"`user_id` float NOT NULL".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
+
+
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_sanitation_sanitary_toilet` (".
+				"  `household_number` float NOT NULL,".
+				"  `sanitary_toilet` char(25) COLLATE swe7_bin NOT NULL,".
+				"  `year_inspected` int(11) NOT NULL,".
+				"  `user_id` float NOT NULL".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
+
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -138,6 +151,8 @@
 		function drop_tables() {
 			module::execsql("DROP TABLE `m_sanitation_household`");
 			module::execsql("DROP TABLE `m_sanitation_hosuehold_list`");
+			module::execsql("DROP TABLE `m_sanitation_water_supply`");
+			module::execsql("DROP TABLE `m_sanitation_sanitary_toilets`");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -156,6 +171,7 @@
 		// End date: 
 		// Version Release Date: 
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -177,23 +193,95 @@
                                 	print "<td align='left' colspan='2'><i><b>Access to Improved or Safe Water Supply</i></b></td>";
                           	print "</tr>";
 
+				$water_supply_level = $this->get_last_water_supply_level($this->selected_household);
+
 				print "<tr>";
-					print "<td><input type='radio' name='water_supply' value='level_1'>Level I (Point Source)</input></td>";
+					if($water_supply_level == 1) {
+						print "<td><input type='radio' name='water_supply' value='level_1' checked>Level I (Point Source)</input></td>";
+					}
+					else {
+						print "<td><input type='radio' name='water_supply' value='level_1'>Level I (Point Source)</input></td>";
+					}
 					print "<td>Level I refers to a protected well (shallow and deep well), improved dug well, developed spring, or rainwater cistern with an outlet but without a distribution system.</td>";
 				print "</tr>";
 
 				print "<tr>";
-					print "<td><input type='radio' name='water_supply' value='level_2'>Level II (Communal Faucet or Standpost System)</input></td>";
+					if($water_supply_level == 2) {
+						print "<td><input type='radio' name='water_supply' value='level_2' checked>Level II (Communal Faucet or Standpost System)</input></td>";
+					}
+					else {
+						print "<td><input type='radio' name='water_supply' value='level_2'>Level II (Communal Faucet or Standpost System)</input></td>";
+					}
 					print "<td>Level II refers to a system composed of a source, a reservoir, a piped distribution network, and a communal faucet located not more than 25 meters from the farthest house.</td>";
 				print "</tr>";
 
 				print "<tr>";
-					print "<td><input type='radio' name='water_supply value='level_3'>Level III (Waterworks System)</input></td>";
+					if($water_supply_level == 3) {
+						print "<td><input type='radio' name='water_supply' value='level_3' checked>Level III (Waterworks System)</input></td>";
+					}
+					else {
+						print "<td><input type='radio' name='water_supply' value='level_3'>Level III (Waterworks System)</input></td>";
+					}
 					print "<td>Level III is a system with a source, transmission pipes, a reservoir, and a piped distribution network for household taps. Example of these are MWSS and water districts with individual household connections.</td>";
 				print "</tr>";
                   	print "</table>";
                 }
                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function save_water_supply_level($household_number, $year_inspected, $water_supply_level) {
+			$query = "INSERT INTO m_sanitation_water_supply (household_number, water_supply_level, year_inspected, user_id) ".
+				"VALUES($household_number, $water_supply_level, $year_inspected, {$_SESSION['userid']}) ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function update_water_supply_level($household_number, $year_inspected, $water_supply_level) {
+			$query = "UPDATE m_sanitation_water_supply SET ".
+				"water_supply_level = $water_supply_level, ".
+				"user_id = {$_SESSION['userid']} ".
+				"WHERE household_number = $household_number ".
+				"AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function get_last_water_supply_level($household_number) {
+			$query = "SELECT water_supply_level FROM m_sanitation_water_supply ".
+				"WHERE household_number = $household_number ORDER BY year_inspected DESC ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			if(mysql_num_rows($result)) {
+				$row = mysql_fetch_assoc($result);
+				return $row['water_supply_level'];
+			}
+			else {
+				return;
+			}
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function water_supply_inspected($household_number, $year_inspected) {
+			if(($household_number == '') || ($year_inspected == '')) return;
+
+			$query = "SELECT year_inspected FROM m_sanitation_water_supply ".
+				"WHERE household_number = $household_number AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			return mysql_num_rows($result);
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 
@@ -204,12 +292,36 @@
                                         print "<td align='left' colspan='2'><i><b>Sanitary Toilets</i></b></td>";
                                 print "</tr>";
 
+				$sanitary_toilet = $this->get_last_sanitary_toilet($this->selected_household);
 				print "<tr>";
 					print "<td><select name='sanitary_toilet'>";
-						print "<option value=''>Choose One</option>";
-						print "<option value='water_sealed'>Water Sealed</option>";
-						print "<option value='pit_privy'>Pit Privy</option>";
-						print "<option value='without'>Without</option>";
+						if($sanitary_toilet == '') {
+							print "<option value='' selected>Choose One</option>";
+						}
+						else {
+							print "<option value=''>Choose One</option>";
+						}
+
+						if($sanitary_toilet == 'Water Sealed') {
+							print "<option value='Water Sealed' selected>Water Sealed</option>";
+						}
+						else {
+							print "<option value='Water Sealed'>Water Sealed</option>";
+						}
+
+						if($sanitary_toilet == 'Pit Privy') {
+							print "<option value='Pit Privy' selected>Pit Privy</option>";
+						}
+						else {
+							print "<option value='Pit Privy'>Pit Privy</option>";
+						}
+
+						if($sanitary_toilet == 'Without') {
+							print "<option value='Without' selected>Without</option>";
+						}
+						else {
+							print "<option value='Without'>Without</option>";
+						}
 					print "</select></td>";
 					print "<td>Sanitary toilets refer to households with flush toilets connected to sceptic tanks and/or sewerage system or any other approved treatment system, sanitary pit latrine or ventilated improved pit latrine.</td>";
 				print "</tr>";
@@ -217,6 +329,61 @@
 
 		}
                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function save_sanitary_toilet($household_number, $year_inspected, $sanitary_toilet) {
+			$query = "INSERT INTO m_sanitation_sanitary_toilet (household_number, sanitary_toilet, year_inspected, user_id) ".
+                                "VALUES($household_number, '$sanitary_toilet', $year_inspected, {$_SESSION['userid']}) ";
+                        $result = mysql_query($query) or die("Couldn't execute query.".mysql_error());
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function update_sanitary_toilet($household_number, $year_inspected, $sanitary_toilet) {
+			$query = "UPDATE m_sanitation_sanitary_toilet SET ".
+				"sanitary_toilet = '$sanitary_toilet', ".
+				"user_id = {$_SESSION['userid']} ".
+				"WHERE household_number = $household_number ".
+				"AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function get_last_sanitary_toilet($household_number) {
+			$query = "SELECT sanitary_toilet FROM m_sanitation_sanitary_toilet ".
+				"WHERE household_number = $household_number ORDER BY year_inspected DESC ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			if(mysql_num_rows($result)) {
+				$row = mysql_fetch_assoc($result);
+				return $row['sanitary_toilet'];
+			}
+			else {
+				return;
+			}
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function sanitary_toilet_inspected($household_number, $year_inspected) {
+			if(($household_number == '') || ($year_inspected == '')) return;
+
+			$query = "SELECT year_inspected FROM m_sanitation_sanitary_toilet ".
+				"WHERE household_number = $household_number AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			return mysql_num_rows($result);
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 
@@ -466,20 +633,18 @@
 					print "<tr>";
 						list($month, $day, $year) = explode("/", date("m/d/Y"));
 						$current_year = $year;
-						print "<td><select name='select_year'>".
+						print "<td><select name='year_inspected'>".
 							"<option value='".($current_year-3)."'>".($current_year-3)."</option>".
 							"<option value='".($current_year-2)."'>".($current_year-2)."</option>".
 							"<option value='".($current_year-1)."'>".($current_year-1)."</option>".
 							"<option value='$current_year' selected>$current_year</option>".
 							"<option value='".($current_year+1)."'>".($current_year+1)."</option>".
-							"<option value='".($current_year+2)."'>".($current_year+2)."</option>".
-							"<option value='".($current_year+3)."'>".($current_year+3)."</option>".
-							"</select></td>";
+							"</select>".
+							" Use the dropdown box on the left to select the <b><i>year of inspection</i></b>.</td.";
 					print "</tr>";
 
 					print "<tr>";
 						print "<td>";
-							//$this->show_household_sanitation();
 							$this->show_water_supply();
 						print "</td>";
 					print "</tr>";
@@ -602,6 +767,42 @@
 						$this->family_id = '';
 						$this->selected_household = '';
 					}
+					break;
+				case 'Save Household Sanitation':
+					// The following codes are used for adding/updating water supply level of a household
+					switch($_POST['water_supply']) {
+						case 'level_1':
+						$water_supply_level = 1;
+						break;
+					case 'level_2':
+						$water_supply_level = 2;
+						break;
+					case 'level_3':
+						$water_supply_level = 3;
+						break;
+					default:
+						$water_supply_level = 0;
+						break;
+					}
+
+					if($this->water_supply_inspected($this->selected_household, $_POST['year_inspected']) == 0) {
+						$this->save_water_supply_level($this->selected_household, $_POST['year_inspected'], $water_supply_level);
+					}
+					else {
+						$this->update_water_supply_level($this->selected_household, $_POST['year_inspected'], $water_supply_level);
+					}
+					// Code ends here for the previous comment
+
+
+					// The following codes are used for adding/updating sanitary toilet of a household
+					if($this->sanitary_toilet_inspected($this->selected_household, $_POST['year_inspected']) == 0) {
+						$this->save_sanitary_toilet($this->selected_household, $_POST['year_inspected'], $_POST['sanitary_toilet']);
+					}
+					else {
+						$this->update_sanitary_toilet($this->selected_household, $_POST['year_inspected'], $_POST['sanitary_toilet']);
+
+					}
+					// Code ends here for the previous comment
 					break;
 				default:
 					break;
