@@ -137,6 +137,14 @@
 				"  `user_id` float NOT NULL".
 				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
 
+
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_sanitation_disposal_of_solid_waste` (".
+				"  `household_number` float NOT NULL,".
+				"  `disposal_of_solid_waste` enum('Y','N') COLLATE swe7_bin NOT NULL,".
+				"  `year_inspected` int(11) NOT NULL,".
+				"  `user_id` float NOT NULL".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
+
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -153,6 +161,7 @@
 			module::execsql("DROP TABLE `m_sanitation_hosuehold_list`");
 			module::execsql("DROP TABLE `m_sanitation_water_supply`");
 			module::execsql("DROP TABLE `m_sanitation_sanitary_toilets`");
+			module::execsql("DROP TABLE `m_sanitation_disposal_of_solid_waste`");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -394,15 +403,78 @@
                                         print "<td align='left' colspan='2'><i><b>Disposal of Solid Waste</i></b></td>";
                                 print "</tr>";
 
+				$disposal_of_solid_waste = $this->get_last_disposal_of_solid_waste($this->household_number);
+
                                 print "<tr>";
-                                        print "<td><input type='checkbox' name='disposal_of_solid_waste' value='yes'>".
-						"With Satisfactory Disposal of Solid Waste</input></td>";
+					if($disposal_of_solid_waste == 'Y') {
+                                        	print "<td><input type='checkbox' name='disposal_of_solid_waste' value='Y' checked>".
+							"With Satisfactory Disposal of Solid Waste</input></td>";
+					}
+					else {
+						print "<td><input type='checkbox' name='disposal_of_solid_waste' value='Y'>".
+                                                        "With Satisfactory Disposal of Solid Waste</input></td>";
+					}
                                         print "<td>Satisfactory disposal of solid waste refers to households with garbage disposal through composting, burying, city/municipal system.</td>";
                                 print "</tr>";
                         print "</table>";
 
                 }
                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function save_disposal_of_solid_waste($household_number, $year_inspected, $disposal_of_solid_waste) {
+			$query = "INSERT INTO m_sanitation_disposal_of_solid_waste (household_number, disposal_of_solid_waste, year_inspected, user_id) ".
+                                "VALUES($household_number, '$disposal_of_solid_waste', $year_inspected, {$_SESSION['userid']}) ";
+                        $result = mysql_query($query) or die("Couldn't execute query.".mysql_error());
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function update_disposal_of_solid_waste($household_number, $year_inspected, $disposal_of_solid_waste) {
+			$query = "UPDATE m_sanitation_disposal_of_solid_waste SET ".
+				"disposal_of_solid_waste = '$disposal_of_solid_waste', ".
+				"user_id = {$_SESSION['userid']} ".
+				"WHERE household_number = $household_number ".
+				"AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function get_last_disposal_of_solid_waste($household_number) {
+			$query = "SELECT disposal_of_solid_waste FROM m_sanitation_disposal_of_solid_waste ".
+				"WHERE household_number = $household_number ORDER BY year_inspected DESC ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			if(mysql_num_rows($result)) {
+				$row = mysql_fetch_assoc($result);
+				return $row['disposal_of_solid_waste'];
+			}
+			else {
+				return;
+			}
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function disposal_of_solid_waste_inspected($household_number, $year_inspected) {
+			if(($household_number == '') || ($year_inspected == '')) return;
+
+			$query = "SELECT year_inspected FROM m_sanitation_disposal_of_solid_waste ".
+				"WHERE household_number = $household_number AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			return mysql_num_rows($result);
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 
@@ -418,7 +490,22 @@
 			$ln = $_POST['household_member_lastname'];
 			$fn = $_POST['household_member_firstname'];
 
-			$query = "SELECT a.patient_lastname, a.patient_firstname, b.family_id, b.family_role FROM m_patient a INNER JOIN m_family_members b ON a.patient_id = b.patient_id WHERE a.patient_lastname = '$ln' OR a.patient_firstname = '$fn' ORDER BY a.patient_firstname";
+			if(($ln != '') && ($fn == '')) {
+				$query = "SELECT a.patient_lastname, a.patient_firstname, b.family_id, b.family_role ".
+                                "FROM m_patient a INNER JOIN m_family_members b ON a.patient_id = b.patient_id ".
+                                "WHERE a.patient_lastname LIKE '%{$ln}%' ORDER BY a.patient_firstname";
+			}
+			elseif (($ln == '') && ($fn != '')) {
+				$query = "SELECT a.patient_lastname, a.patient_firstname, b.family_id, b.family_role ".
+                                "FROM m_patient a INNER JOIN m_family_members b ON a.patient_id = b.patient_id ".
+                                "WHERE a.patient_firstname LIKE '%{$fn}%' ORDER BY a.patient_firstname";
+			}
+			else {
+				$query = "SELECT a.patient_lastname, a.patient_firstname, b.family_id, b.family_role ".
+                                "FROM m_patient a INNER JOIN m_family_members b ON a.patient_id = b.patient_id ".
+                                "WHERE a.patient_lastname LIKE '%{$ln}%' AND a.patient_firstname LIKE '%{$fn}%' ORDER BY a.patient_firstname";
+			}
+
 			$result = mysql_query($query) or die("Couldn't execute query.");
 
 			$members_info = array();
@@ -803,6 +890,23 @@
 
 					}
 					// Code ends here for the previous comment
+
+
+					// The following codes are used for updating the disposal of solid waste of a household
+					if($_POST['disposal_of_solid_waste'] == 'Y') {
+						$disposal_of_solid_waste = 'Y';
+					}
+					else {
+						$disposal_of_solid_waste = 'N';
+					}
+					if($this->disposal_of_solid_waste_inspected($this->selected_household, $_POST['year_inspected']) == 0) {
+						$this->save_disposal_of_solid_waste($this->selected_household, $_POST['year_inspected'], $disposal_of_solid_waste);
+					}
+					else {
+						$this->update_disposal_of_solid_waste($this->selected_household, $_POST['year_inspected'], $disposal_of_solid_waste);
+					}
+					// Code ends here for the previous comment
+
 					break;
 				default:
 					break;
