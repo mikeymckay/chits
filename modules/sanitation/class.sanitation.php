@@ -34,6 +34,8 @@
 			$this->family_id;
 			$this->household_number;
 			$this->selected_household;
+
+			$this->current_template;
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		
@@ -951,6 +953,50 @@
 
 
 
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function show_switch_template() {
+			print "<table border=3 bordercolor='black' align='center' width=600>";
+                                print "<tr>";
+                                        print "<th colspan='2' align='left' bgcolor='CC9900'>Switch Template</th>";
+                                print "</tr>";
+
+				print "<tr>";
+					if($this->current_template == 'Households') {
+						print "<td>";
+						print "<input type='submit' name='submit_template' value='Switch To Establishments'></input>";
+						print "</td>";
+					}
+					else {
+						print "<td>";
+                                                print "<input type='submit' name='submit_template' value='Switch To Households'></input>";
+                                                print "</td>";
+					}
+				
+					print "<td>Click the button on the left to switch between 'Sanitation/Household' and 'Sanitation/Establishment'.</td>";
+				print "</tr>";
+			print "</table>";
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function switch_template_clicked() {
+			if($_POST['h_current_template'] == '') {
+				$this->current_template = 'Households';
+			}
+			elseif($_POST['submit_template'] == 'Switch To Households') {
+				$this->current_template = 'Households';
+			}
+			else {
+				$this->current_template = 'Establishments';
+			}
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+			
+
+
+
 		// Comment date: Nov 04, '09, JVTolentino
 		// This is the main function for the sanitation module.
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -959,50 +1005,30 @@
 				$sanitation = new sanitation;
 
 				$sanitation->init_primary_keys();
-				$sanitation->sanitation_household();
 
-			print "</form>";
+				$sanitation->switch_template_clicked();
 
-
-
-			/*
-			echo "<form name='form_leprosy' action='$_POST[PHP_SELF]' method='POST'>";
-				
-				$leprosy = new leprosy;
-				
-				$leprosy->consult_id = $_GET['consult_id'];
-				$leprosy->patient_id = healthcenter::get_patient_id($_GET['consult_id']);
-				//$leprosy->patient_age = healthcenter::get_patient_age($_GET['consult_id']);
-				$leprosy->userid = $_SESSION['userid'];
-				
-				//The following codes will initialize hidden textboxes and their values
-				echo "<input type='hidden' name='h_consult_id' value='{$leprosy->consult_id}'></input>";
-				echo "<input type='hidden' name='h_patient_id' value='{$leprosy->patient_id}'></input>";
-				echo "<input type='hidden' name='h_userid' value='{$leprosy->userid}'></input>";
-				
-				if (@$_POST['h_save_flag'] == 'GO') {
-					print "&nbsp;";
-					$leprosy->new_leprosy_record();
-					// test wether it still needed to initialize primary keys after a POST.
-					//$leprosy->init_primary_keys();
-					
-					print "&nbsp;";
-					$leprosy->show_NLCPForm1();
-				
-				} 
-				else {
-					print "&nbsp;";
-					$leprosy->init_primary_keys();
-					
-					print "&nbsp;";
-					$leprosy->show_NLCPForm1();
-					
-					
+				/*
+				if($_POST['h_current_template'] == '') {
+					$sanitation->current_template = 'Households';
 				}
-				
-				echo "<input type='hidden' name='h_save_flag' value='GO'></input>";
-			echo "</form>";
-			*/
+				else {
+					$sanitation->current_template = $_POST['h_current_template'];
+				}
+				*/
+
+				$sanitation->show_switch_template();
+				print "&nbsp;";
+
+				if($sanitation->current_template == 'Households') {
+					$sanitation->sanitation_household();
+				}
+				else {
+					print "establishments go here";
+				}
+
+				print "<input type='hidden' name='h_current_template' value='{$sanitation->current_template}'></input>";
+			print "</form>";
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		
