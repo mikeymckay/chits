@@ -30,12 +30,19 @@
 			$this->module = 'sanitation';
 			$this->description = 'CHITS Module - Environmental Sanitation Program';  
 
+			// The following variables will be used for Sanitation/Household
 			$this->family_members_info = array();
 			$this->family_id;
 			$this->household_number;
 			$this->selected_household;
 
-			$this->current_template;
+
+			// The following variable/s will be used for Templates
+			$this->current_template = $_POST['h_current_template'];
+
+
+			// The following variables will be used for Sanitation/Establishment
+			$this->establishments_info = array();
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		
@@ -147,6 +154,15 @@
 				"  `user_id` float NOT NULL".
 				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
 
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_sanitation_establishment` (".
+				"  `establishment_id` float NOT NULL AUTO_INCREMENT,".
+				"  `name_of_establishment` char(50) COLLATE swe7_bin NOT NULL,".
+				"  `owner` char(50) COLLATE swe7_bin NOT NULL,".
+				"  `barangay_id` int(11) NOT NULL,".
+				"  `user_id` float NOT NULL,".
+				"  PRIMARY KEY (`establishment_id`)".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
+
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -164,6 +180,7 @@
 			module::execsql("DROP TABLE `m_sanitation_water_supply`");
 			module::execsql("DROP TABLE `m_sanitation_sanitary_toilets`");
 			module::execsql("DROP TABLE `m_sanitation_disposal_of_solid_waste`");
+			module::execsql("DROP TABLE `m_sanitation_establishment`");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -581,10 +598,6 @@
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function show_household_sanitation() {
 			print "<table border=3 bordercolor='black' align='center' width=600>";
-				//print "<tr>";
-					//print "<th align='left' bgcolor=#CC9900#>HOUSEHOLD SANITATION</th>";
-				//print "</tr>";
-
 				print "<tr>";
 					print "<td>";
 					$this->show_water_supply();
@@ -819,7 +832,7 @@
 
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		function submit_button_clicked() {
+		function household_submit_button_clicked() {
 			switch($_POST['submit_button']) {
 				case 'Search':
 					$this->family_members_info = $this->search_family_members();
@@ -934,12 +947,12 @@
 
 
 		// Comment date: Apr 13, 2010, JVTolentino
-		// This function is created to make the whole sanitation household
+		// This function is created to make the whole sanitation/household
 		//	process be broken down into several stages.
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function sanitation_household() {
 				$this->init_global_var();
-				$this->submit_button_clicked();
+				$this->household_submit_button_clicked();
 				$this->show_search_family_member();
 
 				print "&nbsp;";
@@ -950,6 +963,140 @@
 				print "<input type='hidden' name='h_selected_household' value='".$this->selected_household."'></input>";
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function sanitation_establishment() {
+			$this->establishment_submit_button_clicked();
+			$this->show_create_establishment();
+			$this->show_search_establishment();
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function establishment_submit_button_clicked() {
+			switch($_POST['submit_button']) {
+				case 'Search':
+					if($_POST['search_establishment'] == '') break;
+					$this->establishments_info = $this->search_establishment($_POST['search_establishment']);
+					break;
+				default:
+					break;
+			}
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function show_create_establishment() {
+			print "<table border=3 bordercolor='black' align='center' width=600>";
+                      		print "<tr>";
+                                        print "<th colspan='2' align='left' bgcolor='CC9900'>CREATE ESTABLISHMENT</th>";
+                                print "</tr>";
+
+				print "<tr>";
+					print "<td>Name:</td>";
+					print "<td><input type='text' name='new_establishment' size='50'></input></td>";
+				print "</tr>";
+
+				print "<tr>";
+					print "<td>Owner:</td>";
+					print "<td><input type='text' name='new_establishment_owner' size='50'></input></td>";
+				print "</tr>";
+
+				$barangays = array();
+				$barangays = $this->get_barangays();
+
+				print "<tr>";
+					print "<td>Location:</td>";
+					print "<td><select name='barangay'>";
+						for($i=0; $i<count($barangays); $i+=2) {
+							print "<option value='{$barangays[$i]}'>{$barangays[$i+1]}</option>";
+						}
+					print "</select></td>";
+				print "</tr>";
+
+				print "<tr>";
+					print "<td align='center' colspan='2'>";
+					print "<input type='submit' name='submit_button' value='Create Establishment'></input>";
+					print "</td>";
+				print "</tr>";
+
+			print "</table>";
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function get_barangays() {
+			$query = "SELECT barangay_id, barangay_name FROM m_lib_barangay ORDER BY barangay_name";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			$barangays = array();
+			while(list($barangay_id, $barangay_name) = mysql_fetch_array($result)) {
+				array_push($barangays, $barangay_id, $barangay_name);
+			}
+			return $barangays;
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function show_search_establishment() {
+			print "<table border=3 bordercolor='black' align='center' width=600>";
+                      		print "<tr>";
+                                        print "<th colspan='2' align='left' bgcolor='CC9900'>SEARCH ESTABLISHMENT</th>";
+                                print "</tr>";
+
+				print "<tr>";
+					print "<td>Name of Establishment: ";
+					print "<input type='text' name='search_establishment' size='50'></input>";
+					print "<input type='submit' name='submit_button' value='Search'></input>";
+					print "</td>";
+				print "</tr>";
+
+				if(count($this->establishments_info)) {
+					print "<tr>";
+						print "<td>";
+						for($i=0; $i<count($this->establishments_info); $i+=3) {
+							print "<input type='radio' name='establishment_id' ".
+								"value='{$this->establishments_info[$i]}'>".
+								"{$this->establishments_info[$i+1]} (".
+								"{$this->establishments_info[$i+2]})</input>";
+							print "<br>";
+						}
+						print "</td>";
+					print "</tr>";
+				}
+			
+			print "</table>";
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// Comment date: Apr 26, 2010. JVTolentino
+		// This function will return an array with elements in the following order:
+		//	1. establishment_id, 2. name_of_establishment, 3. owner.
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function search_establishment($name_of_establishment) {
+			$query = "SELECT establishment_id, name_of_establishment, owner FROM m_sanitation_establishment ".
+				"WHERE name_of_establishment LIKE '%{$name_of_establishment}%' ORDER BY establishment_id ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			$establishment_info = array();
+			while(list($establishment_id, $name_of_establishment, $owner) = mysql_fetch_array($result)) {
+				array_push($establishment_info, $establishment_id, $name_of_establishment, $owner);
+			}
+			return $establishment_info;
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 
@@ -966,7 +1113,7 @@
 						print "<input type='submit' name='submit_template' value='Switch To Establishments'></input>";
 						print "</td>";
 					}
-					else {
+					elseif($this->current_template == 'Establishments') {
 						print "<td>";
                                                 print "<input type='submit' name='submit_template' value='Switch To Households'></input>";
                                                 print "</td>";
@@ -981,6 +1128,20 @@
 
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function init_template() {
+			if($this->current_template == 'Households') {
+				$this->sanitation_household();
+			}
+			else {
+				$this->sanitation_establishment();
+			}
+			print "<input type='hidden' name='h_current_template' value='{$this->current_template}'></input>";
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function switch_template_clicked() {
 			if($_POST['h_current_template'] == '') {
 				$this->current_template = 'Households';
@@ -988,7 +1149,7 @@
 			elseif($_POST['submit_template'] == 'Switch To Households') {
 				$this->current_template = 'Households';
 			}
-			else {
+			elseif($_POST['submit_template'] == 'Switch To Establishments') {
 				$this->current_template = 'Establishments';
 			}
 		}
@@ -1008,26 +1169,11 @@
 
 				$sanitation->switch_template_clicked();
 
-				/*
-				if($_POST['h_current_template'] == '') {
-					$sanitation->current_template = 'Households';
-				}
-				else {
-					$sanitation->current_template = $_POST['h_current_template'];
-				}
-				*/
-
 				$sanitation->show_switch_template();
 				print "&nbsp;";
 
-				if($sanitation->current_template == 'Households') {
-					$sanitation->sanitation_household();
-				}
-				else {
-					print "establishments go here";
-				}
+				$sanitation->init_template();
 
-				print "<input type='hidden' name='h_current_template' value='{$sanitation->current_template}'></input>";
 			print "</form>";
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
