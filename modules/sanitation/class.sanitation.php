@@ -43,6 +43,7 @@
 
 			// The following variables will be used for Sanitation/Establishment
 			$this->establishments_info = array();
+			$this->selected_establishment = $_POST['h_selected_establishment'];
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		
@@ -154,6 +155,7 @@
 				"  `user_id` float NOT NULL".
 				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
 
+
 			module::execsql("CREATE TABLE IF NOT EXISTS `m_sanitation_establishment` (".
 				"  `establishment_id` float NOT NULL AUTO_INCREMENT,".
 				"  `name_of_establishment` char(50) COLLATE swe7_bin NOT NULL,".
@@ -162,6 +164,14 @@
 				"  `user_id` float NOT NULL,".
 				"  PRIMARY KEY (`establishment_id`)".
 				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin AUTO_INCREMENT=1 ;");
+
+
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_sanitation_sanitary_permit` (".
+				"  `establishment_id` float NOT NULL,".
+				"  `sanitary_permit` enum('Y','N') COLLATE swe7_bin NOT NULL,".
+				"  `year_inspected` int(11) NOT NULL,".
+				"  `user_id` float NOT NULL".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
 
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -181,6 +191,7 @@
 			module::execsql("DROP TABLE `m_sanitation_sanitary_toilets`");
 			module::execsql("DROP TABLE `m_sanitation_disposal_of_solid_waste`");
 			module::execsql("DROP TABLE `m_sanitation_establishment`");
+			module::execsql("DROP TABLE `m_sanitation_sanitary_permit`");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -670,7 +681,7 @@
 		function show_household_control() {
 			print "<table border=3 bordercolor='black' align='center' width=600>";
                                 print "<tr>";
-						print "<th align='left' bgcolor='CC9900'>HOUSEHOLD (Family ID {$this->family_id} / Household ID {$this->household_number})</th>";
+						print "<th align='left' bgcolor='CC9900'>HOUSEHOLD (ID # {$this->household_number})</th>";
 				print "</tr>";
 
 				if(($this->family_id == '') && ($this->selected_household == '')) {
@@ -730,7 +741,7 @@
 
 					print "<tr>";
 						print "<th align='left' bgcolor='CC9900'>INDICATORS</th>";
-				print "</tr>";
+					print "</tr>";
 
 					print "<tr>";
 						list($month, $day, $year) = explode("/", date("m/d/Y"));
@@ -970,7 +981,16 @@
 		function sanitation_establishment() {
 			$this->establishment_submit_button_clicked();
 			$this->show_create_establishment();
+			print "&nbsp;";
+
 			$this->show_search_establishment();
+			print "&nbsp;";
+
+			$this->show_establishment_control();
+
+
+			// The following variable/s will be used to maintain the current values of the next instance's member variable/s.
+			print "<input type='hidden' name='h_selected_establishment' value='{$this->selected_establishment}'></input>";
 		}
                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -983,6 +1003,34 @@
 					if($_POST['search_establishment'] == '') break;
 					$this->establishments_info = $this->search_establishment($_POST['search_establishment']);
 					break;
+				case 'Create Establishment':
+					if($_POST['new_establishment'] == '') break;
+					if($_POST['new_establishment_owner'] == '') break;
+					if($_POST['barangay'] == '') break;
+					$this->create_establishment($_POST['new_establishment'], $_POST['new_establishment_owner'], $_POST['barangay']);
+					break;
+				case 'Select This Establishment':
+					$this->selected_establishment = $_POST['establishment_id'];
+					break;
+				case 'Done Editing':
+					$this->selected_establishment = '';
+					break;
+				case 'Save Establishment Sanitation':
+					if($this->selected_establishment == '') break;
+					if($_POST['name_of_selected_establishment'] == '') break;
+					if($_POST['owner_of_selected_establishment'] == '') break;
+					$this->update_establishment($this->selected_establishment, $_POST['name_of_selected_establishment'], $_POST['owner_of_selected_establishment']);
+
+					// The following codes are used for adding/updating sanitary permits of a establishment
+					if($this->sanitary_permit_inspected($this->selected_establishment, $_POST['year_inspected']) == 0) {
+						$this->save_sanitary_permit($this->selected_establishment, $_POST['year_inspected'], $_POST['establishment_sanitary_permit']);
+					}
+					else {
+						$this->update_sanitary_permit($this->selected_establishment, $_POST['year_inspected'], $_POST['establishment_sanitary_permit']);
+					}
+					// Code ends here for the previous comment
+					break;
+
 				default:
 					break;
 			}
@@ -993,6 +1041,9 @@
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function show_create_establishment() {
+			// Exit if there is currently a selected establishment
+			if($this->selected_establishment != '') return;
+
 			print "<table border=3 bordercolor='black' align='center' width=600>";
                       		print "<tr>";
                                         print "<th colspan='2' align='left' bgcolor='CC9900'>CREATE ESTABLISHMENT</th>";
@@ -1048,7 +1099,34 @@
 
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function create_establishment($name_of_establishment, $owner, $barangay_id) {
+			$query = "INSERT INTO m_sanitation_establishment ".
+				"(name_of_establishment, owner, barangay_id, user_id) ".
+				"VALUES('$name_of_establishment', '$owner', $barangay_id, '{$_SESSION['userid']}')";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function update_establishment($establishment_id, $name_of_establishment, $owner) {
+			$query = "UPDATE m_sanitation_establishment SET ".
+				"name_of_establishment = '$name_of_establishment', ".
+				"owner = '$owner', ".
+				"user_id = {$_SESSION['userid']} ".
+				"WHERE establishment_id = $establishment_id";
+			$result = mysql_query($query) or die("Couldn't execute query.".mysql_error());
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function show_search_establishment() {
+			// Exit if there is a currently selected establishment for editing
+			if($this->selected_establishment != '') return;
+
 			print "<table border=3 bordercolor='black' align='center' width=600>";
                       		print "<tr>";
                                         print "<th colspan='2' align='left' bgcolor='CC9900'>SEARCH ESTABLISHMENT</th>";
@@ -1072,6 +1150,13 @@
 							print "<br>";
 						}
 						print "</td>";
+					print "</tr>";
+
+					print "<tr>";
+						print "<td align='center'>To <b><i>select a establishment</i></b> for editing, ".
+							"select a establishment and click the 'Select This Establishment' button. ";
+						print "<input type='submit' name='submit_button' value='Select This Establishment'>".
+							"</input></td>";
 					print "</tr>";
 				}
 			
@@ -1097,6 +1182,234 @@
 			return $establishment_info;
 		}
                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function show_establishment_control() {
+			// Exit if there is no selected establishment for editing 
+			if($this->selected_establishment == '') return;
+
+			print "<table border=3 bordercolor='black' align='center' width=600>";
+                      		print "<tr>";
+                                        print "<th colspan='2' align='left' bgcolor='CC9900'>ESTABLISHMENT (ID # {$this->selected_establishment})</th>";
+                                print "</tr>";
+
+				print "<tr>";
+					print "<td align='center' colspan='2'>Click this button if you're done editing. ".
+						"<input type='submit' name='submit_button' value='Done Editing'></input></td>";
+				print "</tr>";
+
+				$name_of_establishment = $this->get_name_of_establishment($this->selected_establishment);
+				print "<tr>";
+					print "<td align='center'>Name of Establishment:</td>";
+					print "<td align='center'><input type='text' name='name_of_selected_establishment' value='$name_of_establishment' size='50'></input></td>";
+				print "</tr>";
+
+				$owner_of_establishment = $this->get_owner_of_establishment($this->selected_establishment);
+				print "<tr>";
+					print "<td align='center'>Owner of Establishment:</td>";
+					print "<td align='center'><input type='text' name='owner_of_selected_establishment' value='$owner_of_establishment' size='50'></input></td>";
+				print "</tr>";
+
+				print "<tr>";
+					print "<th align='left' colspan='2' bgcolor='CC9900'>INDICATORS</th>";
+				print "</tr>";
+
+				print "<tr>";
+					list($month, $day, $year) = explode("/", date("m/d/Y"));
+					$current_year = $year;
+					print "<td colspan='2'><select name='year_inspected'>".
+						"<option value='".($current_year-3)."'>".($current_year-3)."</option>".
+						"<option value='".($current_year-2)."'>".($current_year-2)."</option>".
+						"<option value='".($current_year-1)."'>".($current_year-1)."</option>".
+						"<option value='$current_year' selected>$current_year</option>".
+						"<option value='".($current_year+1)."'>".($current_year+1)."</option>".
+						"</select>".
+						" Use the dropdown box on the left to select the <b><i>year of inspection</i></b>.</td.";
+				print "</tr>";
+
+				print "<tr>";
+					print "<td colspan='2'>";
+						$this->show_establishment_sanitary_permit();
+					print "</td>";
+				print "</tr>";
+
+				print "<tr>";
+					print "<td colspan='2'>";
+                                                $this->show_establishment_food_handlers();
+                                        print "</td>";
+                                print "</tr>";
+
+				print "<tr>";
+					print "<td colspan='2'>";
+                                                $this->show_establishment_food_handlers_with_health_certificates();
+                                        print "</td>";
+                                print "</tr>";
+
+				print "<tr>";
+					print "<td colspan='2' align='center'>".
+						"<input type='submit' name='submit_button' value='Save Establishment Sanitation'>".
+						"</input></td>";
+				print "</tr>";
+
+			print "</table>";
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function show_establishment_sanitary_permit() {
+			print "<table border='1' align='left'>";
+                                print "<tr>";
+                                        print "<td align='left' colspan='2'><i><b>Sanitary Permit</i></b></td>";
+                                print "</tr>";
+
+				print "<tr>";
+					print "<td><select name='establishment_sanitary_permit'>".
+						"<option value='Y'>With Sanitary Permit</option>".
+						"<option value='N'>Without Sanitary Permit</option>".
+						"</select></td>";
+					print "<td>Sanitary Permit is a certification in writing of the city or municipal health officer or sanitary engineer that the establishment complies with the existing minimum sanitation requirements upon evaluation or inspection conducted in accordance with Presidential Decrees No. 522 and 856 and local ordinances.</td>";
+				print "</tr>";
+			print "</table>";
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function show_establishment_food_handlers() {
+			print "<table border='1' align='left'>";
+                                print "<tr>";
+                                        print "<td align='left' colspan='2'><i><b>Food Handlers</i></b></td>";
+                                print "</tr>";
+
+                                print "<tr>";
+                                        //print "<td><input type='text' name='food_handlers' size='5'></td>";
+					print "<td>";
+						for($i=0; $i<=150; $i++) {
+							print "<select name='food_handlers'>".
+								"<option value='$i'>$i Food Handlers</option>";
+						}
+					print "</select></td>";
+                                        print "<td>Food handlers refer to the total number of food handlers employed in the establishment. A food handler is any person who handles, stores, prepares, serves food, drinks or ice who comes in contact with any eating or cooking utensils and food vending machines.</td>";
+                                print "</tr>";
+                        print "</table>";
+                }
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                function show_establishment_food_handlers_with_health_certificates() {
+                        print "<table border='1' align='left'>";
+                                print "<tr>";
+                                        print "<td align='left' colspan='2'><i><b>Food Handlers With Health Certificates</i></b></td>";
+                                print "</tr>";
+
+                                print "<tr>";
+                                        //print "<td><input type='text' name='food_handlers' size='5'></td>";
+                                        print "<td>";
+                                                for($i=0; $i<=150; $i++) {
+                                                        print "<select name='food_handlers_with_health_certificates'>".
+                                                                "<option value='$i'>$i Food Handlers</option>";
+                                                }
+                                        print "</select></td>";
+                                        print "<td>This refers to the total number of food handlers issued health certificates. A health certificates is a certification in writing, using the prescribed form, and issued by the municipal or city health officer to a person after passing the required physical and medical examinations and immunications</td>";
+                                print "</tr>";
+                        print "</table>";
+                }
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function get_name_of_establishment($establishment_id) {
+			if($establishment_id == '') return;
+
+			$query = "SELECT name_of_establishment FROM m_sanitation_establishment WHERE establishment_id = $establishment_id";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			if(mysql_num_rows) {
+				$row = mysql_fetch_assoc($result);
+				return $row['name_of_establishment'];
+			}
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function get_owner_of_establishment($establishment_id) {
+			if($establishment_id == '') return;
+
+			$query = "SELECT owner FROM m_sanitation_establishment WHERE establishment_id = $establishment_id";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			if(mysql_num_rows) {
+				$row = mysql_fetch_assoc($result);
+				return $row['owner'];
+			}
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function save_sanitary_permit($establishment_id, $year_inspected, $sanitary_permit) {
+			$query = "INSERT INTO m_sanitation_sanitary_permit (establishment_id, sanitary_permit, year_inspected, user_id) ".
+				"VALUES($establishment_id, '$sanitary_permit', $year_inspected, {$_SESSION['userid']}) ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function update_sanitary_permit($establishment_id, $year_inspected, $sanitary_permit) {
+			$query = "UPDATE m_sanitation_sanitary_permit SET ".
+				"sanitary_permit = '$sanitary_permit', ".
+				"user_id = {$_SESSION['userid']} ".
+				"WHERE establishment_id = $establishment_id ".
+				"AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function get_last_sanitary_permit($establishment_id) {
+			$query = "SELECT sanitary_permit FROM m_sanitation_sanitary_permit ".
+				"WHERE establishment_id = $establishment_id ORDER BY year_inspected DESC ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			if(mysql_num_rows($result)) {
+				$row = mysql_fetch_assoc($result);
+				return $row['sanitary_permit'];
+			}
+			else {
+				return;
+			}
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function sanitary_permit_inspected($establishment_id, $year_inspected) {
+			if(($establishment_id == '') || ($year_inspected == '')) return;
+
+			$query = "SELECT year_inspected FROM m_sanitation_sanitary_permit ".
+				"WHERE establishment_id = $establishment_id AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			return mysql_num_rows($result);
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 
