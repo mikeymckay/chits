@@ -173,6 +173,23 @@
 				"  `user_id` float NOT NULL".
 				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
 
+
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_sanitation_food_handlers` (".
+				"  `establishment_id` float NOT NULL,".
+				"  `food_handlers` int(11) NOT NULL,".
+				"  `year_inspected` int(11) NOT NULL,".
+				"  `user_id` float NOT NULL".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
+
+
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_sanitation_food_handlers_with_health_certificates` (".
+				"  `establishment_id` float NOT NULL,".
+				"  `food_handlers_with_health_certificates` int(11) NOT NULL,".
+				"  `year_inspected` int(11) NOT NULL,".
+				"  `user_id` float NOT NULL".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
+
+
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -192,6 +209,8 @@
 			module::execsql("DROP TABLE `m_sanitation_disposal_of_solid_waste`");
 			module::execsql("DROP TABLE `m_sanitation_establishment`");
 			module::execsql("DROP TABLE `m_sanitation_sanitary_permit`");
+			module::execsql("DROP TABLE `m_sanitation_food_handlers`");
+			module::execsql("DROP TABLE `m_sanitation_food_handlers_with_health_certificates`");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -1029,6 +1048,27 @@
 						$this->update_sanitary_permit($this->selected_establishment, $_POST['year_inspected'], $_POST['establishment_sanitary_permit']);
 					}
 					// Code ends here for the previous comment
+
+
+					// The following codes are used for adding/updating food handlers of a establishment
+					if($this->food_handlers_inspected($this->selected_establishment, $_POST['year_inspected']) == 0) {
+						$this->save_food_handlers($this->selected_establishment, $_POST['year_inspected'], $_POST['food_handlers']);
+                                        }
+                                        else {
+                                                $this->update_food_handlers($this->selected_establishment, $_POST['year_inspected'], $_POST['food_handlers']);
+                                        }
+					// Code ends here for the previous comment
+
+
+					// The following codes are used for adding/updating food handlers of a establishment
+                                        if($this->food_handlers_with_health_certificates_inspected($this->selected_establishment, $_POST['year_inspected']) == 0) {
+                                                $this->save_food_handlers_with_health_certificates($this->selected_establishment, $_POST['year_inspected'], $_POST['food_handlers_with_health_certificates']);
+                                        }
+                                        else {
+                                                $this->update_food_handlers_with_health_certificates($this->selected_establishment, $_POST['year_inspected'], $_POST['food_handlers_with_health_certificates']);
+                                        }
+                                        // Code ends here for the previous comment
+
 					break;
 
 				default:
@@ -1266,11 +1306,21 @@
                                         print "<td align='left' colspan='2'><i><b>Sanitary Permit</i></b></td>";
                                 print "</tr>";
 
+				$last_sanitary_permit = $this->get_last_sanitary_permit($this->selected_establishment);
+
 				print "<tr>";
-					print "<td><select name='establishment_sanitary_permit'>".
-						"<option value='Y'>With Sanitary Permit</option>".
-						"<option value='N'>Without Sanitary Permit</option>".
-						"</select></td>";
+					if($last_sanitary_permit == 'Y') {
+						print "<td><select name='establishment_sanitary_permit'>".
+							"<option value='Y' selected>With Sanitary Permit</option>".
+							"<option value='N'>Without Sanitary Permit</option>".
+							"</select></td>";
+					}
+					else {
+						print "<td><select name='establishment_sanitary_permit'>".
+							"<option value='Y'>With Sanitary Permit</option>".
+							"<option value='N' selected>Without Sanitary Permit</option>".
+							"</select></td>";
+					}
 					print "<td>Sanitary Permit is a certification in writing of the city or municipal health officer or sanitary engineer that the establishment complies with the existing minimum sanitation requirements upon evaluation or inspection conducted in accordance with Presidential Decrees No. 522 and 856 and local ordinances.</td>";
 				print "</tr>";
 			print "</table>";
@@ -1286,14 +1336,20 @@
                                         print "<td align='left' colspan='2'><i><b>Food Handlers</i></b></td>";
                                 print "</tr>";
 
+				$food_handlers = $this->get_last_food_handlers($this->selected_establishment);
+
                                 print "<tr>";
-                                        //print "<td><input type='text' name='food_handlers' size='5'></td>";
-					print "<td>";
+					print "<td><select name='food_handlers'>";
 						for($i=0; $i<=150; $i++) {
-							print "<select name='food_handlers'>".
-								"<option value='$i'>$i Food Handlers</option>";
+							if($food_handlers == $i) {
+								print "<option value='$i' selected>$i Food Handlers</option>";
+							}
+							else {
+								print "<option value='$i'>$i Food Handlers</option>";
+							}
 						}
 					print "</select></td>";
+
                                         print "<td>Food handlers refer to the total number of food handlers employed in the establishment. A food handler is any person who handles, stores, prepares, serves food, drinks or ice who comes in contact with any eating or cooking utensils and food vending machines.</td>";
                                 print "</tr>";
                         print "</table>";
@@ -1309,12 +1365,17 @@
                                         print "<td align='left' colspan='2'><i><b>Food Handlers With Health Certificates</i></b></td>";
                                 print "</tr>";
 
+				$food_handlers_with_health_certificates = $this->get_last_food_handlers_with_health_certificates($this->selected_establishment);
+
                                 print "<tr>";
-                                        //print "<td><input type='text' name='food_handlers' size='5'></td>";
-                                        print "<td>";
+                                        print "<td><select name='food_handlers_with_health_certificates'>";
                                                 for($i=0; $i<=150; $i++) {
-                                                        print "<select name='food_handlers_with_health_certificates'>".
-                                                                "<option value='$i'>$i Food Handlers</option>";
+							if($food_handlers_with_health_certificates == $i) {
+                                                        	print "<option value='$i' selected>$i Food Handlers</option>";
+							}
+							else {
+								print "<option value='$i'>$i Food Handlers</option>";
+							}
                                                 }
                                         print "</select></td>";
                                         print "<td>This refers to the total number of food handlers issued health certificates. A health certificates is a certification in writing, using the prescribed form, and issued by the municipal or city health officer to a person after passing the required physical and medical examinations and immunications</td>";
@@ -1404,6 +1465,116 @@
 			if(($establishment_id == '') || ($year_inspected == '')) return;
 
 			$query = "SELECT year_inspected FROM m_sanitation_sanitary_permit ".
+				"WHERE establishment_id = $establishment_id AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			return mysql_num_rows($result);
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function save_food_handlers($establishment_id, $year_inspected, $food_handlers) {
+			$query = "INSERT INTO m_sanitation_food_handlers (establishment_id, food_handlers, year_inspected, user_id) ".
+				"VALUES($establishment_id, $food_handlers, $year_inspected, {$_SESSION['userid']}) ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function update_food_handlers($establishment_id, $year_inspected, $food_handlers) {
+			$query = "UPDATE m_sanitation_food_handlers SET ".
+				"food_handlers = $food_handlers, ".
+				"user_id = {$_SESSION['userid']} ".
+				"WHERE establishment_id = $establishment_id ".
+				"AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function get_last_food_handlers($establishment_id) {
+			$query = "SELECT food_handlers FROM m_sanitation_food_handlers ".
+				"WHERE establishment_id = $establishment_id ORDER BY year_inspected DESC ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			if(mysql_num_rows($result)) {
+				$row = mysql_fetch_assoc($result);
+				return $row['food_handlers'];
+			}
+			else {
+				return;
+			}
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function food_handlers_inspected($establishment_id, $year_inspected) {
+			if(($establishment_id == '') || ($year_inspected == '')) return;
+
+			$query = "SELECT food_handlers FROM m_sanitation_food_handlers ".
+				"WHERE establishment_id = $establishment_id AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			return mysql_num_rows($result);
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function save_food_handlers_with_health_certificates($establishment_id, $year_inspected, $food_handlers_with_health_certificates) {
+			$query = "INSERT INTO m_sanitation_food_handlers_with_health_certificates (establishment_id, food_handlers_with_health_certificates, year_inspected, user_id) ".
+				"VALUES($establishment_id, $food_handlers_with_health_certificates, $year_inspected, {$_SESSION['userid']}) ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function update_food_handlers_with_health_certificates($establishment_id, $year_inspected, $food_handlers_with_health_certificates) {
+			$query = "UPDATE m_sanitation_food_handlers_with_health_certificates SET ".
+				"food_handlers_with_health_certificates = $food_handlers_with_health_certificates, ".
+				"user_id = {$_SESSION['userid']} ".
+				"WHERE establishment_id = $establishment_id ".
+				"AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function get_last_food_handlers_with_health_certificates($establishment_id) {
+			$query = "SELECT food_handlers_with_health_certificates FROM m_sanitation_food_handlers_with_health_certificates ".
+				"WHERE establishment_id = $establishment_id ORDER BY year_inspected DESC ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			if(mysql_num_rows($result)) {
+				$row = mysql_fetch_assoc($result);
+				return $row['food_handlers_with_health_certificates'];
+			}
+			else {
+				return;
+			}
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function food_handlers_with_health_certificates_inspected($establishment_id, $year_inspected) {
+			if(($establishment_id == '') || ($year_inspected == '')) return;
+
+			$query = "SELECT food_handlers_with_health_certificates FROM m_sanitation_food_handlers_with_health_certificates ".
 				"WHERE establishment_id = $establishment_id AND year_inspected = $year_inspected ";
 			$result = mysql_query($query) or die("Couldn't execute query.");
 
