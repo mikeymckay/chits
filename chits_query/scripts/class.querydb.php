@@ -290,6 +290,9 @@ class querydb{
 			$this->process_leprosy_summary();
 		elseif($quesno==68):
 			$this->process_leprosy_tcl();
+		// temporary ques_id for sanitation
+		elseif($quesno==71):
+			$this->process_sanitation();
 		else:
 			echo "No available query for this indicator.";
 		endif;
@@ -803,6 +806,10 @@ class querydb{
 
 	function process_leprosy_tcl(){
 		echo "<a href='./pdf_reports/leprosy_tcl.php'>show NLCP Target Client List</a>";
+	}
+
+	function process_sanitation(){
+		echo "<a href='./pdf_reports/sanitation.php'>show Sanitation Report</a>";
 	}
 }
 ?>
