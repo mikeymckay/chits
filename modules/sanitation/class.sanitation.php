@@ -308,7 +308,7 @@
 				"user_id = {$_SESSION['userid']} ".
 				"WHERE household_number = $household_number ".
 				"AND year_inspected = $year_inspected ";
-			$result = mysql_query($query) or die("Couldn't execute query.");
+			$result = mysql_query($query) or die("Couldn'tecute query.");
 		}
                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -397,7 +397,7 @@
 		function save_sanitary_toilet($household_number, $year_inspected, $sanitary_toilet) {
 			$query = "INSERT INTO m_sanitation_sanitary_toilet (household_number, sanitary_toilet, year_inspected, user_id) ".
                                 "VALUES($household_number, '$sanitary_toilet', $year_inspected, {$_SESSION['userid']}) ";
-                        $result = mysql_query($query) or die("Couldn't execute query.".mysql_error());
+                        $result = mysql_query($query) or die("Couldn't execute query.");
 		}
                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -479,7 +479,7 @@
 		function save_disposal_of_solid_waste($household_number, $year_inspected, $disposal_of_solid_waste) {
 			$query = "INSERT INTO m_sanitation_disposal_of_solid_waste (household_number, disposal_of_solid_waste, year_inspected, user_id) ".
                                 "VALUES($household_number, '$disposal_of_solid_waste', $year_inspected, {$_SESSION['userid']}) ";
-                        $result = mysql_query($query) or die("Couldn't execute query.".mysql_error());
+                        $result = mysql_query($query) or die("Couldn't execute query.");
 		}
                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -853,7 +853,7 @@
 		function get_household_number($family_id) {
 			$query = "SELECT household_number FROM m_sanitation_household ".
 				"WHERE family_id = $family_id ";
-			$result = mysql_query($query) or die("Couldn't execute query.".mysql_error());
+			$result = mysql_query($query) or die("Couldn't execute query.");
 
 			if(mysql_num_rows($result)) {
 				$row = mysql_fetch_assoc($result);
@@ -1159,7 +1159,7 @@
 				"owner = '$owner', ".
 				"user_id = {$_SESSION['userid']} ".
 				"WHERE establishment_id = $establishment_id";
-			$result = mysql_query($query) or die("Couldn't execute query.".mysql_error());
+			$result = mysql_query($query) or die("Couldn't execute query.");
 		}
                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -1660,14 +1660,6 @@
 				print "&nbsp;";
 
 				$sanitation->init_template();
-
-				//$query = "SELECT Auto_increment FROM information_schema.tables WHERE table_name='m_sanitation_establishment'";
-				$query = "SELECT MAX(establishment_id) FROM m_sanitation_establishment FOR UPDATE";
-				$result = mysql_query($query) or die(mysql_error());
-
-				//$row = mysql_fetch_array($result);
-				//print "test".$row[0];
-
 			print "</form>";
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
