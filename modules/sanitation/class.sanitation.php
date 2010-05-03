@@ -239,6 +239,9 @@
 
 			$query = "ALTER TABLE `m_sanitation_household_list` DROP PRIMARY KEY, ADD PRIMARY KEY(`household_number`)";
                         $result = mysql_query($query) or die("Couldn't execute query.");
+
+			$query = "ALTER TABLE `m_sanitation_establishment` DROP PRIMARY KEY, ADD PRIMARY KEY(`establishment_id`)";
+                        $result = mysql_query($query) or die("Couldn't execute query.");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -1657,6 +1660,13 @@
 				print "&nbsp;";
 
 				$sanitation->init_template();
+
+				//$query = "SELECT Auto_increment FROM information_schema.tables WHERE table_name='m_sanitation_establishment'";
+				$query = "SELECT MAX(establishment_id) FROM m_sanitation_establishment FOR UPDATE";
+				$result = mysql_query($query) or die(mysql_error());
+
+				//$row = mysql_fetch_array($result);
+				//print "test".$row[0];
 
 			print "</form>";
 		}
