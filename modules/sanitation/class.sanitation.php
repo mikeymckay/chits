@@ -190,6 +190,22 @@
 				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
 
 
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_sanitation_household_salt_samples` (".
+				"  `household_number` float NOT NULL,".
+				"  `salt_samples` char(25) COLLATE swe7_bin NOT NULL,".
+				"  `year_inspected` int(11) NOT NULL,".
+				"  `user_id` int(11) NOT NULL".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
+
+
+			module::execsql("CREATE TABLE IF NOT EXISTS `m_sanitation_establishment_salt_samples` (".
+				"  `establishment_id` float NOT NULL,".
+				"  `salt_samples` char(25) COLLATE swe7_bin NOT NULL,".
+				"  `year_inspected` int(11) NOT NULL,".
+				"  `user_id` float NOT NULL".
+				") ENGINE=InnoDB DEFAULT CHARSET=swe7 COLLATE=swe7_bin;");
+
+
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -211,6 +227,8 @@
 			module::execsql("DROP TABLE `m_sanitation_sanitary_permit`");
 			module::execsql("DROP TABLE `m_sanitation_food_handlers`");
 			module::execsql("DROP TABLE `m_sanitation_food_handlers_with_health_certificates`");
+			module::execsql("DROP TABLE `m_sanitation_household_salt_samples`");
+			module::execsql("DROP TABLE `m_sanitation_establishment_salt_samples`");
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -530,6 +548,115 @@
 
 
 
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function show_household_salt_samples() {
+			print "<table border='1' align='left'>";
+                                print "<tr>";
+                                        print "<td align='left' colspan='2'><i><b>Salt Samples</i></b></td>";
+                                print "</tr>";
+
+				$household_salt_samples = $this->get_last_household_salt_samples($this->household_number);
+
+				print "<tr>";
+					switch($household_salt_samples) {
+						case 'Not Tested':
+							print "<td><select name='household_salt_samples'>".
+                                                		"<option value='Not Tested' selected>Not Tested</option>".
+                                                		"<option value='Positive For Iodine'>(+) for Iodine</option>".
+                                                		"<option value='Negative For Iodine'>(-) for Iodine</option>".
+                                 	       			"</select></td>";
+							break;
+						case 'Positive For Iodine':
+							print "<td><select name='household_salt_samples'>".
+                                                		"<option value='Not Tested'>Not Tested</option>".
+                                                		"<option value='Positive For Iodine' selected>(+) for Iodine</option>".
+                                                		"<option value='Negative For Iodine'>(-) for Iodine</option>".
+                                        			"</select></td>";
+							break;
+						case 'Negative For Iodine':
+							print "<td><select name='household_salt_samples'>".
+                                                		"<option value='Not Tested'>Not Tested</option>".
+                                               		 	"<option value='Positive For Iodine'>(+) for Iodine</option>".
+                                                		"<option value='Negative For Iodine' selected>(-) for Iodine</option>".
+                                      		  		"</select></td>";
+							break;
+						default:
+							print "<td><select name='household_salt_samples'>".
+                                                		"<option value='Not Tested' selected>Not Tested</option>".
+                                                		"<option value='Positive For Iodine'>(+) for Iodine</option>".
+                                                		"<option value='Negative For Iodine'>(-) for Iodine</option>".
+                                 	       			"</select></td>";
+							break;
+					}
+					
+					print "<td>Salt Samples Tested for Iodine. &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</td>";
+				print "</tr>";
+
+
+
+
+                        print "</table>";
+
+                }
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function save_household_salt_samples($household_number, $year_inspected, $salt_samples) {
+			$query = "INSERT INTO m_sanitation_household_salt_samples (household_number, salt_samples, year_inspected, user_id) ".
+                                "VALUES($household_number, '$salt_samples', $year_inspected, {$_SESSION['userid']}) ";
+                        $result = mysql_query($query) or die("Couldn't execute query.");
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function update_household_salt_samples($household_number, $year_inspected, $salt_samples) {
+			$query = "UPDATE m_sanitation_household_salt_samples SET ".
+				"salt_samples = '$salt_samples', ".
+				"user_id = {$_SESSION['userid']} ".
+				"WHERE household_number = $household_number ".
+				"AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function get_last_household_salt_samples($household_number) {
+			$query = "SELECT salt_samples FROM m_sanitation_household_salt_samples ".
+				"WHERE household_number = $household_number ORDER BY year_inspected DESC ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			if(mysql_num_rows($result)) {
+				$row = mysql_fetch_assoc($result);
+				return $row['salt_samples'];
+			}
+			else {
+				return;
+			}
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function household_salt_samples_inspected($household_number, $year_inspected) {
+			if(($household_number == '') || ($year_inspected == '')) return;
+
+			$query = "SELECT year_inspected FROM m_sanitation_household_salt_samples ".
+				"WHERE household_number = $household_number AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			return mysql_num_rows($result);
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
 		// Comment date: April 8, 2010, JVTolentino
 		// This function will return an array, of which the values are in this order: 
 		//	- patient lastname
@@ -628,6 +755,7 @@
 
 
 
+		/*
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		function show_household_sanitation() {
 			print "<table border=3 bordercolor='black' align='center' width=600>";
@@ -646,6 +774,7 @@
 
 		}
 		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		*/
 
 
 
@@ -793,6 +922,12 @@
 					print "<tr>";
                                                 print "<td>";
                                                         $this->show_disposal_of_solid_waste();
+                                                print "</td>";
+                                        print "</tr>";
+
+					print "<tr>";
+                                                print "<td>";
+                                                        $this->show_household_salt_samples();
                                                 print "</td>";
                                         print "</tr>";
 
@@ -955,6 +1090,18 @@
 					}
 					// Code ends here for the previous comment
 
+
+					// The following codes are used for adding/updating household salt samples
+					if($this->household_salt_samples_inspected($this->selected_household, $_POST['year_inspected']) == 0) {
+						$this->save_household_salt_samples($this->selected_household, $_POST['year_inspected'], $_POST['household_salt_samples']);
+					}
+					else {
+						$this->update_household_salt_samples($this->selected_household, $_POST['year_inspected'], $_POST['household_salt_samples']);
+					}
+					// Code ends here for the previous comment
+
+
+
 					break;
 				default:
 					break;
@@ -1071,6 +1218,17 @@
                                                 $this->update_food_handlers_with_health_certificates($this->selected_establishment, $_POST['year_inspected'], $_POST['food_handlers_with_health_certificates']);
                                         }
                                         // Code ends here for the previous comment
+
+
+					// The following codes are used for adding/updating establishment salt samples
+					if($this->establishment_salt_samples_inspected($this->selected_establishment, $_POST['year_inspected']) == 0) {
+						$this->save_establishment_salt_samples($this->selected_establishment, $_POST['year_inspected'], $_POST['establishment_salt_samples']);
+					}
+					else {
+						$this->update_establishment_salt_samples($this->selected_establishment, $_POST['year_inspected'], $_POST['establishment_salt_samples']);
+					}
+					// Code ends here for the previous comment
+
 
 					break;
 
@@ -1291,6 +1449,12 @@
                                 print "</tr>";
 
 				print "<tr>";
+					print "<td colspan='2'>";
+                                                $this->show_establishment_salt_samples();
+                                        print "</td>";
+                                print "</tr>";
+
+				print "<tr>";
 					print "<td colspan='2' align='center'>".
 						"<input type='submit' name='submit_button' value='Save Establishment Sanitation'>".
 						"</input></td>";
@@ -1381,9 +1545,63 @@
 							}
                                                 }
                                         print "</select></td>";
-                                        print "<td>This refers to the total number of food handlers issued health certificates. A health certificates is a certification in writing, using the prescribed form, and issued by the municipal or city health officer to a person after passing the required physical and medical examinations and immunications</td>";
+                                        print "<td>This refers to the total number of food handlers issued health certificates. A health certificates is a certification in writing, using the prescribed form, and issued by the municipal or city health officer to a person after passing the required physical and medical examinations and immunizations.</td>";
                                 print "</tr>";
                         print "</table>";
+                }
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function show_establishment_salt_samples() {
+			print "<table border='1' align='left'>";
+                                print "<tr>";
+                                        print "<td align='left' colspan='2'><i><b>Salt Samples</i></b></td>";
+                                print "</tr>";
+
+				$establishment_salt_samples = $this->get_last_establishment_salt_samples($this->selected_establishment);
+
+				print "<tr>";
+					switch($establishment_salt_samples) {
+						case 'Not Tested':
+							print "<td><select name='establishment_salt_samples'>".
+                                                		"<option value='Not Tested' selected>Not Tested</option>".
+                                                		"<option value='Positive For Iodine'>(+) for Iodine</option>".
+                                                		"<option value='Negative For Iodine'>(-) for Iodine</option>".
+                                 	       			"</select></td>";
+							break;
+						case 'Positive For Iodine':
+							print "<td><select name='establishment_salt_samples'>".
+                                                		"<option value='Not Tested'>Not Tested</option>".
+                                                		"<option value='Positive For Iodine' selected>(+) for Iodine</option>".
+                                                		"<option value='Negative For Iodine'>(-) for Iodine</option>".
+                                        			"</select></td>";
+							break;
+						case 'Negative For Iodine':
+							print "<td><select name='establishment_salt_samples'>".
+                                               		"<option value='Not Tested'>Not Tested</option>".
+                                               		 	"<option value='Positive For Iodine'>(+) for Iodine</option>".
+                                                		"<option value='Negative For Iodine' selected>(-) for Iodine</option>".
+                                      		  		"</select></td>";
+							break;
+						default:
+							print "<td><select name='establishment_salt_samples'>".
+                                                		"<option value='Not Tested' selected>Not Tested</option>".
+                                                		"<option value='Positive For Iodine'>(+) for Iodine</option>".
+                                                		"<option value='Negative For Iodine'>(-) for Iodine</option>".
+                                 	       			"</select></td>";
+							break;
+					}
+					
+					print "<td>Salt Samples Tested for Iodine. &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</td>";
+				print "</tr>";
+
+
+
+
+                        print "</table>";
+
                 }
                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -1578,6 +1796,61 @@
 			if(($establishment_id == '') || ($year_inspected == '')) return;
 
 			$query = "SELECT food_handlers_with_health_certificates FROM m_sanitation_food_handlers_with_health_certificates ".
+				"WHERE establishment_id = $establishment_id AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			return mysql_num_rows($result);
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function save_establishment_salt_samples($establishment_id, $year_inspected, $salt_samples) {
+			$query = "INSERT INTO m_sanitation_establishment_salt_samples (establishment_id, salt_samples, year_inspected, user_id) ".
+                                "VALUES($establishment_id, '$salt_samples', $year_inspected, {$_SESSION['userid']}) ";
+                        $result = mysql_query($query) or die("Couldn't execute query.");
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function update_establishment_salt_samples($establishment_id, $year_inspected, $salt_samples) {
+			$query = "UPDATE m_sanitation_establishment_salt_samples SET ".
+				"salt_samples = '$salt_samples', ".
+				"user_id = {$_SESSION['userid']} ".
+				"WHERE establishment_id = $establishment_id ".
+				"AND year_inspected = $year_inspected ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function get_last_establishment_salt_samples($establishment_id) {
+			$query = "SELECT salt_samples FROM m_sanitation_establishment_salt_samples ".
+				"WHERE establishment_id = $establishment_id ORDER BY year_inspected DESC ";
+			$result = mysql_query($query) or die("Couldn't execute query.");
+
+			if(mysql_num_rows($result)) {
+				$row = mysql_fetch_assoc($result);
+				return $row['salt_samples'];
+			}
+			else {
+				return;
+			}
+		}
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		function establishment_salt_samples_inspected($establishment_id, $year_inspected) {
+			if(($establishment_id == '') || ($year_inspected == '')) return;
+
+			$query = "SELECT year_inspected FROM m_sanitation_establishment_salt_samples ".
 				"WHERE establishment_id = $establishment_id AND year_inspected = $year_inspected ";
 			$result = mysql_query($query) or die("Couldn't execute query.");
 
