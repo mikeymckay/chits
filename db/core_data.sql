@@ -1,3 +1,5 @@
+<<<<<<< HEAD:db/core_data.sql
+=======
 -- phpMyAdmin SQL Dump
 -- version 2.11.3deb1ubuntu1.1
 -- http://www.phpmyadmin.net
@@ -18244,3 +18246,4 @@ CREATE TABLE IF NOT EXISTS `m_lib_demographic_profile` (
   PRIMARY KEY (`demographic_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
+>>>>>>> c61492602f429d3000c3e5c76bb3210250a99be1:db/core_data.sql
