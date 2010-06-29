@@ -1,7 +1,7 @@
 <?
 // BEGIN SERVER CODE: DO NOT EDIT
 // Server generated code
-// Generated 2010-06-01 11:31:14
+// Generated 2010-03-29 11:43:02
 // Module: _menu.php
 // Author: Herman Tolentino MD
 //
@@ -209,6 +209,9 @@ if ($HTTP_GET_VARS["menu_id"]) {
 		break;
 	case 1336:
 		$reminder->_sms_template($menu_id, $HTTP_POST_VARS, $HTTP_GET_VARS,$_SESSION["validuser"],$_SESSION["isadmin"]);
+		break;
+	case 1361:
+		$sanitation->_consult_sanitation($menu_id, $HTTP_POST_VARS, $HTTP_GET_VARS,$_SESSION["validuser"],$_SESSION["isadmin"]);
 		break;
 	case 717:
 		$template->_templates($menu_id, $HTTP_POST_VARS, $HTTP_GET_VARS,$_SESSION["validuser"],$_SESSION["isadmin"]);

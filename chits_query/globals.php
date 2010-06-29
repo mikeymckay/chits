@@ -1,6 +1,5 @@
 <?
   session_start();
-  
   $dbname = 'chits2';
   #$dbname2 = 'chitsquery';
   $_SESSION["query"] = $dbname;

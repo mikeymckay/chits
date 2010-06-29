@@ -76,6 +76,7 @@ mysql_query("ALTER TABLE `content` DROP PRIMARY KEY , ADD PRIMARY KEY (`content_
 mysql_query("ALTER TABLE `m_patient_mc` DROP PRIMARY KEY, ADD PRIMARY KEY(`mc_id`)");
 mysql_query("ALTER TABLE `m_patient_fp` DROP PRIMARY KEY, ADD PRIMARY KEY(`fp_id`)");
 mysql_query("ALTER TABLE `m_patient_ccdev` DROP PRIMARY KEY, ADD PRIMARY KEY(`ccdev_id`)");
+<<<<<<< HEAD
 mysql_query("ALTER TABLE `m_patient_ntp` DROP PRIMARY KEY, ADD PRIMARY KEY(`ntp_id`)"); 
 mysql_query("ALTER TABLE `m_consult_appointments` DROP PRIMARY KEY, ADD PRIMARY KEY(`schedule_id`)");
 mysql_query("ALTER TABLE `m_dental_fhsis` DROP PRIMARY KEY, ADD PRIMARY KEY(`record_number`)");

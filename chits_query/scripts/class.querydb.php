@@ -51,7 +51,6 @@ class querydb{
 	$_SESSION[edate_orig] = $edate_orig;
 	
 	$_SESSION[fp_method] = (isset($misc))?$misc:0; //assign fp method to a session if it exists from the form, otherwise place 0
-
 	$this->stat_table($q,$_SESSION[ques]);
       
       endif;
@@ -163,7 +162,6 @@ class querydb{
 			$res = mysql_fetch_array($query);
 
 		elseif($quesno==34): //prenatal TCL
-			
 		
 		else:
 			//echo "No available query for this indicator.";
@@ -855,99 +853,35 @@ class querydb{
 	}
 	
 	function process_dhc_pho(){
-		echo "<a href='./pdf_reports/dental_pho.php'>Show PHO Dental Report</a>";
+		echo "<a href='./pdf_reports/dental_pho.php'></a>";
 	}
 	
 	function process_dhc_quarterly(){
-		echo "<a href='./pdf_reports/dental_quarterly.php'>Show Dental Quarterly Report</a>";
+		echo "<a href='./pdf_reports/dental_quarterly.php'>Show Dental Quarterly Table</a>";
 	}
 	
 	function process_dhc_summary(){
 		echo "<a href='./pdf_reports/dental_summary.php'>Show Dental Summary Table</a>";
 	}
-	
+
 	function process_dhc_tcl(){
-		echo "<a href='./pdf_reports/dental_tcl.php'>Show Dental Master List / TCL.</a>";
-	}
+                echo "<a href='./pdf_reports/dental_tcl.php'>Show Dental Target Client List</a>";
+        }
 	
-	
-	
-	function process_morbidity($quesno){		
-		$q_morb = mysql_query("SELECT ques_label FROM question WHERE ques_id=$quesno");
-		if(mysql_num_rows($q_morb)!=0):
-			list($ques_label) = mysql_fetch_array($q_morb);
-			echo "<a href='./pdf_reports/morbidity_report.php'>Show $ques_label</a>";
-		endif;
-	}
-	
-	function process_tb($quesno){			
-		$q_tb = mysql_query("SELECT ques_label FROM question WHERE ques_id='$quesno'") or die("Cannot query 824 ".mysql_error());
-		if(mysql_num_rows($q_tb)!=0):
-			list($ques_label) = mysql_fetch_array($q_tb);
-			if($quesno=='92' || $quesno=='93'):
-				echo "<a href='./pdf_reports/tb_summary.php'>Show $ques_label</a>";
-			elseif($quesno==94):
-				echo "<a href='./pdf_reports/tb_summary.php'>Show $ques_label</a>";
-			elseif($quesno==95): //tb register
-				if($_SESSION[brgy]=='all'):					
-					$q_register = mysql_query("SELECT patient_id,ntp_id FROM m_patient_ntp WHERE intensive_start_date BETWEEN '$_SESSION[sdate2]' AND '$_SESSION[edate2]' AND patient_id<>0 ORDER by intensive_start_date ASC") or die("Cannot query 836 ".mysql_error());
-				else:
-					$q_register = mysql_query("SELECT a.patient_id,a.ntp_id FROM m_patient_ntp a, m_family_members b, m_family_address c WHERE a.intensive_start_date BETWEEN '$_SESSION[sdate2]' AND '$_SESSION[edate2]' AND a.patient_id<>0 AND a.patient_id=b.patient_id AND b.family_id=c.family_id AND c.barangay_id='$_SESSION[brgy]'  ORDER by a.intensive_start_date ASC") or die("Cannot query 839 ".mysql_error());
-				endif;
-				
-				if(mysql_num_rows($q_register)!=0):
-					$arr_ntp_px = array();
-					$arr_ntp_id = array();
-					
-					while(list($pxid,$ntpid)=mysql_fetch_array($q_register)){
-						array_push($arr_ntp_px,$pxid);
-						array_push($arr_ntp_id,$ntpid);
-					}
-					$_SESSION[ntp_px] = $arr_ntp_px;
-					$_SESSION[ntp_id] = $arr_ntp_id;
-					
-					echo "Show $ques_label: <a href='./pdf_reports/tb_register.php?page=1'>Page 1</a>&nbsp;&nbsp;<a href='./pdf_reports/tb_register.php?page=2'>Page 2</a>";
-				
-				else:
-					echo "<font color='red'>No result/s found.</font>";
-				endif;
-			
-			elseif($quesno==90): //tb symptomatics
-				echo "<a href='./pdf_reports/tb_symptomatics.php'>Show $ques_label</a>";
-			elseif($quesno==91): //ntp lab register
-				echo "<a href='./pdf_reports/tb_symptomatics.php'>Show $ques_label</a>";
-			else:
-				
-			endif;
-			
-		endif;	
-	}
-	
-	function process_leprosy($queryno){
-		switch($queryno){
-			case 66:
-				echo "<a href='./pdf_reports/leprosy_summary.php'>Show Leprosy Summary Table</a>";				
-				break;
-			case 67:
-				echo "<a href='./pdf_reports/leprosy_quarterly.php'>Show Leprosy Quarterly Table</a>";				
-				break;			
-			case 68:
-				echo "<a href='./pdf_reports/leprosy_quarterly.php'>Show Leprosy Target Client List</a>";				
-				break;							
-			default:			
-				break;		
-		}	
-	}
-	
-	function process_demographic($queryno){	
-		$q_demographic = mysql_query("SELECT demographic_id FROM m_lib_demographic_profile WHERE year='$_POST[year]'") or die("Cannot query 899 ".mysql_error());
-		
-		if(mysql_num_rows($q_demographic)!=0):
-			echo "<a href='./pdf_reports/demographic_profile.php'>Show Demographic Profile Report (A1-RHU)</a>";
-		else:
-			echo "<font color='red'>No result/s found.</font>";
-		endif;		
+	function process_leprosy_quarterly(){
+		echo "<a href='./pdf_reports/leprosy_quarterly.php'>Show NLCP Quarterly Table</a>";
 	}
 
+	function process_leprosy_summary(){
+		echo "<a href='./pdf_reports/leprosy_summary.php'>Show NLCP Summary Table</a>";
+	}
+
+	function process_leprosy_tcl(){
+		echo "<a href='./pdf_reports/leprosy_tcl.php'>show NLCP Target Client List</a>";
+	}
+
+	function process_sanitation(){
+		echo "<a href='./pdf_reports/sanitation.php'>show Sanitation Report</a>";
+	}
 }
 ?>
