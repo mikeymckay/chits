@@ -138,6 +138,10 @@ class family extends module{
         if ($exitinfo = $this->missing_dependencies('family')) {
             return print($exitinfo);
         }
+        
+        mysql_query("ALTER TABLE `m_consult_notes` DROP PRIMARY KEY , ADD PRIMARY KEY (`notes_id`)");
+        
+        
         print "<span class='patient'>".FTITLE_FAMILY_RECORDS."</span><br/>";
         print "<table width='600' cellpadding='2'>";
         print "<tr valign='top'><td width='50%'>";
@@ -878,7 +882,7 @@ class family extends module{
         }
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_FIRST_NAME."</span><br> ";
-        print "<input type='text' class='textbox' ".($get_vars["patient_id"]?'disabled':'')." name='patient_firstname' value='".($patient["patient_firstname"]?$patient["patient_firstname"]:$post_vars["patient_firstname"])."' style='border: 1px solid #000000'><br>";
+        print "<input type='text' class='textbox required' ".($get_vars["patient_id"]?'disabled':'')." name='patient_firstname' value='".($patient["patient_firstname"]?$patient["patient_firstname"]:$post_vars["patient_firstname"])."' style='border: 1px solid #000000'><br>";
         print "</td></tr>";
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_MIDDLE_NAME."</span><br> ";
@@ -886,16 +890,16 @@ class family extends module{
         print "</td></tr>";
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_LAST_NAME."</span><br> ";
-        print "<input type='text' class='textbox' ".($get_vars["patient_id"]?'disabled':'')." name='patient_lastname' value='".($patient["patient_lastname"]?$patient["patient_lastname"]:$post_vars["patient_lastname"])."' style='border: 1px solid #000000'><br>";
+        print "<input type='text' class='textbox required' ".($get_vars["patient_id"]?'disabled':'')." name='patient_lastname' value='".($patient["patient_lastname"]?$patient["patient_lastname"]:$post_vars["patient_lastname"])."' style='border: 1px solid #000000'><br>";
         print "</td></tr>";
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_PATIENT_DOB."</span><br> ";
-        print "<input type='text' size='10' maxlength='10' class='textbox' ".($get_vars["patient_id"]?'disabled':'')." name='patient_dob' value='".($patient["patient_dob"]?$patient["patient_dob"]:$post_vars["patient_dob"])."' style='border: 1px solid #000000'><br>";
+        print "<input type='text' size='10' maxlength='10' class='textbox required' ".($get_vars["patient_id"]?'disabled':'')." name='patient_dob' value='".($patient["patient_dob"]?$patient["patient_dob"]:$post_vars["patient_dob"])."' style='border: 1px solid #000000'><br>";
         print "<small>Use format MM/DD/YYYY.</small>";
         print "</td></tr>";
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_GENDER."</span><br> ";
-        print "<select name='patient_gender' ".($get_vars["patient_id"]?'disabled':'')." class='textbox'>";
+        print "<select name='patient_gender' ".($get_vars["patient_id"]?'disabled':'')." class='textbox required'>";
         print "<option ".($patient["patient_gender"]=='M'?'selected':'')." value='M'>Male</option>";
         print "<option ".($patient["patient_gender"]=='F'?'selected':'')." value='F'>Female</option>";
         print "<option ".($patient["patient_gender"]=='I'?'selected':'')." value='I'>Indeterminate</option>";
@@ -913,6 +917,12 @@ class family extends module{
         }
         print "</td></tr>";
         print "</form>";
+        print "<script></script>
+        <script type='text/javascript'>
+          jQuery(document).ready(function($){
+            $('form[name=form_patient]').validate();
+          });
+        </script>".
         print "</table><br>";
     }
 

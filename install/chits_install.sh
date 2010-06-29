@@ -92,7 +92,7 @@ echo "
 # The values used correspond to /etc/rsnapshot.conf.
 # There you can also set the backup points and many other things.
 
-0 */4		* * *		root	/usr/bin/rsnapshot hourly
+0 */4	  * * *		root	/usr/bin/rsnapshot hourly
 30 16  	* * *		root	/usr/bin/rsnapshot daily
 0  16  	* * 1		root	/usr/bin/rsnapshot weekly
 45 16  	1 * *		root	/usr/bin/rsnapshot monthly

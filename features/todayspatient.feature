@@ -1,16 +1,32 @@
-Feature: Manage Patients
-	In order to maximize the time for health care delivery
+Feature: Todays Patients
+	This is Ryan trying to make a test for Today's Patients
 	As a chits user
-	I want to be able to manage patients by searching,creating,updating and deleting patient information
+	I want to be able to manage track taday's patients 
 
-      Scenario: Add Consult Record
-        Given I am logged in as "user" with password "user"
-        And I  click "TODAY's PATIENT"
-	When I fill in "first" with "Jose"	
-        And I fill in "last" with "Rizal"
-        And I press "Search"  
-	And I should see "Found"
-        And I choose "consult_patient_id"
-        And I press "Select Patient"
-        Then I should see "VISIT DETAILS"
+	Scenario: Patient Loaded in Family Planning Module
+    Given I am logged in as "user" with password "user"
+    And I click "TODAY'S PATIENTS"
+		When I click "CLICK TO VIEW RECORD"
+		And I check "ptgroup[]"
+		And I press "Save Details"
+		And I click "DETAILS"
+		Then I should see "FAMILY"
 
+	Scenario: Patient Loaded in Maternal Care Module
+    Given I am logged in as "user" with password "user"
+    And I click "TODAY'S PATIENTS"
+		When I click "CLICK TO VIEW RECORD"
+		And I check "ptgroup[]"
+		And I press "Save Details"
+		And I click "DETAILS"
+		Then I should see "MATERNAL"
+
+
+	Scenario: Patient Loaded in 
+    Given I am logged in as "user" with password "user"
+    And I click "TODAY'S PATIENTS"
+		When I click "CLICK TO VIEW RECORD"
+		And I check "ptgroup[]"
+		And I press "Save Details"
+		And I click "DETAILS"
+		Then I should see "NTP"

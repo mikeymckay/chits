@@ -89,22 +89,21 @@ class lab extends module {
         module::execsql("insert into m_lib_laboratory (lab_id, lab_name, lab_module) values ('CCS', 'Cervical Cancer Screening', 'ccs')");
 
         // lab requests
-        module::execsql("CREATE TABLE `m_consult_lab` (".
-            "`request_id` float NOT NULL auto_increment,".
-            "`patient_id` float NOT NULL default '0',".
-            "`lab_id` varchar(10) NOT NULL default '',".
-            "`request_timestamp` timestamp(14) NOT NULL,".
-            "`request_user_id` float NOT NULL default '0',".
-            "`consult_id` float NOT NULL default '0',".
-            "`request_done` char(1) NOT NULL default 'N',".
-            "`done_timestamp` timestamp(14) NOT NULL,".
-            "`done_user_id` float NOT NULL default '0',".
-            "PRIMARY KEY  (`request_id`),".
-            "KEY `key_user1` (`request_user_id`),".
-            "KEY `key_patient` (`patient_id`),".
-            "KEY `key_user2` (`done_user_id`),".
-            "KEY `key_consult` (`consult_id`),".
-            "KEY `key_lab` (`lab_id`),".
+        module::execsql("CREATE TABLE IF NOT EXISTS `m_consult_lab` (
+	   `request_id` float NOT NULL AUTO_INCREMENT,
+	   `patient_id` float NOT NULL DEFAULT '0',
+	   `lab_id` varchar(10) NOT NULL DEFAULT '',
+	   `request_timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	   `request_user_id` float NOT NULL DEFAULT '0',
+	   `consult_id` float NOT NULL DEFAULT '0',
+	   `request_done` char(1) NOT NULL DEFAULT 'N',
+	   `done_timestamp` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+	   `done_user_id` float NOT NULL DEFAULT '0',
+	    PRIMARY KEY (`request_id`),
+	    KEY `key_user1` (`request_user_id`),
+	    KEY `key_patient` (`patient_id`),
+	    KEY `key_user2` (`done_user_id`),
+	    KEY `key_consult` (`consult_id`),".
             "FOREIGN KEY (`consult_id`) REFERENCES `m_consult`(`consult_id`) ON DELETE CASCADE, ".
             "FOREIGN KEY (`patient_id`) REFERENCES `m_patient`(`patient_id`) ON DELETE CASCADE".
             ") TYPE=InnoDB; ");
@@ -143,6 +142,10 @@ class lab extends module {
             //print_r($arg_list);
         }
         $l = new lab;
+        
+        mysql_query("ALTER TABLE `m_consult_lab` DROP PRIMARY KEY , ADD PRIMARY KEY (`request_id`)");
+                
+        
         print "<table width='600'>";
         print "<tr><td>";
         $l->request_info($menu_id, $post_vars, $get_vars);
@@ -157,14 +160,14 @@ class lab extends module {
             // this establishes access to API of lab modules
             $eval_string = $get_vars["module"]."::_consult_lab_".$get_vars["module"]."(\$menu_id, \$post_vars, \$get_vars, \$validuser, \$isadmin);";
             // this executes lab module
-            if (class_exists($get_vars["module"])) {
-                eval("$eval_string");
+            if (class_exists($get_vars["module"])) {                                
+                eval('$eval_string');
             } else {
                 print "<b><font color='red'>WARNING:</font> module ".$get_vars["module"]." not loaded.</b><br/>";
             }
         }
         print "</td></tr>";
-        print "</table>";
+        print "</table>";        
     }
 
     function request_info() {
@@ -239,6 +242,9 @@ class lab extends module {
             $isadmin = $arg_list[4];
             //print_r($arg_list);
         }
+        
+        $pxid = healthcenter::get_patient_id($_GET[consult_id]);
+        
         // delete routine
         if ($get_vars["delete_id"]) {
             if (module::confirm_delete($menu_id, $post_vars, $get_vars)) {
@@ -253,17 +259,15 @@ class lab extends module {
             }
         }
         print "<b>".FTITLE_PENDING_LAB_REQUESTS."</b><br/><br/>";
-        $sql = "select c.request_id, l.lab_name, l.lab_module, date_format(c.request_timestamp, '%a %d %b %Y, %h:%i%p') ".
-               "from m_lib_laboratory l, m_consult_lab c ".
-               "where l.lab_id = c.lab_id and ".
-               "c.consult_id = '".$get_vars["consult_id"]."' and ".
-               "c.done_timestamp = ''";
+        $sql = "select c.request_id, l.lab_name, l.lab_module, date_format(c.request_timestamp, '%a %d %b %Y, %h:%i%p') from m_lib_laboratory l, m_consult_lab c where l.lab_id = c.lab_id and c.done_timestamp = '0000-00-00' AND request_done='N' AND patient_id='$pxid'";
+               
+        
         if ($result = mysql_query($sql)) {
             if (mysql_num_rows($result)) {
                 print "<table width='300'><tr><td>";
                 while (list($id, $name, $mod, $ts1, $ts2) = mysql_fetch_array($result)) {
                     print "<img src='../images/arrow_redwhite.gif' align='bottom' border='0'/> ";
-                    print "<a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=".$get_vars["ptmenu"]."&module=$mod&request_id=$id' title='".INSTR_CLICK_VIEW_RESULTS."'>$name</a> ";
+                    print "<a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=".$get_vars["ptmenu"]."&module=$mod&request_id=$id#sputum_form' title='".INSTR_CLICK_VIEW_RESULTS."'>$name</a> ";
                     if ($_SESSION["priv_delete"]) {
                         print "<a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=".$get_vars["ptmenu"]."&delete_id=$id'><img src='../images/delete.png' border='0'/></a>";
                     }
@@ -272,8 +276,9 @@ class lab extends module {
                     if ($get_vars["request_id"]==$id && $get_vars["module"]==$mod) {
                         // access result API for lab exam
                         // <module_name>::_consult_lab_<module_name>_results()
-                        $eval_string = "$mod::_consult_lab_".$get_vars["module"]."_results(\$menu_id, \$post_vars, \$get_vars);";
-                        if (class_exists($mod)) {
+                        $eval_string = "$mod::_consult_lab_".$get_vars["module"]."(\$menu_id, \$post_vars, \$get_vars);";
+                        if (class_exists($mod)) {                        
+                            //echo $eval_string;    
                             eval("$eval_string");
                         } else {
                             print "<b><font color='red'>WARNING:</font> $mod missing.</b><br/>";
@@ -287,23 +292,22 @@ class lab extends module {
         }
         print "<br/>";
         print "<b>".FTITLE_COMPLETED_LAB_REQUESTS."</b><br/><br/>";
-        $sql = "select c.request_id, l.lab_name, l.lab_module, date_format(c.request_timestamp, '%a %d %b %Y, %h:%i%p') ".
-               "from m_lib_laboratory l, m_consult_lab c ".
-               "where l.lab_id = c.lab_id and ".
-               "c.consult_id = '".$get_vars["consult_id"]."' and ".
-               "c.done_timestamp <> ''";
-        if ($result = mysql_query($sql)) {
+        $sql = "select c.request_id, l.lab_name, l.lab_module, date_format(c.request_timestamp, '%a %d %b %Y, %h:%i%p') from m_lib_laboratory l, m_consult_lab c where l.lab_id = c.lab_id and c.done_timestamp <> '0000-00-00' and c.request_done='Y' AND patient_id='$pxid'";
+        
+        if ($result = mysql_query($sql)) {                
             if (mysql_num_rows($result)) {
                 print "<table><tr><td>";
                 while (list($id, $name, $mod, $ts1, $ts2) = mysql_fetch_array($result)) {
                     print "<img src='../images/arrow_redwhite.gif' align='left' border='0'/> ";
-                    print "<a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=".$get_vars["ptmenu"]."&module=$mod&request_id=$id' title='".INSTR_CLICK_VIEW_RESULTS."'>$name</a> ";
+                    print "<a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=".$get_vars["ptmenu"]."&module=$mod&request_id=$id#sputum_result' title='".INSTR_CLICK_VIEW_RESULTS."'>$name</a> ";
                     print "<br/>&nbsp;&nbsp;&nbsp;$ts1<br/>";
                     if ($get_vars["request_id"]==$id && $get_vars["module"]==$mod) {
                         // access result API for lab exam
                         // <module_name>::_consult_lab_<module_name>_results()
                         $eval_string = "$mod::_consult_lab_".$get_vars["module"]."_results(\$menu_id, \$post_vars, \$get_vars);";
                         if (class_exists($mod)) {
+                            //echo $eval_string;                            
+                            //sputum::_consult_lab_sputum($_GET["menu_id"],$_POST,$_GET);
                             eval("$eval_string");
                         } else {
                             print "<b><font color='red'>WARNING:</font> $mod missing.</b><br/>";
@@ -330,6 +334,7 @@ class lab extends module {
         $patient_id = healthcenter::get_patient_id($get_vars["consult_id"]);
         switch($post_vars["submitlab"]) {
         case "Send Request":
+            mysql_query("ALTER TABLE `m_consult_lab` DROP PRIMARY KEY, ADD PRIMARY KEY(`request_id`)");
             if ($post_vars["lab_exam"]) {
                 foreach($post_vars["lab_exam"] as $key=>$value) {
                     $sql = "insert into m_consult_lab (consult_id, patient_id, lab_id, request_timestamp, request_user_id) ".
