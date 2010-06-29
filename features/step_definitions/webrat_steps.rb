@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), "..", "support", "paths"))
+re File.expand_path(File.join(File.dirname(__FILE__), "..", "support", "paths"))
 
 # Commonly used webrat steps
 # http://github.com/brynary/webrat
@@ -134,3 +134,4 @@ end
 Then /^I should be on (.+)$/ do |page_name|
   assert_equal path_to(page_name), URI.parse(current_url).path
 end
+

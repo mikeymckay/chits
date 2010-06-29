@@ -108,7 +108,10 @@ module Webrat
         File.open(filepath, "w") do |file|
           file.puts @session.send(:response_body)
         end
-        raise "#{e.message}\n#{@session.send(:response_body).gsub(/\n/, "\n  ")}\nURL: #{@session.current_url}\nResponse saved: #{filepath}"  
+        #output = `echo #{@session.send(:response_body)} | lynx -stdin -dump`
+        output = ""
+        raise "#{e.message}\n#{output}\nURL: #{@session.current_url}\nResponse saved: #{filepath}"  
+        #raise "#{e.message}\n#{@session.send(:response_body).gsub(/\n/, "\n  ")}\nURL: #{@session.current_url}\nResponse saved: #{filepath}"  
       end
     end
   end
