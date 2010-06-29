@@ -61,6 +61,8 @@ if ($user->check_users()) {
 }
 
 
+
+
 // load module class includes
 // this is server-generated code
 // do not edit or delete
@@ -118,7 +120,7 @@ small { font-family: verdana, sans serif}
 .ptmenu:hover { font-family: verdana, arial, sans serif; font-size: 10pt; text-decoration: none; background-color: #FFFF33; border: 1px solid black; padding-left: 2px; padding-right: 2px;}
 .boxtitle { font-family: verdana, arial, sans serif; font-size: 8pt; font-weight: bold;}
 .tiny { font-family: arial, sans serif; font-size: 7pt; font-weight: bold; color: black; }
-.tinylight { font-family: verdana, arial, sans serif; font-size: 7pt; font-weight: normal; color: black; }
+.tinylight { font-family: verdana, arial, sans serif; font-size: 8pt; font-weight: normal; color: black; }
 .copyright { font-family: verdana, arial, sans serif; font-size: 7pt; font-weight: normal; color: black; }
 .admin { font-family: verdana, arial, sans serif; font-size: 14pt; font-weight: bold; color: #FF3300; }
 .module { font-family: verdana, arial, sans serif; font-size: 14pt; font-weight: bold; color: #9999FF; }
@@ -140,9 +142,9 @@ small { font-family: verdana, sans serif}
 <body text="black" bgcolor="#FFFFCC" link="black" vlink="black">
 <? 
 	//echo "Print page module: ";
-	//print_r($_GET);
-
+	//print_r($_GET);	
 ?>
+
 <br/>
 <table border="0" cellspacing="0" bgcolor="#000000" style="border: 4px solid black" width="100%" cellpadding="0">
   <tr bgcolor="#FF0000">
@@ -194,7 +196,7 @@ small { font-family: verdana, sans serif}
             }
             if (!$_SESSION["validuser"]) {
                 $user->authenticate();
-            } else {
+            } else {            
                 $user->signoff($_SESSION["user_first"], $_SESSION["user_last"], $_SESSION["datanode"]["name"], $_SESSION["isadmin"], $_SERVER["REMOTE_ADDR"], $_SESSION["userid"]);
             }
             ?>
@@ -286,7 +288,7 @@ small { font-family: verdana, sans serif}
             }
             if (module::in_menu($_GET["page"],array_values($menu_array[0]))) {
                 $module->default_action($_GET["page"]);
-            } else {
+            } else {                            
                 $site->content($menu_id, $_POST, $_GET);
 
             }
