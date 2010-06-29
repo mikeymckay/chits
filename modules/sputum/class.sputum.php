@@ -51,7 +51,6 @@ class sputum extends module {
         module::set_lang("LBL_DATE_PROCESSED", "english", "DATE PROCESSED", "Y");
         module::set_lang("LBL_PROCESSED_BY", "english", "PROCESSED BY", "Y");
         module::set_lang("LBL_SPUTUM_PERIOD", "english", "PERIOD OF SPUTUM EXAM", "Y");
-
     }
 
     function init_stats() {
@@ -252,7 +251,7 @@ class sputum extends module {
             $isadmin = $arg_list[4];
             //print_r($arg_list);
         }
-        echo "<a name='sputum_form'></a>";
+        echo "<a name='sputum'></a>";
         
         print "<table width='300'>";
         print "<form action = '".$_SERVER["SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&module=sputum&request_id=".$get_vars["request_id"]."&lab_id=SPT". "&ptmenu=LABS' name='form_lab' method='post'>";
@@ -261,10 +260,7 @@ class sputum extends module {
         print "</td></tr>";
         print "<tr valign='top'><td>";
         print "<span class='boxtitle'>".LBL_LAB_REQUEST_DETAILS."</span><br> ";
-        $sql = "select lab_id, consult_id, date_format(request_timestamp, '%a %d %b %Y, %h:%i%p') request_timestamp, request_user_id, request_done, ".
-               "date_format(done_timestamp, '%a %d %b %Y, %h:%i%p') done_timestamp, done_user_id ".
-               "from m_consult_lab ".
-               "where request_id = '".$get_vars["request_id"]."'";
+        $sql = "select lab_id, consult_id, date_format(request_timestamp, '%a %d %b %Y, %h:%i%p') request_timestamp, request_user_id, request_done, "."date_format(done_timestamp, '%a %d %b %Y, %h:%i%p') done_timestamp, done_user_id "."from m_consult_lab "."where request_id = '".$get_vars["request_id"]."'";
         if ($result = mysql_query($sql)) {
             if (mysql_num_rows($result)) {
                 $lab = mysql_fetch_array($result);
@@ -486,11 +482,11 @@ class sputum extends module {
                     if ($result_update = mysql_query($sql_update)) {                        
                         mysql_query("COMMIT;") or die(mysql_error());
                         mysql_query("SET autocommit=1;") or die(mysql_error());
-                        header("location: ".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&module=".$get_vars["module"]."&ptmenu=LABS"."&module=sputum"."&request_id=".$get_vars["request_id"]."#sputum_form");
+                        header("location: ".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&module=".$get_vars["module"]."&ptmenu=LABS"."&module=sputum"."&request_id=".$get_vars["request_id"]."#sputum");
                     } else {
                         mysql_query("ROLLBACK;") or die(mysql_error());
                         mysql_query("SET autocommit=1;") or die(mysql_error());
-                        header("location: ".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&module=".$get_vars["module"]."&ptmenu=LABS"."&module=sputum"."&request_id=".$get_vars["request_id"]."#sputum_form");
+                        header("location: ".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&module=".$get_vars["module"]."&ptmenu=LABS"."&module=sputum"."&request_id=".$get_vars["request_id"]."#sputum");
                     }
                 }                
                 

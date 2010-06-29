@@ -44,7 +44,7 @@ class healthcenter extends module{
         module::set_dep($this->module, "notes");
         module::set_dep($this->module, "appointment");
         module::set_dep($this->module, "drug");
-
+        module::set_dep($this->module, "consult_graph");
     }
 
     function init_lang() {
@@ -468,7 +468,8 @@ class healthcenter extends module{
         }
         
         mysql_query("ALTER TABLE `m_consult` DROP PRIMARY KEY , ADD PRIMARY KEY (`consult_id`)");
-        
+        mysql_query("ALTER TABLE `m_consult_notes` DROP PRIMARY KEY , ADD PRIMARY KEY (`notes_id`)");
+                
         
         if (func_num_args()>0) {
             $arg_list = func_get_args();
@@ -484,6 +485,7 @@ class healthcenter extends module{
             $notes = new notes;
             $lab = new lab;
             $drug = new drug;
+            $graph = new consult_graph;
         }
         if ($get_vars["patient_id"] && $get_vars["consult_id"]) {
             print "<table>";
@@ -552,6 +554,9 @@ class healthcenter extends module{
                     break;
                 case "NOTES":
                     $notes->_consult_notes($menu_id, $post_vars, $get_vars);
+                    break;
+                case GRAPH:
+                    $graph->_graph_form($menu_id,$post_vars,$get_vars);
                     break;
                 case "DRUGS":
                     $drug->_consult_drug($menu_id, $post_vars, $get_vars);
@@ -750,7 +755,10 @@ class healthcenter extends module{
                 print "Height: $ht cms<br/>";
                 print "</td></tr>";
                 print "<tr><td colspan='2'>";
-                print "HPN STAGE: ".healthcenter::hypertension_stage($syst, $diast, $edad)."<br/>";
+                //print "HPN STAGE: ".healthcenter::hypertension_stage($syst, $diast, $edad)."<br/>";
+		print "HPN STAGE: ";
+		healthcenter::hypertension_stage($syst, $diast, $edad);
+		print "<br/>";
 		print healthcenter::compute_bmi($ht,$wt);
                 print "</td></tr>";
                 print "<tr><td colspan='2'>";
@@ -955,13 +963,14 @@ class healthcenter extends module{
             $isadmin = $arg_list[4];
             //print_r($arg_list);
         }
-        print "<table width='600' cellpadding='2' bgcolor='#CCCC99' cellspacing='1' style='border: 2px solid black'><tr>";
+        print "<table width='650' cellpadding='2' bgcolor='#CCCC99' cellspacing='1' style='border: 2px solid black'><tr>";
         print "<td><a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=DETAILS' class='ptmenu'>".($get_vars["ptmenu"]=="DETAILS"?"<b>".MENU_VISIT_DETAILS."</b>":MENU_VISIT_DETAILS)."</a></td>";
         print "<td><a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=APPTS' class='ptmenu'>".($get_vars["ptmenu"]=="APPTS"?"<b>".MENU_APPTS."</b>":MENU_APPTS)."</a></td>";
         print "<td><a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=VITALS' class='ptmenu'>".($get_vars["ptmenu"]=="VITALS"?"<b>".MENU_VITAL_SIGNS."</b>":MENU_VITAL_SIGNS)."</td>";
         print "<td><a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=LABS' class='ptmenu'>".($get_vars["ptmenu"]=="LABS"?"<b>".MENU_LABS."</b>":MENU_LABS)."</td>";
         print "<td><a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=NOTES' class='ptmenu'>".($get_vars["ptmenu"]=="NOTES"?"<b>".MENU_NOTES."</b>":MENU_NOTES)."</td>";
         print "<td><a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=DRUGS' class='ptmenu'>".($get_vars["ptmenu"]=="DRUGS"?"<b>".MENU_DRUGS."</b>":MENU_DRUGS)."</td>";
+        print "<td><a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=GRAPH#graph' class='ptmenu'>".($get_vars["ptmenu"]=="GRAPHS"?"<b>GRAPHS</b>":"GRAPHS")."</td>";
         print "<td><a href='".$_SERVER["PHP_SELF"]."?page=".$get_vars["page"]."&menu_id=".$get_vars["menu_id"]."&consult_id=".$get_vars["consult_id"]."&ptmenu=CONSULT' class='ptmenu'>".($get_vars["ptmenu"]=="CONSULT"?"<b>".MENU_CONSULT."</b>":MENU_CONSULT)."</td>";
         print "</tr></table>";
     }
@@ -989,7 +998,7 @@ class healthcenter extends module{
                 }
             }
         }
-        print "<table width='600' cellpadding='2' cellspacing='0' style='border: 2px solid black'>";
+        print "<table width='650' cellpadding='2' cellspacing='0' style='border: 2px solid black'>";
         print "<tr><td colspan='2' bgcolor='#FFFFCC'>";
         print "<span class='library'>".strtoupper($ptinfo["patient_lastname"].", ".$ptinfo["patient_firstname"])."</span> <br/>";
         print LBL_FAMILY_NUMBER." <b>".family::search_family($ptinfo["patient_id"])."</b>&nbsp;&nbsp;&nbsp;"."AGE: <b>".($ptinfo["computed_age"]<1?($ptinfo["computed_age"]*12)."M":$ptinfo["computed_age"]."Y")."/".$ptinfo["patient_gender"]."</b>&nbsp;&nbsp;&nbsp; BIRTHDATE: <b>".$ptinfo["patient_dob"]."</b><br/>";
@@ -1220,9 +1229,30 @@ class healthcenter extends module{
                 // wherever this is shown
                 $consult_menu_id = module::get_menu_id("_consult");
                 while (list($cid, $pid, $plast, $pfirst, $see_doctor) = mysql_fetch_array($result)) {
+
+                    $q_lab = mysql_query("SELECT request_id,request_done FROM m_consult_lab WHERE patient_id='$pid' AND consult_id='$cid'") or die("Cannot query 1224".mysql_error());
+                                        
+                    
+                    if(mysql_num_rows($q_lab)!=0):
+                        $arr_done = array();
+                        $arr_id = array();
+                        while(list($req_id,$done_status) = mysql_fetch_array($q_lab)){
+                            array_push($arr_id,$req_id);
+                            array_push($arr_done,$done_status);                                                    
+                        }
+                        
+                        $done = (in_array("N",$arr_done)?"N":"Y");
+                        $request_id = $arr_id[0];                        
+                        $url = "page=CONSULTS&menu_id=1327&consult_id=$cid&ptmenu=LABS";
+                    else:
+                        $request_id = $done = "";
+                    endif;
+                                                            
+                    
                     $visits = healthcenter::get_total_visits($pid);
                     $consult_array[$i] = "<a href='".$_SERVER["PHP_SELF"]."?page=CONSULTS&menu_id=$consult_menu_id&consult_id=$cid&ptmenu=DETAILS' title='".INSTR_CLICK_TO_VIEW_RECORD."' ".($see_doctor=="Y"?"style='background-color: #FFFF33'":"").">".
-                                         "<b>$plast, $pfirst</b></a> [$visits] ".($see_doctor=="Y"?"<img src='../images/star.gif' border='0'/>":"");
+                                         "<b>$plast, $pfirst</b></a> [$visits] ".($see_doctor=="Y"?"<img src='../images/star.gif' border='0'/>":"").(($request_id!="")?(($done=="Y")?"<a href='$_SERVER[PHP_SELF]?$url' title='lab completed'><img src='../images/lab.png' width='15px' height='15px' border='0' alt='lab completed' /></a>":"<a href='$_SERVER[PHP_SELF]?$url' title='lab pending'><img src='../images/lab_untested.png' width='15px' height='15px' border='0' alt='lab pending' /></a>"):"");
+                                         
                     $i++;
                 }
                 // pass on patient list to be columnized
@@ -1341,24 +1371,60 @@ class healthcenter extends module{
             $diastolic = $arg_list[1];
             $edad = $arg_list[2];
         }
-		
+	
 		if($edad >= 18):
         
 			if ($systolic >=160 || $diastolic >=100) {
-				return "<font color='red'>$systolic/$diastolic <b>HPN STAGE 2</b></font>";
+				echo "<font color='red'>$systolic/$diastolic <b>HPN STAGE 2</b></font>";
+				return 'HPN2';
 			} elseif (($systolic >=140 && $systolic <=159) || ($diastolic>=90 && $diastolic<=99)) {
-				return "<font color='red'>$systolic/$diastolic <b>HPN STAGE 1</b></font>";
+				echo "<font color='red'>$systolic/$diastolic <b>HPN STAGE 1</b></font>";
+				return 'HPN1';
 			} elseif (($systolic >=120 && $systolic <=139) || ($diastolic>=80 && $diastolic<=89)) {
-				return "<font color='red'>$systolic/$diastolic PRE-HPN</font>";
+				echo "<font color='red'>$systolic/$diastolic PRE-HPN</font>";
+				return 'PREHPN';
 			} elseif ($systolic<120 && $diastolic<80) {
-				return "<font color='blue'>$systolic/$diastolic NORMAL</font>";
+				echo "<font color='blue'>$systolic/$diastolic NORMAL</font>";
+				return 'NORMAL';
 			} elseif(!$systolic && !$diastolic) {
+				echo "NA";
 				return "NA";
 			}
 			else{}
 
 		else:
 			return "<font color='red' size='2'>BP not applicable for <18YO.</font>";
+		endif;
+  }
+
+function hypertension_code() {
+    //
+    // returns systolic pressure with stage
+    //
+        if (func_num_args()>0) {
+            $arg_list = func_get_args();
+            $systolic = $arg_list[0];
+            $diastolic = $arg_list[1];
+            $edad = $arg_list[2];
+        }
+	
+		if($edad >= 18):
+        
+			if ($systolic >=160 || $diastolic >=100) {
+				return 'HPN2';
+			} elseif (($systolic >=140 && $systolic <=159) || ($diastolic>=90 && $diastolic<=99)) {
+				return 'HPN1';
+			} elseif (($systolic >=120 && $systolic <=139) || ($diastolic>=80 && $diastolic<=89)) {
+				return 'PREHPN';
+			} elseif ($systolic<120 && $diastolic<80) {
+				return 'NORMAL';
+			} elseif(!$systolic && !$diastolic) {
+				return "NA";
+			}
+			else{}
+
+		else:
+			return "NA";
 		endif;
   }
 

@@ -1,7 +1,7 @@
 <?
 // BEGIN SERVER CODE: DO NOT EDIT
 // Server generated code
-// Generated 2010-03-15 13:06:36
+// Generated 2010-06-01 11:31:14
 // Module: _menu.php
 // Author: Herman Tolentino MD
 //
@@ -36,6 +36,8 @@ if ($HTTP_GET_VARS["menu_id"]) {
 		break;
 	case 1351:
 		$dental->_dental($menu_id, $HTTP_POST_VARS, $HTTP_GET_VARS,$_SESSION["validuser"],$_SESSION["isadmin"]);
+	case 1359:
+		$demographic_profile->_demographic_profile($menu_id, $HTTP_POST_VARS, $HTTP_GET_VARS,$_SESSION["validuser"],$_SESSION["isadmin"]);
 		break;
 	case 1341:
 		$drug->_drugs($menu_id, $HTTP_POST_VARS, $HTTP_GET_VARS,$_SESSION["validuser"],$_SESSION["isadmin"]);
